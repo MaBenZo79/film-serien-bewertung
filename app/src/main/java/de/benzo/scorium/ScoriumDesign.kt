@@ -149,3 +149,25 @@ fun ScoriumDetailHero(title:String,kind:String) {
   }
  }
 }
+
+@Composable
+fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
+ val transition=rememberInfiniteTransition(label="menu-$index")
+ val shimmer by transition.animateFloat(0f,1f,
+  infiniteRepeatable(tween(3200+index*300,easing=EaseInOutSine),RepeatMode.Reverse),label="shimmer")
+ Card(onClick=onClick,shape=RoundedCornerShape(19.dp),modifier=Modifier.fillMaxWidth().height(90.dp),
+  colors=CardDefaults.cardColors(containerColor=Color(0xFF1A2639))) {
+  Box(Modifier.fillMaxSize().background(Brush.horizontalGradient(listOf(
+   Color(0xFF19273B),Color(0xFF26364D).copy(alpha=0.75f+shimmer*0.25f),
+   Color(0xFF151E30))))) {
+   Box(Modifier.align(Alignment.CenterStart).padding(start=14.dp)
+    .size(width=3.dp,height=48.dp).background(gold,RoundedCornerShape(3.dp)))
+   Column(Modifier.align(Alignment.CenterStart).padding(start=30.dp)) {
+    Text(label.uppercase(),fontSize=20.sp,fontWeight=FontWeight.Bold,color=Color.White,letterSpacing=1.sp)
+    Text(subtitle,fontSize=11.sp,color=fog)
+   }
+   Text("›",modifier=Modifier.align(Alignment.CenterEnd).padding(end=23.dp),
+    fontSize=30.sp,color=gold)
+  }
+ }
+}
