@@ -182,10 +182,10 @@ class MainActivity: ComponentActivity() {
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
        seasonCount=prefs.getInt("seasons::$seriesKey",McuCatalog.find(seriesKey)?.seasons?.size ?: 1).coerceAtLeast(1)
-       episodeCount=prefs.getInt("episodes::$seriesKey::1",McuCatalog.find(seriesKey)?.seasons?.firstOrNull() ?: 6).coerceAtLeast(1)
+       episodeCount=prefs.getInt("episodes::$seriesKey::1",McuCatalog.find(seriesKey)?.available?.firstOrNull() ?: 6).coerceAtLeast(1)
       }
       LaunchedEffect(seriesKey,selectedSeason) {
-       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.seasons?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
+       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
       }
       BackHandler {
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
@@ -197,13 +197,11 @@ class MainActivity: ComponentActivity() {
       val revision=refresh
       if(isSeries && selectedSeason==0) {
        Text("Staffeln",color=gold,fontSize=18.sp)
-       LazyColumn(Modifier.weight(1f)) {
+       LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
         items((1..seasonCount).toList()) { number ->
-         Card(onClick={selectedSeason=number;selectedEpisode=0},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
-          Column(Modifier.padding(18.dp)) {
-           Text("Staffel $number")
-           seasonScore(prefs,seriesKey,number)?.let { Text("$it% · ${grade(it)}",color=gold) }
-          }
+         val score=seasonScore(prefs,seriesKey,number)
+         ScoriumTitleCard("Staffel $number","Staffel",score,score?.let { grade(it) }) {
+          selectedSeason=number;selectedEpisode=0
          }
         }
        }
@@ -229,15 +227,11 @@ class MainActivity: ComponentActivity() {
         }
        } else if(average!=null) Text("Episodendurchschnitt: $average%",color=gold)
        Text("Episoden",color=gold)
-       LazyColumn(Modifier.weight(1f)) {
+       LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
         items((1..episodeCount).toList()) { number ->
-         Card(onClick={selectedEpisode=number},modifier=Modifier.fillMaxWidth().padding(vertical=4.dp)) {
-          Column(Modifier.padding(16.dp)) {
-           Text("Episode $number")
-           savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)?.let {
-            Text("$it% · ${grade(it)}",color=gold)
-           }
-          }
+         val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
+         ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) }) {
+          selectedEpisode=number
          }
         }
        }
