@@ -8,6 +8,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,7 +41,7 @@ fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
 @Composable
 fun ScoriumHeader(subtitle:String="DEIN PERSÖNLICHES FILMARCHIV") {
  Column(Modifier.fillMaxWidth().padding(top=12.dp,bottom=10.dp)) {
-  Text("SCORIUM",fontSize=30.sp,letterSpacing=3.sp,fontWeight=FontWeight.Black,color=gold)
+  Image(painter=painterResource(R.drawable.scorium_logo),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Crop,alignment=Alignment.Center)
   Text(subtitle,fontSize=10.sp,letterSpacing=1.6.sp,color=fog)
  }
 }
