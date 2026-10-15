@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
 
 private val ink=Color(0xFF090C1B)
 private val slate=Color(0xFF1A203A)
