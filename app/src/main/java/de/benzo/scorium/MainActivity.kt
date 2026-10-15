@@ -252,7 +252,19 @@ class MainActivity: ComponentActivity() {
        }
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
        Text(if(percent==null) "Bewertet: ${ratings.size}/${criteria.size}" else "Gesamt: ${percent}% · ${grade(percent)}",color=gold,fontSize=19.sp)
-       LazyColumn {
+       if(percent!=null) {
+        val report=RatingExport.Report(
+         selected!!,
+         if(!isSeries) "Film" else if(selectedEpisode == -1) "Staffel $selectedSeason" else "Staffel $selectedSeason · Episode $selectedEpisode",
+         "$percent% · ${grade(percent)}",
+         criteria.map { it to "${ratings[it] ?: 0}/10" }
+        )
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+         OutlinedButton(onClick={exportReport=report;pngLauncher.launch("Scorium-Bewertung.png")}) { Text("Als PNG speichern") }
+         OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-Bewertung.pdf")}) { Text("Als PDF speichern") }
+        }
+       }
+       LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         items(criteria) { criterion ->
          ScoriumRatingCard(criterion,ratings[criterion]) { newScore ->
           ratings[criterion]=newScore
@@ -266,4 +278,5 @@ class MainActivity: ComponentActivity() {
    }
   }
  }
+}
 }
