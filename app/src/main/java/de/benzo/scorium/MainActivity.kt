@@ -1,6 +1,5 @@
 package de.benzo.scorium
 
-import android.app.Activity
 import android.os.Bundle
 import android.content.Context
 import androidx.activity.ComponentActivity
