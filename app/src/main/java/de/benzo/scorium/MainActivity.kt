@@ -100,7 +100,7 @@ class MainActivity: ComponentActivity() {
      for(i in 0 until data.length()) add(data.optString(i))
     }
    }
-   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF1B2534),onSurface=Color.White,onBackground=Color.White,onPrimary=navy)
+   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
    BackHandler(enabled=true) {
     when {
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
@@ -119,32 +119,22 @@ class MainActivity: ComponentActivity() {
      dismissButton={TextButton(onClick={showExitDialog=false}) { Text("Nein, bleiben") }}
     )
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    Column(Modifier.fillMaxSize().padding(20.dp)) {
-     Text("SCORIUM",fontSize=32.sp,color=gold,fontWeight=FontWeight.Black)
-     Text("Dein Film- und Serienarchiv",fontSize=13.sp,color=Color(0xFFC0C7D2))
-     Spacer(Modifier.height(16.dp))
+    ScoriumBackdrop { Column(Modifier.fillMaxSize().padding(horizontal=18.dp)) {
+     ScoriumHeader()
+     Spacer(Modifier.height(12.dp))
      if(home) {
-      Spacer(Modifier.height(24.dp))
-      Text("DEINE FILMWELT",fontSize=14.sp,color=gold,fontWeight=FontWeight.Bold)
       Spacer(Modifier.height(10.dp))
-      Text("Entdecke. Bewerte. Erinnere dich.",fontSize=27.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      Text("DEINE FILMWELT",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(8.dp))
+      Text("Jede Geschichte verdient eine Wertung.",fontSize=25.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(24.dp))
+      ScoriumHero(onExplore={home=false;tab="Alle"})
       Spacer(Modifier.height(22.dp))
-      Card(onClick={home=false;tab="Alle"},modifier=Modifier.fillMaxWidth().height(190.dp),
-       shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF351B2C))) {
-       Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.SpaceBetween) {
-        Text("FRANCHISE",color=gold,fontSize=12.sp,fontWeight=FontWeight.Bold)
-        Column {
-         Text("MARVEL",color=Color.White,fontSize=31.sp,fontWeight=FontWeight.Black)
-         Text("CINEMATIC UNIVERSE",color=Color(0xFFE6BBC2),fontSize=13.sp)
-         Text("${films.size} Filme · ${series.size} Serien",color=Color.White,fontSize=12.sp)
-        }
-       }
-      }
-      Spacer(Modifier.height(22.dp))
-      Text("Dein Archiv",fontSize=22.sp,color=Color.White,fontWeight=FontWeight.Bold)
-      Spacer(Modifier.height(12.dp))
-      Button(onClick={home=false;tab="Filme"},modifier=Modifier.fillMaxWidth()) { Text("Filme entdecken") }
-      OutlinedButton(onClick={home=false;tab="Serien"},modifier=Modifier.fillMaxWidth()) { Text("Serien entdecken") }
+      Text("DEIN ARCHIV",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(14.dp))
+      Button(onClick={home=false;tab="Filme"},modifier=Modifier.fillMaxWidth().height(54.dp)) { Text("FILME ENTDECKEN") }
+      Spacer(Modifier.height(8.dp))
+      OutlinedButton(onClick={home=false;tab="Serien"},modifier=Modifier.fillMaxWidth().height(54.dp)) { Text("SERIEN ENTDECKEN") }
      } else if(selected==null) {
       TextButton(onClick={home=true}) { Text("← Startseite") }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
@@ -153,17 +143,14 @@ class MainActivity: ComponentActivity() {
       val revision=refresh
       LazyColumn(Modifier.weight(1f)) {
        items(entries) { name ->
-        Card(onClick={selected=name;selectedSeason=0;selectedEpisode=0},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
-         Column(Modifier.padding(16.dp)) {
-          Text(name,fontSize=18.sp,color=Color.White,fontWeight=FontWeight.SemiBold)
-          Text(if(name in series || name in customSeries) "Serie" else "Film",color=gold,fontSize=12.sp)
-          val value=if(name in series || name in customSeries) {
-           val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
-           val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
-           if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
-          } else savedPercent(prefs,name,categories)
-          if(value!=null) Text("$value% · ${grade(value)}",color=gold)
-         }
+        val isShow=name in series || name in customSeries
+        val value=if(isShow) {
+         val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
+         val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
+         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+        } else savedPercent(prefs,name,categories)
+        ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) }) {
+         selected=name;selectedSeason=0;selectedEpisode=0
         }
        }
       }
@@ -267,23 +254,15 @@ class MainActivity: ComponentActivity() {
        Text(if(percent==null) "Bewertet: ${ratings.size}/${criteria.size}" else "Gesamt: ${percent}% · ${grade(percent)}",color=gold,fontSize=19.sp)
        LazyColumn {
         items(criteria) { criterion ->
-         Card(Modifier.fillMaxWidth().padding(vertical=5.dp)) {
-          Column(Modifier.padding(14.dp)) {
-           Text(criterion)
-           val value=ratings[criterion]
-           Text(value?.let { "${it}/10 · ${scoreDescription(it)}" } ?: "Noch nicht bewertet",color=gold)
-           Slider(value=(value ?: 5).toFloat(),onValueChange={
-            ratings[criterion]=it.toInt().coerceIn(1,10)
-            val json=JSONObject();ratings.forEach { (name,score)->json.put(name,score) }
-            prefs.edit().putString(key,json.toString()).apply();refresh++
-           },valueRange=1f..10f,steps=8)
-          }
+         ScoriumRatingCard(criterion,ratings[criterion]) { newScore ->
+          ratings[criterion]=newScore
+          val json=JSONObject();ratings.forEach { (name,score)->json.put(name,score) }
+          prefs.edit().putString(key,json.toString()).apply();refresh++
          }
-        }
        }
       }
      }
-    }
+    } }
    }
   }
  }
