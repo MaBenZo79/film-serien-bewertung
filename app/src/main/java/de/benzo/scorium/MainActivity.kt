@@ -8,6 +8,8 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
@@ -120,7 +122,7 @@ class MainActivity: ComponentActivity() {
      dismissButton={TextButton(onClick={showExitDialog=false}) { Text("Nein, bleiben") }}
     )
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop { Column(Modifier.fillMaxSize().padding(horizontal=18.dp)) {
+    ScoriumBackdrop { Column(Modifier.fillMaxSize().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
      ScoriumHeader()
      Spacer(Modifier.height(12.dp))
      if(home) {
@@ -224,7 +226,7 @@ class MainActivity: ComponentActivity() {
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
       ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film")
-      PosterPicker(selected!!)
+      PosterPicker(selected!!) { refresh++ }
       Spacer(Modifier.height(8.dp))
       val revision=refresh
       if(isSeries && selectedSeason==0) {
