@@ -61,6 +61,7 @@ class MainActivity: ComponentActivity() {
   setContent {
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
+   var section by remember { mutableStateOf("Franchises") }
    var showExitDialog by remember { mutableStateOf(false) }
    var selectedSeason by remember { mutableIntStateOf(0) }
    var selectedEpisode by remember { mutableIntStateOf(0) }
@@ -124,19 +125,50 @@ class MainActivity: ComponentActivity() {
      Spacer(Modifier.height(12.dp))
      if(home) {
       Spacer(Modifier.height(10.dp))
-      Text("DEINE FILMWELT",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
+      Text("DEIN KINO. DEINE WERTUNG.",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
       Spacer(Modifier.height(8.dp))
-      Text("Jede Geschichte verdient eine Wertung.",fontSize=25.sp,color=Color.White,fontWeight=FontWeight.Bold)
-      Spacer(Modifier.height(24.dp))
-      ScoriumHero(onExplore={home=false;tab="Alle"})
-      Spacer(Modifier.height(22.dp))
-      Text("DEIN ARCHIV",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
-      Spacer(Modifier.height(14.dp))
-      Button(onClick={home=false;tab="Filme"},modifier=Modifier.fillMaxWidth().height(54.dp)) { Text("FILME ENTDECKEN") }
-      Spacer(Modifier.height(8.dp))
-      OutlinedButton(onClick={home=false;tab="Serien"},modifier=Modifier.fillMaxWidth().height(54.dp)) { Text("SERIEN ENTDECKEN") }
+      Text("Willkommen in deiner Filmwelt.",fontSize=24.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(18.dp))
+      Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+       ScoriumMenuTile("Franchises","Marvel Cinematic Universe",0) { section="Franchises";home=false;tab="Alle" }
+       ScoriumMenuTile("Filme","Entdecken und bewerten",1) { section="Filme";home=false;tab="Filme" }
+       ScoriumMenuTile("Serien","Staffeln und Episoden",2) { section="Serien";home=false;tab="Serien" }
+       ScoriumMenuTile("Ranking","Deine besten Bewertungen",3) { section="Ranking";home=false }
+       ScoriumMenuTile("Download","Bewertungen als PDF oder Bild",4) { section="Download";home=false }
+      }
      } else if(selected==null) {
       TextButton(onClick={home=true}) { Text("← Startseite") }
+      if(section=="Ranking" || section=="Download") {
+       val rated=(films+extras+series+customSeries).mapNotNull { name ->
+        val value=if(name in series || name in customSeries) {
+         val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
+         val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
+         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+        } else savedPercent(prefs,name,categories)
+        value?.let { name to it }
+       }.sortedByDescending { it.second }
+       val revision=refresh
+       Text(if(section=="Ranking") "DEIN RANKING" else "DEINE EXPORTS",color=gold,fontSize=20.sp,fontWeight=FontWeight.Bold)
+       Spacer(Modifier.height(12.dp))
+       if(rated.isEmpty()) Text("Noch keine vollständig bewerteten Titel vorhanden.",color=Color.White)
+       LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        items(rated) { (name,score) ->
+         Column {
+          ScoriumTitleCard(name,"$score% · ${grade(score)}",score,grade(score)) {
+           selected=name;selectedSeason=0;selectedEpisode=0
+          }
+          if(section=="Download" && name !in series && name !in customSeries) {
+           val json=runCatching { JSONObject(prefs.getString(name,"{}") ?: "{}") }.getOrDefault(JSONObject())
+           val report=RatingExport.Report(name,"Film","$score% · ${grade(score)}",categories.map { it to "${json.optInt(it)}/10" })
+           Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick={exportReport=report;pngLauncher.launch("Scorium-$name.png")}) { Text("PNG") }
+            OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-$name.pdf")}) { Text("PDF") }
+           }
+          }
+         }
+        }
+       }
+      } else {
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
@@ -272,4 +304,5 @@ class MainActivity: ComponentActivity() {
   }
  }
 }
-}
+}      }
+
