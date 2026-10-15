@@ -8,6 +8,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -37,7 +40,7 @@ private fun savedPercent(prefs: android.content.SharedPreferences, key: String, 
  return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
 }
 private fun seasonAverage(prefs: android.content.SharedPreferences, seriesName: String, season: Int): Int? {
- val count=prefs.getInt("episodes::$seriesName::$season",6).coerceAtLeast(1)
+ val count=prefs.getInt("episodes::$seriesName::$season",McuCatalog.find(seriesName)?.seasons?.getOrNull(season-1) ?: 6).coerceAtLeast(1)
  val results=(1..count).mapNotNull { ep -> savedPercent(prefs,"$seriesName::season:$season:episode:$ep",episodeCategories) }
  return if(results.size==count) kotlin.math.round(results.average()).toInt() else null
 }
@@ -46,15 +49,18 @@ private fun seasonScore(prefs: android.content.SharedPreferences, seriesName: St
  val average=seasonAverage(prefs,seriesName,season)
  return if(prefs.getString("mode::$seriesName::$season","manual")=="episodes") average ?: manual else manual ?: average
 }
-private val films = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
-private val series = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
+private val legacyFilms = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
+private val legacySeries = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
 private fun grade(p: Int) = when { p>=95->"A+";p>=90->"A";p>=85->"A-";p>=80->"B+";p>=75->"B";p>=70->"B-";p>=65->"C+";p>=60->"C";p>=55->"C-";p>=50->"D+";p>=45->"D";p>=40->"D-";else->"F" }
+private val films get() = McuCatalog.films
+private val series get() = McuCatalog.shows.map { it.title }
 class MainActivity: ComponentActivity() {
  override fun onCreate(savedInstanceState: Bundle?) {
   super.onCreate(savedInstanceState)
   val prefs=getSharedPreferences("ratings",Context.MODE_PRIVATE)
   setContent {
    var selected by remember { mutableStateOf<String?>(null) }
+   var home by remember { mutableStateOf(true) }
    var selectedSeason by remember { mutableIntStateOf(0) }
    var selectedEpisode by remember { mutableIntStateOf(0) }
    var seasonCount by remember { mutableIntStateOf(1) }
@@ -93,14 +99,37 @@ class MainActivity: ComponentActivity() {
      for(i in 0 until data.length()) add(data.optString(i))
     }
    }
-   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF1B2534),onSurface=Color.White,onBackground=Color.White)
+   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF1B2534),onSurface=Color.White,onBackground=Color.White,onPrimary=navy)
    MaterialTheme(colorScheme=palette) {
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     Column(Modifier.fillMaxSize().padding(20.dp)) {
-     Text("SCORIUM",fontSize=32.sp,color=gold)
-     Text("Dein Film- und Serienarchiv",fontSize=13.sp)
+     Text("SCORIUM",fontSize=32.sp,color=gold,fontWeight=FontWeight.Black)
+     Text("Dein Film- und Serienarchiv",fontSize=13.sp,color=Color(0xFFC0C7D2))
      Spacer(Modifier.height(16.dp))
-     if(selected==null) {
+     if(home) {
+      Spacer(Modifier.height(24.dp))
+      Text("DEINE FILMWELT",fontSize=14.sp,color=gold,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(10.dp))
+      Text("Entdecke. Bewerte. Erinnere dich.",fontSize=27.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(22.dp))
+      Card(onClick={home=false;tab="Alle"},modifier=Modifier.fillMaxWidth().height(190.dp),
+       shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF351B2C))) {
+       Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.SpaceBetween) {
+        Text("FRANCHISE",color=gold,fontSize=12.sp,fontWeight=FontWeight.Bold)
+        Column {
+         Text("MARVEL",color=Color.White,fontSize=31.sp,fontWeight=FontWeight.Black)
+         Text("CINEMATIC UNIVERSE",color=Color(0xFFE6BBC2),fontSize=13.sp)
+         Text("${films.size} Filme · ${series.size} Serien",color=Color.White,fontSize=12.sp)
+        }
+       }
+      }
+      Spacer(Modifier.height(22.dp))
+      Text("Dein Archiv",fontSize=22.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      Spacer(Modifier.height(12.dp))
+      Button(onClick={home=false;tab="Filme"},modifier=Modifier.fillMaxWidth()) { Text("Filme entdecken") }
+      OutlinedButton(onClick={home=false;tab="Serien"},modifier=Modifier.fillMaxWidth()) { Text("Serien entdecken") }
+     } else if(selected==null) {
+      TextButton(onClick={home=true}) { Text("← Startseite") }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
@@ -109,10 +138,10 @@ class MainActivity: ComponentActivity() {
        items(entries) { name ->
         Card(onClick={selected=name;selectedSeason=0;selectedEpisode=0},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
          Column(Modifier.padding(16.dp)) {
-          Text(name,fontSize=18.sp)
+          Text(name,fontSize=18.sp,color=Color.White,fontWeight=FontWeight.SemiBold)
           Text(if(name in series || name in customSeries) "Serie" else "Film",color=gold,fontSize=12.sp)
           val value=if(name in series || name in customSeries) {
-           val count=prefs.getInt("seasons::$name",1)
+           val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
            val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
            if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
           } else savedPercent(prefs,name,categories)
@@ -152,7 +181,7 @@ class MainActivity: ComponentActivity() {
        episodeCount=prefs.getInt("episodes::$seriesKey::1",6).coerceAtLeast(1)
       }
       LaunchedEffect(seriesKey,selectedSeason) {
-       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",6).coerceAtLeast(1)
+       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.seasons?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
       }
       BackHandler {
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
@@ -160,7 +189,7 @@ class MainActivity: ComponentActivity() {
       TextButton(onClick={
        when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
-      Text(selected!!,fontSize=24.sp)
+      Text(selected!!,fontSize=24.sp,color=Color.White,fontWeight=FontWeight.Bold)
       val revision=refresh
       if(isSeries && selectedSeason==0) {
        Text("Staffeln",color=gold,fontSize=18.sp)
