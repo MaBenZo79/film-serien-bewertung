@@ -40,7 +40,7 @@ fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
 @Composable
 fun ScoriumHeader(subtitle:String="DEIN PERSÖNLICHES FILMARCHIV") {
  Column(Modifier.fillMaxWidth().padding(top=12.dp,bottom=10.dp)) {
-  Image(painter=painterResource(R.drawable.scorium_logo),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Crop,alignment=Alignment.Center)
+  Image(painter=painterResource(R.drawable.scorium_logo),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Fit,alignment=Alignment.Center)
   Text(subtitle,fontSize=10.sp,letterSpacing=1.6.sp,color=fog)
  }
 }
