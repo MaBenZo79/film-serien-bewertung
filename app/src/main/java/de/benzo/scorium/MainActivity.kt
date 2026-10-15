@@ -209,6 +209,7 @@ class MainActivity: ComponentActivity() {
        newTitle=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
+      }
      } else {
       val isSeries=selected!! in series || selected!! in customSeries
       val seriesKey=selected!!
@@ -304,5 +305,4 @@ class MainActivity: ComponentActivity() {
   }
  }
 }
-}      }
-
+}
