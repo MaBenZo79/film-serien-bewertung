@@ -23,6 +23,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      - name: Prepare Scorium logo PNG
+        run: |
+          mkdir -p app/src/main/res/drawable-nodpi
+          base64 --decode app/src/main/scorium_logo.png.base64 > app/src/main/res/drawable-nodpi/scorium_logo.png
+          test -s app/src/main/res/drawable-nodpi/scorium_logo.png
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
       - name: Upload debug APK
