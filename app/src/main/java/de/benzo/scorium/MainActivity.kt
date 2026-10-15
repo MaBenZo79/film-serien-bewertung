@@ -104,7 +104,7 @@ class MainActivity: ComponentActivity() {
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
      } else {
-      val isSeries=selected in series || selected in customSeries
+      val isSeries=selected!! in series || selected!! in customSeries
       BackHandler {
        when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }
