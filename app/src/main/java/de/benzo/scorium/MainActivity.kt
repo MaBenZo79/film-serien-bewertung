@@ -187,13 +187,12 @@ class MainActivity: ComponentActivity() {
       LaunchedEffect(seriesKey,selectedSeason) {
        if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
       }
-      BackHandler {
-       when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
-      }
       TextButton(onClick={
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
-      Text(selected!!,fontSize=24.sp,color=Color.White,fontWeight=FontWeight.Bold)
+      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film")
+      PosterPicker(selected!!)
+      Spacer(Modifier.height(8.dp))
       val revision=refresh
       if(isSeries && selectedSeason==0) {
        Text("Staffeln",color=gold,fontSize=18.sp)
