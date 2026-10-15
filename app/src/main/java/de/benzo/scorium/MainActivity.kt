@@ -181,8 +181,8 @@ class MainActivity: ComponentActivity() {
       val isSeries=selected!! in series || selected!! in customSeries
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
-       seasonCount=prefs.getInt("seasons::$seriesKey",1).coerceAtLeast(1)
-       episodeCount=prefs.getInt("episodes::$seriesKey::1",6).coerceAtLeast(1)
+       seasonCount=prefs.getInt("seasons::$seriesKey",McuCatalog.find(seriesKey)?.seasons?.size ?: 1).coerceAtLeast(1)
+       episodeCount=prefs.getInt("episodes::$seriesKey::1",McuCatalog.find(seriesKey)?.seasons?.firstOrNull() ?: 6).coerceAtLeast(1)
       }
       LaunchedEffect(seriesKey,selectedSeason) {
        if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.seasons?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
@@ -191,7 +191,7 @@ class MainActivity: ComponentActivity() {
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }
       TextButton(onClick={
-       when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
+       when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
       Text(selected!!,fontSize=24.sp,color=Color.White,fontWeight=FontWeight.Bold)
       val revision=refresh
