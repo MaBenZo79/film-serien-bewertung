@@ -25,10 +25,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 
-private val ink=Color(0xFF090E19)
-private val slate=Color(0xFF162032)
-private val gold=Color(0xFFE9C47B)
-private val fog=Color(0xFFAEBBD0)
+private val ink=Color(0xFF090C1B)
+private val slate=Color(0xFF1A203A)
+private val gold=Color(0xFFAC88F6)
+private val fog=Color(0xFFB5B7CD)
 
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
@@ -110,24 +110,36 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 
 @Composable
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
- val level=when(value) { null->"BEWERTUNG WÄHLEN";in 1..2->"ENTTÄUSCHEND";in 3..4->"UNTERDURCHSCHNITTLICH";in 5..6->"SOLIDE";in 7..8->"SEHR GUT";else->"HERAUSRAGEND" }
- Card(shape=RoundedCornerShape(20.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF182235)),
+ val animated by animateFloatAsState(targetValue=(value ?: 5).toFloat(),animationSpec=tween(230),label="score")
+ Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF171C32)),
   modifier=Modifier.fillMaxWidth()) {
-  Column(Modifier.padding(horizontal=18.dp,vertical=17.dp)) {
-   Row(verticalAlignment=Alignment.CenterVertically) {
-    Text(label,color=Color.White,fontWeight=FontWeight.SemiBold,fontSize=16.sp,modifier=Modifier.weight(1f))
-    Box(Modifier.background(Color(0xFF293A50),RoundedCornerShape(10.dp)).padding(horizontal=11.dp,vertical=6.dp)) {
-     Text(value?.toString() ?: "–",color=gold,fontSize=19.sp,fontWeight=FontWeight.Black)
+  Column(Modifier.padding(horizontal=18.dp,vertical=20.dp)) {
+   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=18.sp)
+   Spacer(Modifier.height(13.dp))
+   Box(Modifier.fillMaxWidth().background(Color(0xFF252A3F),RoundedCornerShape(18.dp)).padding(18.dp),
+    contentAlignment=Alignment.Center) {
+    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+     Text(if(value==null) "– / 10" else "${animated.toInt()}/10",
+      color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Black)
+     Spacer(Modifier.height(10.dp))
+     Text(if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
+       else criterionDescription(label,value),
+      color=Color(0xFFE1DDED),fontSize=14.sp,lineHeight=21.sp,textAlign=TextAlign.Center)
     }
    }
-   Spacer(Modifier.height(7.dp))
-   Text(level,color=fog,fontSize=10.sp,letterSpacing=1.sp)
+   Spacer(Modifier.height(13.dp))
    Slider(value=(value ?: 5).toFloat(),onValueChange={onChange(it.toInt().coerceIn(1,10))},
     valueRange=1f..10f,steps=8,
     colors=SliderDefaults.colors(thumbColor=gold,activeTrackColor=gold,
-     inactiveTrackColor=Color(0xFF39445B),activeTickColor=Color(0xFF283145)))
+     inactiveTrackColor=Color(0xFF42445A)))
+   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
+    Text("1",color=fog,fontSize=12.sp)
+    Text("5",color=fog,fontSize=12.sp)
+    Text("10",color=fog,fontSize=12.sp)
+   }
   }
  }
+
 }
 
 @Composable
