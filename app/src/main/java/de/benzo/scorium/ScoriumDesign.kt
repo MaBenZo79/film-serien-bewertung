@@ -129,3 +129,23 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
   }
  }
 }
+
+@Composable
+fun ScoriumDetailHero(title:String,kind:String) {
+ Card(shape=RoundedCornerShape(24.dp),
+  colors=CardDefaults.cardColors(containerColor=Color(0xFF19243A)),
+  modifier=Modifier.fillMaxWidth()) {
+  Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp))
+   Spacer(Modifier.width(17.dp))
+   Column(Modifier.weight(1f)) {
+    Text(kind.uppercase(),color=gold,fontSize=11.sp,letterSpacing=1.5.sp)
+    Spacer(Modifier.height(8.dp))
+    Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
+     maxLines=4,overflow=TextOverflow.Ellipsis)
+    Spacer(Modifier.height(8.dp))
+    Text("DEIN PERSÖNLICHES ARCHIV",color=fog,fontSize=10.sp)
+   }
+  }
+ }
+}
