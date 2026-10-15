@@ -61,6 +61,7 @@ class MainActivity: ComponentActivity() {
   setContent {
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
+   var showExitDialog by remember { mutableStateOf(false) }
    var selectedSeason by remember { mutableIntStateOf(0) }
    var selectedEpisode by remember { mutableIntStateOf(0) }
    var seasonCount by remember { mutableIntStateOf(1) }
@@ -100,7 +101,23 @@ class MainActivity: ComponentActivity() {
     }
    }
    val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF1B2534),onSurface=Color.White,onBackground=Color.White,onPrimary=navy)
+   BackHandler(enabled=true) {
+    when {
+     selected!=null && selectedEpisode!=0 -> selectedEpisode=0
+     selected!=null && selectedSeason>0 -> selectedSeason=0
+     selected!=null -> selected=null
+     !home -> home=true
+     else -> showExitDialog=true
+    }
+   }
    MaterialTheme(colorScheme=palette) {
+    if(showExitDialog) AlertDialog(
+     onDismissRequest={showExitDialog=false},
+     title={Text("SCORIUM beenden?")},
+     text={Text("Möchtest du die App wirklich schließen?")},
+     confirmButton={TextButton(onClick={showExitDialog=false;this@MainActivity.finish()}) { Text("Ja, beenden") }},
+     dismissButton={TextButton(onClick={showExitDialog=false}) { Text("Nein, bleiben") }}
+    )
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     Column(Modifier.fillMaxSize().padding(20.dp)) {
      Text("SCORIUM",fontSize=32.sp,color=gold,fontWeight=FontWeight.Black)
