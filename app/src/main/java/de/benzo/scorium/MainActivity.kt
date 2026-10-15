@@ -6,6 +6,8 @@ import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -70,6 +72,22 @@ class MainActivity: ComponentActivity() {
    var newTitle by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
    var refresh by remember { mutableIntStateOf(0) }
+   var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
+   var exportError by remember { mutableStateOf<String?>(null) }
+   val pngLauncher=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
+    if(uri!=null) runCatching {
+     contentResolver.openOutputStream(uri)?.use { stream ->
+      RatingExport.png(requireNotNull(exportReport),stream)
+     } ?: error("Ausgabedatei nicht geöffnet")
+    }.onFailure { exportError=it.localizedMessage }
+   }
+   val pdfLauncher=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
+    if(uri!=null) runCatching {
+     contentResolver.openOutputStream(uri)?.use { stream ->
+      RatingExport.pdf(requireNotNull(exportReport),stream)
+     } ?: error("Ausgabedatei nicht geöffnet")
+    }.onFailure { exportError=it.localizedMessage }
+   }
    val customSeries=remember {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_series","[]")) }.getOrDefault(JSONArray())
@@ -78,6 +96,7 @@ class MainActivity: ComponentActivity() {
    }
    val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF1B2534),onSurface=Color.White,onBackground=Color.White)
    MaterialTheme(colorScheme=palette) {
+    if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     Column(Modifier.fillMaxSize().padding(20.dp)) {
      Text("SCORIUM",fontSize=32.sp,color=gold)
      Text("Dein Film- und Serienarchiv",fontSize=13.sp)
