@@ -105,6 +105,14 @@ class MainActivity: ComponentActivity() {
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
      } else {
       val isSeries=selected!! in series || selected!! in customSeries
+      val seriesKey=selected!!
+      LaunchedEffect(seriesKey) {
+       seasonCount=prefs.getInt("seasons::$seriesKey",1).coerceAtLeast(1)
+       episodeCount=prefs.getInt("episodes::$seriesKey::1",6).coerceAtLeast(1)
+      }
+      LaunchedEffect(seriesKey,selectedSeason) {
+       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",6).coerceAtLeast(1)
+      }
       BackHandler {
        when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }
@@ -121,7 +129,7 @@ class MainActivity: ComponentActivity() {
          }
         }
        }
-       Button(onClick={seasonCount++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
+       Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply()},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
       } else if(isSeries && selectedEpisode==0) {
        Text("Staffel $selectedSeason",color=gold,fontSize=18.sp)
        Row {
@@ -135,7 +143,7 @@ class MainActivity: ComponentActivity() {
          }
         }
        }
-       Button(onClick={episodeCount++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
+       Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply()},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
       } else {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
