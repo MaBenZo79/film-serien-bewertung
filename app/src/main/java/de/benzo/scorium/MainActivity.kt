@@ -30,6 +30,21 @@ private fun scoreDescription(n: Int) = when(n) {
  in 7..8 -> "Sehr gelungen"
  else -> "Herausragend"
 }
+private fun savedPercent(prefs: android.content.SharedPreferences, key: String, names: List<String>): Int? {
+ val json=runCatching { JSONObject(prefs.getString(key,"{}") ?: "{}") }.getOrDefault(JSONObject())
+ if(!names.all { json.has(it) }) return null
+ return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
+}
+private fun seasonAverage(prefs: android.content.SharedPreferences, seriesName: String, season: Int): Int? {
+ val count=prefs.getInt("episodes::$seriesName::$season",6).coerceAtLeast(1)
+ val results=(1..count).mapNotNull { ep -> savedPercent(prefs,"$seriesName::season:$season:episode:$ep",episodeCategories) }
+ return if(results.size==count) kotlin.math.round(results.average()).toInt() else null
+}
+private fun seasonScore(prefs: android.content.SharedPreferences, seriesName: String, season: Int): Int? {
+ val manual=savedPercent(prefs,"$seriesName::season:$season",seasonCategories)
+ val average=seasonAverage(prefs,seriesName,season)
+ return if(prefs.getString("mode::$seriesName::$season","manual")=="episodes") average ?: manual else manual ?: average
+}
 private val films = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
 private val series = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
 private fun grade(p: Int) = when { p>=95->"A+";p>=90->"A";p>=85->"A-";p>=80->"B+";p>=75->"B";p>=70->"B-";p>=65->"C+";p>=60->"C";p>=55->"C-";p>=50->"D+";p>=45->"D";p>=40->"D-";else->"F" }
@@ -54,6 +69,7 @@ class MainActivity: ComponentActivity() {
    var add by remember { mutableStateOf(false) }
    var newTitle by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
+   var refresh by remember { mutableIntStateOf(0) }
    val customSeries=remember {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_series","[]")) }.getOrDefault(JSONArray())
@@ -70,12 +86,19 @@ class MainActivity: ComponentActivity() {
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
+      val revision=refresh
       LazyColumn(Modifier.weight(1f)) {
        items(entries) { name ->
         Card(onClick={selected=name;selectedSeason=0;selectedEpisode=0},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
          Column(Modifier.padding(16.dp)) {
           Text(name,fontSize=18.sp)
           Text(if(name in series || name in customSeries) "Serie" else "Film",color=gold,fontSize=12.sp)
+          val value=if(name in series || name in customSeries) {
+           val count=prefs.getInt("seasons::$name",1)
+           val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
+           if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+          } else savedPercent(prefs,name,categories)
+          if(value!=null) Text("$value% · ${grade(value)}",color=gold)
          }
         }
        }
@@ -114,36 +137,60 @@ class MainActivity: ComponentActivity() {
        if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",6).coerceAtLeast(1)
       }
       BackHandler {
-       when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
+       when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }
       TextButton(onClick={
        when { selectedEpisode>0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
       Text(selected!!,fontSize=24.sp)
+      val revision=refresh
       if(isSeries && selectedSeason==0) {
        Text("Staffeln",color=gold,fontSize=18.sp)
        LazyColumn(Modifier.weight(1f)) {
         items((1..seasonCount).toList()) { number ->
-         Card(onClick={selectedSeason=number},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
-          Text("Staffel $number",Modifier.padding(18.dp))
+         Card(onClick={selectedSeason=number;selectedEpisode=0},modifier=Modifier.fillMaxWidth().padding(vertical=5.dp)) {
+          Column(Modifier.padding(18.dp)) {
+           Text("Staffel $number")
+           seasonScore(prefs,seriesKey,number)?.let { Text("$it% · ${grade(it)}",color=gold) }
+          }
          }
         }
        }
-       Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply()},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
+       Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
       } else if(isSeries && selectedEpisode==0) {
        Text("Staffel $selectedSeason",color=gold,fontSize=18.sp)
        Row {
         Button(onClick={selectedEpisode=-1}) { Text("Staffel bewerten") }
        }
+       val manual=savedPercent(prefs,"$seriesKey::season:$selectedSeason",seasonCategories)
+       val average=seasonAverage(prefs,seriesKey,selectedSeason)
+       if(manual!=null && average!=null) {
+        Text("Aktive Staffelwertung",color=gold)
+        val mode=prefs.getString("mode::$seriesKey::$selectedSeason","manual") ?: "manual"
+        Row {
+         FilterChip(selected=mode=="manual",onClick={
+          prefs.edit().putString("mode::$seriesKey::$selectedSeason","manual").apply();refresh++
+         },label={Text("Manuell: $manual%")})
+         Spacer(Modifier.width(8.dp))
+         FilterChip(selected=mode=="episodes",onClick={
+          prefs.edit().putString("mode::$seriesKey::$selectedSeason","episodes").apply();refresh++
+         },label={Text("Episoden: $average%")})
+        }
+       } else if(average!=null) Text("Episodendurchschnitt: $average%",color=gold)
        Text("Episoden",color=gold)
        LazyColumn(Modifier.weight(1f)) {
         items((1..episodeCount).toList()) { number ->
          Card(onClick={selectedEpisode=number},modifier=Modifier.fillMaxWidth().padding(vertical=4.dp)) {
-          Text("Episode $number",Modifier.padding(16.dp))
+          Column(Modifier.padding(16.dp)) {
+           Text("Episode $number")
+           savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)?.let {
+            Text("$it% · ${grade(it)}",color=gold)
+           }
+          }
          }
         }
        }
-       Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply()},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
+       Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
       } else {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
@@ -164,7 +211,7 @@ class MainActivity: ComponentActivity() {
            Slider(value=(value ?: 5).toFloat(),onValueChange={
             ratings[criterion]=it.toInt().coerceIn(1,10)
             val json=JSONObject();ratings.forEach { (name,score)->json.put(name,score) }
-            prefs.edit().putString(key,json.toString()).apply()
+            prefs.edit().putString(key,json.toString()).apply();refresh++
            },valueRange=1f..10f,steps=8)
           }
          }
