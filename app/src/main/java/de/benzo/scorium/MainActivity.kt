@@ -231,8 +231,8 @@ class MainActivity: ComponentActivity() {
       val revision=refresh
       if(isSeries && selectedSeason==0) {
        Text("Staffeln",color=gold,fontSize=18.sp)
-       LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        items((1..seasonCount).toList()) { number ->
+       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        (1..seasonCount).forEach { number ->
          val score=seasonScore(prefs,seriesKey,number)
          ScoriumTitleCard("Staffel $number","Staffel",score,score?.let { grade(it) }) {
           selectedSeason=number;selectedEpisode=0
@@ -261,8 +261,8 @@ class MainActivity: ComponentActivity() {
         }
        } else if(average!=null) Text("Episodendurchschnitt: $average%",color=gold)
        Text("Episoden",color=gold)
-       LazyColumn(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        items((1..episodeCount).toList()) { number ->
+       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        (1..episodeCount).forEach { number ->
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
          ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) }) {
           selectedEpisode=number
@@ -292,8 +292,8 @@ class MainActivity: ComponentActivity() {
          OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-Bewertung.pdf")}) { Text("Als PDF speichern") }
         }
        }
-       LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        items(criteria) { criterion ->
+       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        criteria.forEach { criterion ->
          ScoriumRatingCard(criterion,ratings[criterion]) { newScore ->
           ratings[criterion]=newScore
           val json=JSONObject();ratings.forEach { (name,score)->json.put(name,score) }
