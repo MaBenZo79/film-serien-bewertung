@@ -41,7 +41,7 @@ fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
 
 @Composable
 fun ScoriumHeader() {
- Column(Modifier.fillMaxWidth().padding(top=12.dp,bottom=10.dp)) {
+ Box(Modifier.fillMaxWidth().padding(top=12.dp,bottom=10.dp),contentAlignment=Alignment.Center) {
   Image(painter=painterResource(R.drawable.scorium_header),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Fit,alignment=Alignment.Center)
  }
 }
