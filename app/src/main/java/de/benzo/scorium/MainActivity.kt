@@ -224,7 +224,7 @@ class MainActivity: ComponentActivity() {
          Column {
           ScoriumTitleCard(name,"${score / 10}.${score % 10} · ${grade(score)}",score,grade(score),onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
-          }
+          })
           if(section=="Download" && name !in series && name !in customSeries) {
            val json=runCatching { JSONObject(prefs.getString(name,"{}") ?: "{}") }.getOrDefault(JSONObject())
            val report=RatingExport.Report(name,"Film","${score / 10}.${score % 10} · ${grade(score)}",categories.map { it to "${json.optInt(it)}/10" })
