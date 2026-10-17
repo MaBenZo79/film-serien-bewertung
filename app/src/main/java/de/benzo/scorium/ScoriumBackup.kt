@@ -93,6 +93,16 @@ object ScoriumBackup {
    }
   }
   val data=json ?: error("Keine gültige SCORIUM-Sicherung")
+  // Validate the complete archive before changing any existing ratings or posters.
+  require(posters.size <= 5000) { "Zu viele Poster in der Sicherung" }
+  posters.forEach { (name, bytes) ->
+   require(bytes.size <= 20 * 1024 * 1024) { "Poster zu groß: $name" }
+   require(bytes.size >= 3 &&
+    (bytes[0].toInt() and 255) == 0xFF &&
+    (bytes[1].toInt() and 255) == 0xD8 &&
+    (bytes[2].toInt() and 255) == 0xFF
+   ) { "Ungültige Posterdatei: $name" }
+  }
   val editor=context.getSharedPreferences("ratings",Context.MODE_PRIVATE).edit().clear()
   data.keys().forEach { key ->
    when(val value=data.get(key)) {
