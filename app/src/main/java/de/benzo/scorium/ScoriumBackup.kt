@@ -9,6 +9,23 @@ import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 object ScoriumBackup {
+ /**
+  * Public starter catalog derived from the user's backup. Ratings and personal history
+  * are deliberately excluded. Never overwrites data on subsequent launches.
+  * The complete built-in MCU catalog continues to come from McuCatalog.
+  */
+ fun initializeStarterCatalog(context:Context) {
+  val prefs=context.getSharedPreferences("ratings",Context.MODE_PRIVATE)
+  if(prefs.contains("starter_catalog_initialized")) return
+  val editor=prefs.edit()
+  if(!prefs.contains("custom_series")) editor.putString("custom_series",org.json.JSONArray().put("X-MEN 97").toString())
+  if(!prefs.contains("seasons::X-MEN 97")) editor.putInt("seasons::X-MEN 97",2)
+  if(!prefs.contains("episodes::X-MEN 97::1")) editor.putInt("episodes::X-MEN 97::1",10)
+  if(!prefs.contains("episodes::X-MEN 97::2")) editor.putInt("episodes::X-MEN 97::2",9)
+  if(!prefs.contains("seasons::She-Hulk")) editor.putInt("seasons::She-Hulk",2)
+  editor.putBoolean("starter_catalog_initialized",true)
+  check(editor.commit()) { "Startkatalog konnte nicht gespeichert werden" }
+ }
  fun export(context:Context,out:OutputStream) {
   val json=JSONObject()
   context.getSharedPreferences("ratings",Context.MODE_PRIVATE).all.forEach { (key,value) ->
