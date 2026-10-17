@@ -144,6 +144,7 @@ class MainActivity: ComponentActivity() {
      ScoriumHeader()
      Spacer(Modifier.height(12.dp))
      if(home) {
+      val imageRevision=refresh
       val homeScroll=rememberScrollState()
       Column(Modifier.fillMaxSize().verticalScroll(homeScroll)) {
        Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -163,10 +164,13 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(26.dp))
        Text("Zuletzt angesehen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(12.dp))
-       val recent=listOf("Iron Man","Avengers: Endgame","Loki")
+       val recent=remember(refresh) {
+        val stored=runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray())
+        (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }.ifEmpty { listOf("Iron Man","Avengers: Endgame","Loki") }
+       }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
-         Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;home=false }) {
+         Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;val recentData=JSONArray();(listOf(name)+(0 until runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).length()).map { idx -> runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).optString(idx) }).filter { it.isNotBlank() && it!=name }).take(12).forEach { recentData.put(it) };prefs.edit().putString("recent_titles",recentData.toString()).apply();refresh++;home=false }) {
           ScoriumPoster(name,Modifier.width(128.dp).height(175.dp))
           Spacer(Modifier.height(6.dp))
           Text(name,color=Color.White,fontWeight=FontWeight.Bold,maxLines=2)
@@ -205,7 +209,7 @@ class MainActivity: ComponentActivity() {
         items(rated) { (name,score) ->
          Column {
           ScoriumTitleCard(name,"$score% · ${grade(score)}",score,grade(score)) {
-           selected=name;selectedSeason=0;selectedEpisode=0
+           selected=name;selectedSeason=0;selectedEpisode=0;val recentData=JSONArray();(listOf(name)+(0 until runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).length()).map { idx -> runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).optString(idx) }).filter { it.isNotBlank() && it!=name }).take(12).forEach { recentData.put(it) };prefs.edit().putString("recent_titles",recentData.toString()).apply();refresh++
           }
           if(section=="Download" && name !in series && name !in customSeries) {
            val json=runCatching { JSONObject(prefs.getString(name,"{}") ?: "{}") }.getOrDefault(JSONObject())
@@ -232,7 +236,7 @@ class MainActivity: ComponentActivity() {
          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
         } else savedPercent(prefs,name,categories)
         ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) }) {
-         selected=name;selectedSeason=0;selectedEpisode=0
+         selected=name;selectedSeason=0;selectedEpisode=0;val recentData=JSONArray();(listOf(name)+(0 until runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).length()).map { idx -> runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray()).optString(idx) }).filter { it.isNotBlank() && it!=name }).take(12).forEach { recentData.put(it) };prefs.edit().putString("recent_titles",recentData.toString()).apply();refresh++
         }
        }
       }
