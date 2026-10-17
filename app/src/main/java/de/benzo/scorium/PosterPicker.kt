@@ -48,5 +48,5 @@ fun PosterPicker(title:String,onSaved:()->Unit = {}) {
  if(failure!=null) AlertDialog(onDismissRequest={failure=null},
   title={Text("Poster konnte nicht gespeichert werden")},
   text={Text(failure ?: "")},
-  confirmButton={TextButton(onClick={error=null}) { Text("OK") }})
+  confirmButton={TextButton(onClick={failure=null}) { Text("OK") }})
 }
