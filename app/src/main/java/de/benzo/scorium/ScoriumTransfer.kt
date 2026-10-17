@@ -131,8 +131,8 @@ object ScoriumTransfer {
   }
  }
 
- /** Changes since the previous successful full or delta export, including deletion records. */
- fun delta(context: Context, out: OutputStream): String {
+ /** Export changed data and posters into as many <=24MB ZIP files as needed. */
+ fun delta(context: Context, tree: Uri): String {
   val (data, posters) = state(context)
   val current = snapshot(data, posters)
   val previous = saved(context) ?: error("Bitte zuerst eine vollständige Sicherung erstellen.")
@@ -148,22 +148,49 @@ object ScoriumTransfer {
   val nowImages = current.getJSONObject("posters")
   val changedImages = posters.filter { (name, _) ->
    beforeImages.optString(name, "") != nowImages.getString(name)
-  }.values.toList()
+  }.values.sortedBy { it.name }
   val deletedImages = JSONArray()
   beforeImages.keys().forEach { name -> if (!nowImages.has(name)) deletedImages.put(name) }
   val manifest = JSONObject().put("format", "scorium-delta-v1")
    .put("deleted_keys", deletedKeys).put("deleted_posters", deletedImages)
   val count = changed.length() + changedImages.size + deletedKeys.length() + deletedImages.length()
   require(count > 0) { "Seit dem letzten Export gibt es keine Änderungen." }
-  // An update must remain a single <=24 MB file until multi-part delta import exists.
-  val tmp = File.createTempFile("scorium-delta-", ".zip", context.cacheDir)
+  val overhead = changed.toString().toByteArray(Charsets.UTF_8).size.toLong() +
+   manifest.toString().toByteArray(Charsets.UTF_8).size + 8192L
+  require(overhead < TARGET_BYTES) { "Änderungsdaten allein überschreiten 23 MB" }
+  val groups = mutableListOf<MutableList<File>>()
+  var group = mutableListOf<File>()
+  var size = overhead
+  changedImages.forEach { file ->
+   require(file.length() + 4096L < TARGET_BYTES) { "Poster zu groß: ${file.name}" }
+   if (size + file.length() + 4096L > TARGET_BYTES) {
+    groups.add(group)
+    group = mutableListOf()
+    size = 4096L
+   }
+   group.add(file)
+   size += file.length() + 4096L
+  }
+  groups.add(group)
+  val root = DocumentsContract.buildDocumentUriUsingTree(tree, DocumentsContract.getTreeDocumentId(tree))
+  val created = mutableListOf<Uri>()
   try {
-   tmp.outputStream().use { zip(it, changed, changedImages, manifest) }
-   require(tmp.length() <= MAX_BYTES) { "Update ist größer als 24 MB. Bitte vollständigen Export verwenden." }
-   tmp.inputStream().use { it.copyTo(out) }
-   out.flush()
+   groups.forEachIndexed { index, files ->
+    val filename = "SCORIUM-Update-Teil-${(index + 1).toString().padStart(3, '0')}.zip"
+    val uri = DocumentsContract.createDocument(context.contentResolver, root, "application/zip", filename)
+     ?: error("Konnte $filename nicht erstellen")
+    created.add(uri)
+    context.contentResolver.openOutputStream(uri)?.use {
+     zip(it, if (index == 0) changed else null, files, if (index == 0) manifest else null)
+    } ?: error("Konnte $filename nicht schreiben")
+    val length = context.contentResolver.openFileDescriptor(uri, "r")?.use { it.statSize } ?: -1L
+    require(length in 1..MAX_BYTES) { "$filename überschreitet 24 MB oder konnte nicht geprüft werden" }
+   }
    save(context, current)
-   return "$count Änderungen exportiert"
-  } finally { tmp.delete() }
+   return "$count Änderungen in ${groups.size} ZIP-Datei(en) exportiert"
+  } catch (e: Exception) {
+   created.forEach { runCatching { DocumentsContract.deleteDocument(context.contentResolver, it) } }
+   throw e
+  }
  }
 }
