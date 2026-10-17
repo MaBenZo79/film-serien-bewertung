@@ -16,16 +16,35 @@ object ScoriumBackup {
   */
  fun initializeStarterCatalog(context:Context) {
   val prefs=context.getSharedPreferences("ratings",Context.MODE_PRIVATE)
-  if(prefs.contains("starter_catalog_initialized")) return
+  if(prefs.getBoolean("starter_catalog_initialized",false)) return
+  val data=JSONObject(context.assets.open("starter/catalog.json").bufferedReader().use { it.readText() })
   val editor=prefs.edit()
-  if(!prefs.contains("custom_series")) editor.putString("custom_series",org.json.JSONArray().put("X-MEN 97").toString())
-  if(!prefs.contains("seasons::X-MEN 97")) editor.putInt("seasons::X-MEN 97",2)
-  if(!prefs.contains("episodes::X-MEN 97::1")) editor.putInt("episodes::X-MEN 97::1",10)
-  if(!prefs.contains("episodes::X-MEN 97::2")) editor.putInt("episodes::X-MEN 97::2",9)
-  if(!prefs.contains("seasons::She-Hulk")) editor.putInt("seasons::She-Hulk",2)
+  data.keys().forEach { key ->
+   if(!prefs.contains(key)) {
+    when(val value=data.get(key)) {
+     is String -> editor.putString(key,value)
+     is Int -> editor.putInt(key,value)
+     is Long -> editor.putLong(key,value)
+     is Boolean -> editor.putBoolean(key,value)
+    }
+   }
+  }
+  val folder=File(context.filesDir,"posters")
+  folder.mkdirs()
+  context.assets.list("starter/posters")?.forEach { name ->
+   if(Regex("[0-9a-f]{24}[.]jpg").matches(name)) {
+    val target=File(folder,name)
+    if(!target.exists()) context.assets.open("starter/posters/$name").use { input ->
+     val temp=File(folder,"$name.starter")
+     temp.outputStream().use { input.copyTo(it) }
+     if(!temp.renameTo(target)) { temp.copyTo(target,overwrite=true);temp.delete() }
+    }
+   }
+  }
   editor.putBoolean("starter_catalog_initialized",true)
   check(editor.commit()) { "Startkatalog konnte nicht gespeichert werden" }
  }
+
  fun export(context:Context,out:OutputStream) {
   val json=JSONObject()
   context.getSharedPreferences("ratings",Context.MODE_PRIVATE).all.forEach { (key,value) ->
