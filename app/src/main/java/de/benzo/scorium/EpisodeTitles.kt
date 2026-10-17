@@ -215,9 +215,6 @@ object EpisodeTitles {
   ("Eyes of Wakanda" to 1) to listOf(
    "Into the Lion's Den","Legends and Lies","Lost and Found","The Last Panther"
   ),
-  ("Marvel Zombies" to 1) to listOf(
-   "Episode 1","Episode 2","Episode 3","Episode 4"
-  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
