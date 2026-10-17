@@ -65,9 +65,14 @@ object ScoriumBackup {
     is Boolean -> editor.putBoolean(key,value)
    }
   }
-  check(editor.commit()) { "Wiederherstellung fehlgeschlagen" }
   val folder=File(context.filesDir,"posters")
   folder.mkdirs()
-  posters.forEach { (name,bytes) -> File(folder,name).writeBytes(bytes) }
+  posters.forEach { (name,bytes) ->
+   val target=File(folder,name)
+   val temp=File(folder,"$name.restore")
+   temp.writeBytes(bytes)
+   if(!temp.renameTo(target)) { temp.copyTo(target,overwrite=true);temp.delete() }
+  }
+  check(editor.commit()) { "Wiederherstellung fehlgeschlagen" }
  }
 }
