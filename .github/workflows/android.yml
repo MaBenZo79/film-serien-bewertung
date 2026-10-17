@@ -35,8 +35,11 @@ jobs:
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_header.png app/src/main/res/drawable-nodpi/scorium_header.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_poster.png app/src/main/res/drawable-nodpi/scorium_poster.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_collection.png app/src/main/res/drawable-nodpi/scorium_collection.png
-          unzip -q -o Scorium-Sicherung.zip 'posters/*.jpg' -d app/src/main/assets/starter
-          unzip -p Scorium-Sicherung.zip scorium-data.json > /tmp/scorium-personal-data.json
+          test -s Scorium-Poster-Teil-1.zip
+          test -s Scorium-Poster-Teil-2.zip
+          unzip -q -o Scorium-Poster-Teil-1.zip 'posters/*.jpg' -d app/src/main/assets/starter
+          unzip -q -o Scorium-Poster-Teil-2.zip 'posters/*.jpg' -d app/src/main/assets/starter
+          unzip -p Scorium-Poster-Teil-1.zip scorium-data.json > /tmp/scorium-personal-data.json
           python3 - <<'PY'
           import json
           with open('/tmp/scorium-personal-data.json',encoding='utf-8') as f:
