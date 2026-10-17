@@ -35,5 +35,15 @@ object McuCatalog {
   ShowInfo("Marvel Zombies",listOf(4)),
   ShowInfo("Eyes of Wakanda",listOf(4))
  )
- fun find(title:String)=shows.firstOrNull { it.title==title }
+ val importedShows = listOf(
+  ShowInfo("MARVEL's Agents of Shield",listOf(22,22,22,22,22,13,13)),
+  ShowInfo("MARVEL's Daredevil",listOf(13,13,13)),
+  ShowInfo("MARVEL's Jessica Jones",listOf(13,13,13)),
+  ShowInfo("MARVEL's Luke Cage",listOf(13,13)),
+  ShowInfo("MARVEL's Iron Fist",listOf(13,10)),
+  ShowInfo("MARVEL's DEFENDERS",listOf(8)),
+  ShowInfo("MARVEL's Punisher",listOf(13,13)),
+  ShowInfo("X-MEN 97",listOf(10,9))
+ )
+ fun find(title:String)=(shows+importedShows).firstOrNull { it.title==title }
 }
