@@ -111,7 +111,7 @@ class MainActivity: ComponentActivity() {
    }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
     if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
-     .onSuccess { backupMessage="Sicherung importiert. Bitte die App neu starten, damit alle Daten aktualisiert werden.";refresh++ }
+     .onSuccess { backupMessage="Sicherung importiert. Die Daten werden beim nächsten App-Start vollständig geladen.";refresh++ }
      .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
    }
    val customSeries=remember {
@@ -146,7 +146,7 @@ class MainActivity: ComponentActivity() {
      if(home) {
       val imageRevision=refresh
       val homeScroll=rememberScrollState()
-      Column(Modifier.fillMaxSize().verticalScroll(homeScroll)) {
+      Column(Modifier.weight(1f).verticalScroll(homeScroll)) {
        Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
        OutlinedTextField(value=search,onValueChange={search=it;home=false;section="Franchises";tab="Alle"},placeholder={Text("Filme und Serien suchen …")},modifier=Modifier.fillMaxWidth(),singleLine=true)
