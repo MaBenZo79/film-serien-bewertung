@@ -160,7 +160,7 @@ class MainActivity: ComponentActivity() {
       Column(Modifier.weight(1f).verticalScroll(homeScroll)) {
        Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       OutlinedTextField(value=search,onValueChange={search=it;home=false;section="Franchises";tab="Alle"},placeholder={Text("Filme und Serien suchen …")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+       Card(onClick={home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
        Spacer(Modifier.height(22.dp))
        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -177,8 +177,9 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(12.dp))
        val recent=remember(refresh) {
         val stored=runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray())
-        (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }.ifEmpty { listOf("Iron Man","Avengers: Endgame","Loki") }
+        (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }
        }
+       if(recent.isEmpty()) Text("Hier erscheinen die Filme und Serien, die du öffnest.",color=Color(0xFFB5B7CD))
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
          Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++;home=false }) {
