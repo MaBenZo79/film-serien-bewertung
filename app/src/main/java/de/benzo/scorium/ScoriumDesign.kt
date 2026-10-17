@@ -40,10 +40,9 @@ fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
 }
 
 @Composable
-fun ScoriumHeader(subtitle:String="DEIN PERSÖNLICHES FILMARCHIV") {
+fun ScoriumHeader() {
  Column(Modifier.fillMaxWidth().padding(top=12.dp,bottom=10.dp)) {
-  Image(painter=painterResource(R.drawable.scorium_logo),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Fit,alignment=Alignment.Center)
-  Text(subtitle,fontSize=10.sp,letterSpacing=1.6.sp,color=fog)
+  Image(painter=painterResource(R.drawable.scorium_header),contentDescription="SCORIUM",modifier=Modifier.width(280.dp).height(66.dp),contentScale=ContentScale.Fit,alignment=Alignment.Center)
  }
 }
 
@@ -75,7 +74,7 @@ fun ScoriumHero(onExplore:()->Unit) {
 }
 
 @Composable
-fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0) {
+fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
@@ -91,9 +90,9 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0) {
   } else {
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
     .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
-    Image(painter=painterResource(R.drawable.scorium_logo),
+    Image(painter=painterResource(if(isCollection) R.drawable.scorium_collection else R.drawable.scorium_poster),
      contentDescription="SCORIUM Platzhalter für $title",
-     modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit)
+     modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
    }
   }
  }
@@ -206,7 +205,7 @@ fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:(
  Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
   Column(Modifier.padding(10.dp)) {
    Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick),revision)
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick),revision,isCollection=true)
     Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
    }
    Spacer(Modifier.height(10.dp))
