@@ -33,6 +33,36 @@ object EpisodeTitles {
    "The H Word","Mean Right Hook","Worst Behavior","Royal Dragon",
    "Take Shelter","Ashes, Ashes","Fish in the Jailhouse","The Defenders"
   ),
+  ("MARVEL's Jessica Jones" to 2) to listOf(
+   "AKA Start at the Beginning","AKA Freak Accident","AKA Sole Survivor",
+   "AKA God Help the Hobo","AKA The Octopus","AKA Facetime","AKA I Want Your Cray Cray",
+   "AKA Ain't We Got Fun","AKA Shark in the Bathtub, Monster in the Bed",
+   "AKA Pork Chop","AKA Three Lives and Counting","AKA Pray for My Patsy","AKA Playland"
+  ),
+  ("MARVEL's Jessica Jones" to 3) to listOf(
+   "AKA The Perfect Burger","AKA You're Welcome","AKA I Have No Spleen",
+   "AKA Customer Service Is Standing By","AKA I Wish","AKA Sorry Face",
+   "AKA The Double Half-Wappinger","AKA Camera Friendly","AKA I Did Something Today",
+   "AKA Hero Pants","AKA Hellcat","AKA A Lotta Worms","AKA Everything"
+  ),
+  ("MARVEL's Luke Cage" to 2) to listOf(
+   "Soul Brother #1","Straighten It Out","Wig Out","I Get Physical",
+   "All Souled Out","The Basement","On and On","If It Ain't Rough, It Ain't Right",
+   "For Pete's Sake","The Main Ingredient","The Creator","Can't Front on Me","They Reminisce Over You"
+  ),
+  ("MARVEL's Iron Fist" to 1) to listOf(
+   "Snow Gives Way","Shadow Hawk Takes Flight","Rolling Thunder Cannon Punch",
+   "Eight Diagram Dragon Palm","Under Leaf Pluck Lotus","Immortal Emerges from Cave",
+   "Felling Tree with Roots","The Blessing of Many Fractures","The Mistress of All Agonies",
+   "Black Tiger Steals Heart","Lead Horse Back to Stable","Bar the Big Boss",
+   "Dragon Plays with Fire"
+  ),
+  ("MARVEL's Iron Fist" to 2) to listOf(
+   "The Fury of Iron Fist","The City's Not for Burning","This Deadly Secret...",
+   "Target: Iron Fist","Heart of the Dragon","The Dragon Dies at Dawn",
+   "Morning of the Mindstorm","Citadel on the Edge of Vengeance",
+   "War Without End","A Duel of Iron"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
