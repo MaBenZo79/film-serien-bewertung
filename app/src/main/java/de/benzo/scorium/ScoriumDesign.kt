@@ -192,3 +192,19 @@ fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
   }
  }
 }
+
+@Composable
+fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit) {
+ Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
+  Column(Modifier.padding(10.dp)) {
+   Box {
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick))
+    Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
+   }
+   Spacer(Modifier.height(10.dp))
+   Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,maxLines=2,modifier=Modifier.clickable(onClick=onClick))
+   Text(subtitle,color=Color(0xFFB5B7CD),fontSize=12.sp,maxLines=1)
+   PosterPicker(imageKey,onImageSaved)
+  }
+ }
+}
