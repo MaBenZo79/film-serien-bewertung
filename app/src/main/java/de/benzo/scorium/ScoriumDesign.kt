@@ -113,7 +113,7 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
     Text(title,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White,
      maxLines=3,overflow=TextOverflow.Ellipsis)
     Spacer(Modifier.height(9.dp))
-    Text(if(score==null) "NOCH NICHT BEWERTET" else "$score%  ·  $grade",
+    Text(if(score==null) "NOCH NICHT BEWERTET" else "${score / 10}.${score % 10}  ·  $grade",
      color=if(score==null) fog else gold,fontSize=12.sp,fontWeight=FontWeight.Bold)
    }
    Text("›",fontSize=28.sp,color=fog)
