@@ -222,12 +222,12 @@ class MainActivity: ComponentActivity() {
        LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
         items(rated) { (name,score) ->
          Column {
-          ScoriumTitleCard(name,"$score% · ${grade(score)}",score,grade(score)) {
+          ScoriumTitleCard(name,"${score / 10}.${score % 10} · ${grade(score)}",score,grade(score)) {
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           }
           if(section=="Download" && name !in series && name !in customSeries) {
            val json=runCatching { JSONObject(prefs.getString(name,"{}") ?: "{}") }.getOrDefault(JSONObject())
-           val report=RatingExport.Report(name,"Film","$score% · ${grade(score)}",categories.map { it to "${json.optInt(it)}/10" })
+           val report=RatingExport.Report(name,"Film","${score / 10}.${score % 10} · ${grade(score)}",categories.map { it to "${json.optInt(it)}/10" })
            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={exportReport=report;pngLauncher.launch("Scorium-$name.png")}) { Text("PNG") }
             OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-$name.pdf")}) { Text("PDF") }
@@ -330,13 +330,13 @@ class MainActivity: ComponentActivity() {
         Row {
          FilterChip(selected=mode=="manual",onClick={
           prefs.edit().putString("mode::$seriesKey::$selectedSeason","manual").apply();refresh++
-         },label={Text("Manuell: $manual%")})
+         },label={Text("Manuell: ${manual / 10}.${manual % 10}")})
          Spacer(Modifier.width(8.dp))
          FilterChip(selected=mode=="episodes",onClick={
           prefs.edit().putString("mode::$seriesKey::$selectedSeason","episodes").apply();refresh++
-         },label={Text("Episoden: $average%")})
+         },label={Text("Episoden: ${average / 10}.${average % 10}")})
         }
-       } else if(average!=null) Text("Episodendurchschnitt: $average%",color=gold)
+       } else if(average!=null) Text("Episodendurchschnitt: ${average / 10}.${average % 10}",color=gold)
        Text("Episoden",color=gold)
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..episodeCount).forEach { number ->
@@ -356,12 +356,12 @@ class MainActivity: ComponentActivity() {
         mutableStateMapOf<String,Int>().apply { criteria.forEach { if(json.has(it)) put(it,json.optInt(it)) } }
        }
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
-       Text(if(percent==null) "Bewertet: ${ratings.size}/${criteria.size}" else "Gesamt: ${percent}% · ${grade(percent)}",color=gold,fontSize=19.sp)
+       Text(if(percent==null) "Bewertet: ${ratings.size}/${criteria.size}" else "Gesamt: ${percent / 10}.${percent % 10} · ${grade(percent)}",color=gold,fontSize=19.sp)
        if(percent!=null) {
         val report=RatingExport.Report(
          selected!!,
          if(!isSeries) "Film" else if(selectedEpisode == -1) "Staffel $selectedSeason" else "Staffel $selectedSeason · Episode $selectedEpisode",
-         "$percent% · ${grade(percent)}",
+         "${percent / 10}.${percent % 10} · ${grade(percent)}",
          criteria.map { it to "${ratings[it] ?: 0}/10" }
         )
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
