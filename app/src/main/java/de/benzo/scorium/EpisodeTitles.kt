@@ -171,6 +171,53 @@ object EpisodeTitles {
    "Death's Hand in Mine","Follow Me My Friend / To Glory at the End",
    "Maiden Mother Crone"
   ),
+  ("What If...?" to 1) to listOf(
+   "What If... Captain Carter Were the First Avenger?",
+   "What If... T'Challa Became a Star-Lord?",
+   "What If... the World Lost Its Mightiest Heroes?",
+   "What If... Doctor Strange Lost His Heart Instead of His Hands?",
+   "What If... Zombies?!","What If... Killmonger Rescued Tony Stark?",
+   "What If... Thor Were an Only Child?","What If... Ultron Won?",
+   "What If... the Watcher Broke His Oath?"
+  ),
+  ("What If...?" to 2) to listOf(
+   "What If... Nebula Joined the Nova Corps?",
+   "What If... Peter Quill Attacked Earth's Mightiest Heroes?",
+   "What If... Happy Hogan Saved Christmas?",
+   "What If... Iron Man Crashed into the Grandmaster?",
+   "What If... Captain Carter Fought the Hydra Stomper?",
+   "What If... Kahhori Reshaped the World?",
+   "What If... Hela Found the Ten Rings?",
+   "What If... the Avengers Assembled in 1602?",
+   "What If... Strange Supreme Intervened?"
+  ),
+  ("What If...?" to 3) to listOf(
+   "What If... the Hulk Fought the Mech Avengers?",
+   "What If... Agatha Went to Hollywood?",
+   "What If... the Red Guardian Stopped the Winter Soldier?",
+   "What If... Howard the Duck Got Hitched?",
+   "What If... the Emergence Destroyed the Earth?",
+   "What If... 1872?","What If... the Watcher Disappeared?",
+   "What If... What If?"
+  ),
+  ("I Am Groot" to 1) to listOf(
+   "Groot's First Steps","The Little Guy","Groot's Pursuit",
+   "Groot Takes a Bath","Magnum Opus"
+  ),
+  ("I Am Groot" to 2) to listOf(
+   "Are You My Groot?","Groot Noses Around","Groot's Snow Day",
+   "Groot's Sweet Treat","Groot and the Great Prophecy"
+  ),
+  ("Ironheart" to 1) to listOf(
+   "Take Me Home","Will the Real Natalie Please Stand Up?",
+   "We in Danger, Girl","Bad Magic","Karma's a Glitch","The Past Is the Past"
+  ),
+  ("Eyes of Wakanda" to 1) to listOf(
+   "Into the Lion's Den","Legends and Lies","Lost and Found","The Last Panther"
+  ),
+  ("Marvel Zombies" to 1) to listOf(
+   "Episode 1","Episode 2","Episode 3","Episode 4"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
