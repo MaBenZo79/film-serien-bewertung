@@ -137,10 +137,17 @@ class MainActivity: ComponentActivity() {
     }.onFailure { exportError=it.localizedMessage }
    }
    var backupMessage by remember { mutableStateOf<String?>(null) }
-   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
-    if(uri!=null) runCatching { contentResolver.openOutputStream(uri)?.use { ScoriumBackup.export(this@MainActivity,it) } ?: error("Datei konnte nicht geöffnet werden") }
-     .onSuccess { backupMessage="Sicherung erfolgreich gespeichert." }
+   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+    if(uri!=null) runCatching { ScoriumTransfer.full(this@MainActivity,uri) }
+     .onSuccess { parts -> backupMessage="$parts ZIP-Datei(en) mit maximal 24 MB erstellt. Hinweis: Mehrteilige Exporte sind für den GitHub-Upload gedacht; der bisherige Import kann sie noch nicht zusammenführen." }
      .onFailure { backupMessage=it.localizedMessage ?: "Export fehlgeschlagen" }
+   }
+   val updateExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+    if(uri!=null) runCatching {
+     contentResolver.openOutputStream(uri)?.use { ScoriumTransfer.delta(this@MainActivity,it) }
+      ?: error("Datei konnte nicht geöffnet werden")
+    }.onSuccess { backupMessage=it+". Hinweis: Update-Dateien dienen dem Nachtragen in den Katalog; der bisherige Import kann sie nicht zusammenführen." }
+     .onFailure { backupMessage=it.localizedMessage ?: "Update-Export fehlgeschlagen" }
    }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
     if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
@@ -219,7 +226,8 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(18.dp))
        Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick={backupExport.launch("Scorium-Sicherung.zip")}) { Text("Alles exportieren") }
+        OutlinedButton(onClick={backupExport.launch(null)}) { Text("Komplett sichern") }
+        OutlinedButton(onClick={updateExport.launch("SCORIUM-Update.zip")}) { Text("Nur Änderungen") }
         OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
        }
        Spacer(Modifier.height(28.dp))
