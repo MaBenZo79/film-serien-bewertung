@@ -20,7 +20,7 @@ internal fun posterFile(context:Context,title:String):File {
 @Composable
 fun PosterPicker(title:String,onSaved:()->Unit = {}) {
  val context=LocalContext.current
- var error by remember(title) { mutableStateOf<String?>(null) }
+ var failure by remember(title) { mutableStateOf<String?>(null) }
  val pick=rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
   if(uri!=null) {
    runCatching {
@@ -39,14 +39,14 @@ fun PosterPicker(title:String,onSaved:()->Unit = {}) {
     }
     bitmap.recycle()
     onSaved()
-   }.onFailure { error=it.localizedMessage ?: "Unbekannter Bildfehler" }
+   }.onFailure { failure=it.localizedMessage ?: "Unbekannter Bildfehler" }
   }
  }
  OutlinedButton(onClick={pick.launch("image/*")}) {
   Text(if(posterFile(context,title).exists()) "Poster ändern" else "Poster auswählen")
  }
- if(error!=null) AlertDialog(onDismissRequest={error=null},
+ if(failure!=null) AlertDialog(onDismissRequest={failure=null},
   title={Text("Poster konnte nicht gespeichert werden")},
-  text={Text(error ?: "")},
+  text={Text(failure ?: "")},
   confirmButton={TextButton(onClick={error=null}) { Text("OK") }})
 }
