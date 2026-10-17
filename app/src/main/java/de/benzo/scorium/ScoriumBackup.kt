@@ -69,7 +69,7 @@ object ScoriumBackup {
    }
   }
  }
- fun restore(context:Context,input:InputStream) {
+ fun restore(context:Context,input:InputStream): Int {
   var json:JSONObject?=null
   val posters=mutableMapOf<String,ByteArray>()
   var total=0L
@@ -122,5 +122,6 @@ object ScoriumBackup {
    if(!temp.renameTo(target)) { temp.copyTo(target,overwrite=true);temp.delete() }
   }
   check(editor.commit()) { "Wiederherstellung fehlgeschlagen" }
+  return posters.size
  }
 }
