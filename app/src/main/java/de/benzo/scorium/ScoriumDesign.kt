@@ -79,21 +79,28 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
- val bitmap=remember(title,stamp,revision) { if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null }
- if(bitmap!=null) {
-  Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",modifier=modifier.shadow(5.dp,RoundedCornerShape(9.dp)).clip(RoundedCornerShape(9.dp)),contentScale=ContentScale.Crop)
-  return
+ val bitmap=remember(title,stamp,revision) {
+  if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
  }
+ val shape=RoundedCornerShape(9.dp)
  val palette=listOf(
   listOf(Color(0xFF752A42),Color(0xFF182B48)),
   listOf(Color(0xFF234E67),Color(0xFF0E182F)),
   listOf(Color(0xFF66502B),Color(0xFF211C2F)),
   listOf(Color(0xFF513766),Color(0xFF171B36))
  )[Math.floorMod(title.hashCode(),4)]
- val initials=title.split(" ").filter { it.isNotBlank() }.take(2).map { it.first() }.joinToString("")
- Box(modifier.shadow(5.dp,RoundedCornerShape(9.dp)).clip(RoundedCornerShape(9.dp)).background(Brush.linearGradient(palette),RoundedCornerShape(9.dp))
-  .border(1.dp,Color(0x35FFFFFF),RoundedCornerShape(9.dp)),contentAlignment=Alignment.Center) {
-  Text(initials,fontSize=24.sp,fontWeight=FontWeight.Black,color=Color(0xDDE8D2AB))
+ Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,Color(0xFFB46AFF),shape)) {
+  if(bitmap!=null) {
+   Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
+    modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
+    contentScale=ContentScale.Crop)
+  } else {
+   val initials=title.split(" ").filter { it.isNotBlank() }.take(2).map { it.first() }.joinToString("")
+   Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
+    .background(Brush.linearGradient(palette)),contentAlignment=Alignment.Center) {
+    Text(initials,fontSize=24.sp,fontWeight=FontWeight.Black,color=Color(0xDDE8D2AB))
+   }
+  }
  }
 }
 
