@@ -81,7 +81,7 @@ private fun releaseRank(name:String):Int {
  return if(rank>=0) rank else Int.MAX_VALUE
 }
 private val films get() = McuCatalog.films
-private val series get() = McuCatalog.shows.map { it.title }
+private val series get() = (McuCatalog.shows + McuCatalog.importedShows).map { it.title }
 private fun recordRecentlyOpened(prefs:android.content.SharedPreferences,name:String) {
  val old=runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray())
  val titles=mutableListOf(name)
@@ -227,7 +227,7 @@ class MainActivity: ComponentActivity() {
      } else if(selected==null) {
       TextButton(onClick={home=true}) { Text("← Startseite") }
       if(section=="Ranking" || section=="Download") {
-       val rated=(films+extras+series+customSeries).mapNotNull { name ->
+       val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
          val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
@@ -259,7 +259,7 @@ class MainActivity: ComponentActivity() {
       } else {
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
+      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
       val revision=refresh
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(entries,key={ it }) { name ->
