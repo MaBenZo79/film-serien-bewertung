@@ -89,6 +89,7 @@ class MainActivity: ComponentActivity() {
    var episodeCount by remember { mutableIntStateOf(6) }
    var search by remember { mutableStateOf("") }
    var tab by remember { mutableStateOf("Alle") }
+   val titleListState=rememberLazyListState()
    val extras=remember {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_titles","[]")) }.getOrDefault(JSONArray())
@@ -168,8 +169,8 @@ class MainActivity: ComponentActivity() {
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={home=false;section="Franchises";tab="Alle"},onImageSaved={refresh++})
-        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++})
+        ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={home=false;section="Franchises";tab="Alle"},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++})
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={home=false;section="Serien";tab="Serien"},onImageSaved={refresh++})
        }
@@ -240,7 +241,6 @@ class MainActivity: ComponentActivity() {
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
       val revision=refresh
-      val titleListState=rememberLazyListState()
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(entries,key={ it }) { name ->
         val isShow=name in series || name in customSeries
@@ -249,9 +249,11 @@ class MainActivity: ComponentActivity() {
          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
         } else savedPercent(prefs,name,categories)
-        ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) }) {
+        ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) },onClick={
          selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
-        }
+        },revision=refresh)
+        /*
+        */
        }
       }
       Button(onClick={add=true},modifier=Modifier.fillMaxWidth()) { Text("Titel hinzufügen") }
@@ -293,6 +295,17 @@ class MainActivity: ComponentActivity() {
       }) { Text("← Zurück") }
       ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh)
       PosterPicker(selected!!) { refresh++ }
+      if(isSeries && selectedSeason>0) {
+       Spacer(Modifier.height(8.dp))
+       Text("Staffel $selectedSeason · Eigenes Bild",color=gold)
+       ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
+       PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
+       if(selectedEpisode>0) {
+        Text("Episode $selectedEpisode · Eigenes Bild",color=gold)
+        ScoriumPoster("$seriesKey::season:$selectedSeason:episode:$selectedEpisode",Modifier.width(112.dp).height(154.dp),refresh)
+        PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
+       }
+      }
       Spacer(Modifier.height(8.dp))
       val revision=refresh
       if(isSeries && selectedSeason==0) {
@@ -300,9 +313,9 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..seasonCount).forEach { number ->
          val score=seasonScore(prefs,seriesKey,number)
-         ScoriumTitleCard("Staffel $number","Staffel",score,score?.let { grade(it) }) {
+         ScoriumTitleCard("Staffel $number","Staffel",score,score?.let { grade(it) },onClick={
           selectedSeason=number;selectedEpisode=0
-         }
+         },imageKey="$seriesKey::season:$number",revision=refresh)
         }
        }
        Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
@@ -330,9 +343,9 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..episodeCount).forEach { number ->
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
-         ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) }) {
+         ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) },onClick={
           selectedEpisode=number
-         }
+         },imageKey="$seriesKey::season:$selectedSeason:episode:$number",revision=refresh)
         }
        }
        Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
