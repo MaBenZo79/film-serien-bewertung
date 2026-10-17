@@ -230,6 +230,19 @@ object EpisodeTitles {
    "Matinee","Self-Tape","Pacoima","Doorman","Found Footage",
    "Callback","Kathy Friedman","Yucca Valley"
   ),
+  ("Daredevil: Born Again" to 2) to listOf(
+   "The Northern Star","Shoot the Moon","The Scales & The Sword","Gloves Off",
+   "The Grand Design","Requiem","The Hateful Darkness","The Southern Cross"
+  ),
+  ("X-MEN 97" to 2) to listOf(
+   "Days of Past Future","A Force to Be Reckoned With","Rise of Apocalypse: Part 1",
+   "Rise of Apocalypse: Part 2","Weapon X, Lies, and DVDs","Danger.exe",
+   "Strange Land, Savage Heart","The Dead Man's Hand","Survival of the Fittest"
+  ),
+  ("VisionQuest" to 1) to listOf(
+   "No Strings","Theseus","Reboot","Malware","Firewall",
+   "Deadlock","Immolation","Forever"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
