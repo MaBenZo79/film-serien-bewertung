@@ -27,6 +27,7 @@ object ScoriumTransfer {
  private fun state(context: Context): Pair<JSONObject, Map<String, File>> {
   val data = JSONObject()
   context.getSharedPreferences("ratings", Context.MODE_PRIVATE).all.forEach { (key, value) ->
+   if (!ScoriumBackup.isCatalogKey(key)) return@forEach
    when (value) {
     is String -> data.put(key, value)
     is Int -> data.put(key, value)
@@ -143,7 +144,11 @@ object ScoriumTransfer {
    if (beforeKeys.optString(key, "") != nowKeys.getString(key)) changed.put(key, data.get(key))
   }
   val deletedKeys = JSONArray()
-  beforeKeys.keys().forEach { key -> if (!nowKeys.has(key)) deletedKeys.put(key) }
+  beforeKeys.keys().forEach { key ->
+   // Older snapshots also tracked personal ratings. Never emit deletion
+   // records for them when upgrading from that snapshot format.
+   if (ScoriumBackup.isCatalogKey(key) && !nowKeys.has(key)) deletedKeys.put(key)
+  }
   val beforeImages = previous.optJSONObject("posters") ?: JSONObject()
   val nowImages = current.getJSONObject("posters")
   val changedImages = posters.filter { (name, _) ->
