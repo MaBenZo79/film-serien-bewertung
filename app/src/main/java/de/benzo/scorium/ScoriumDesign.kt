@@ -74,6 +74,14 @@ fun ScoriumHero(onExplore:()->Unit) {
 
 @Composable
 fun ScoriumPoster(title:String,modifier:Modifier=Modifier) {
+ val context=LocalContext.current
+ val file=posterFile(context,title)
+ val stamp=file.lastModified()
+ val bitmap=remember(title,stamp) { if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null }
+ if(bitmap!=null) {
+  Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",modifier=modifier,contentScale=ContentScale.Crop)
+  return
+ }
  val palette=listOf(
   listOf(Color(0xFF752A42),Color(0xFF182B48)),
   listOf(Color(0xFF234E67),Color(0xFF0E182F)),
