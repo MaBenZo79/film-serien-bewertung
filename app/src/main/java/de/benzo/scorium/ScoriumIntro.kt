@@ -161,7 +161,7 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
        val progress = letters.value
        val revealed = size.width * (progress * 1.18f).coerceIn(0f, 1f)
        clipRect(left = 0f, top = 0f, right = revealed, bottom = size.height) {
-        drawContent()
+        this@drawWithContent.drawContent()
        }
        // A brilliant, soft vertical light sweep runs ahead of the reveal
        // and exits completely to the right at the end.
