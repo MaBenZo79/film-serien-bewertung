@@ -139,8 +139,12 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
     }
    }
    Spacer(Modifier.height(13.dp))
-   Slider(value=(value ?: 5).toFloat(),onValueChange={onChange(kotlin.math.round(it).toInt().coerceIn(1,10))},
-    valueRange=1f..10f,steps=8,
+   var dragging by remember { mutableStateOf<Float?>(null) }
+   Slider(value=dragging ?: (value ?: 5).toFloat(),onValueChange={ next ->
+     dragging=next
+     onChange(kotlin.math.round(next).toInt().coerceIn(1,10))
+    },onValueChangeFinished={ dragging=null },
+    valueRange=1f..10f,steps=0,
     colors=SliderDefaults.colors(thumbColor=gold,activeTrackColor=gold,
      inactiveTrackColor=Color(0xFF42445A)))
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
