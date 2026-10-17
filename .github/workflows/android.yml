@@ -57,6 +57,18 @@ jobs:
           PY
           test -s app/src/main/res/drawable-nodpi/scorium_header.png
           test -s app/src/main/assets/starter/catalog.json
+      - name: Set up Python for SCORIUM intro artwork
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Create animated intro artwork layers
+        run: |
+          python -m pip install --quiet Pillow==11.3.0
+          python .github/scripts/prepare_intro.py app/src/main/res/drawable-nodpi
+          test -s app/src/main/res/drawable-nodpi/scorium_intro_background.png
+          test -s app/src/main/res/drawable-nodpi/scorium_intro_fog.png
+          test -s app/src/main/res/drawable-nodpi/scorium_intro_wordmark.png
+          test -s app/src/main/res/drawable-nodpi/scorium_intro_kernel.png
       - name: Restore persistent signing key
         env:
           SCORIUM_KEYSTORE_BASE64: ${{ secrets.SCORIUM_KEYSTORE_BASE64 }}
