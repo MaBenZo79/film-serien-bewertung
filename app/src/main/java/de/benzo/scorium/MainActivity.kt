@@ -225,9 +225,11 @@ class MainActivity: ComponentActivity() {
        }
        Spacer(Modifier.height(18.dp))
        Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
-       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick={backupExport.launch(null)}) { Text("Komplett sichern") }
-        OutlinedButton(onClick={updateExport.launch("SCORIUM-Update.zip")}) { Text("Nur Änderungen") }
+       Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+         OutlinedButton(onClick={backupExport.launch(null)}) { Text("Komplett sichern") }
+         OutlinedButton(onClick={updateExport.launch("SCORIUM-Update.zip")}) { Text("Nur Änderungen") }
+        }
         OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
        }
        Spacer(Modifier.height(28.dp))
