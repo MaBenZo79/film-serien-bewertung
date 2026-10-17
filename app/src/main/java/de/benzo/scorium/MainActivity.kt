@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -99,6 +100,7 @@ class MainActivity: ComponentActivity() {
   ScoriumBackup.initializeStarterCatalog(this)
   val prefs=getSharedPreferences("ratings",Context.MODE_PRIVATE)
   setContent {
+   var showIntro by rememberSaveable { mutableStateOf(true) }
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
    var section by remember { mutableStateOf("Franchises") }
@@ -161,6 +163,7 @@ class MainActivity: ComponentActivity() {
    val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
    BackHandler(enabled=true) {
     when {
+     showIntro -> showExitDialog=true
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
      selected!=null -> selected=null
@@ -409,6 +412,8 @@ class MainActivity: ComponentActivity() {
       }
      }
     } }
+    // The existing home UI is composed underneath for a seamless fade-out.
+    if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
   }
  }
