@@ -77,6 +77,7 @@ private fun recordRecentlyOpened(prefs:android.content.SharedPreferences,name:St
 class MainActivity: ComponentActivity() {
  override fun onCreate(savedInstanceState: Bundle?) {
   super.onCreate(savedInstanceState)
+  ScoriumBackup.initializeStarterCatalog(this)
   val prefs=getSharedPreferences("ratings",Context.MODE_PRIVATE)
   setContent {
    var selected by remember { mutableStateOf<String?>(null) }
