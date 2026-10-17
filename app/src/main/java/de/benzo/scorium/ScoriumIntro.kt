@@ -42,8 +42,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -156,34 +157,37 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
      contentDescription = "SCORIUM",
      contentScale = ContentScale.FillBounds,
      modifier = Modifier.fillMaxSize()
-      .graphicsLayer { alpha = (letters.value * 3f).coerceIn(0f, 1f) }
+      .graphicsLayer {
+       // Render the wordmark in an isolated buffer so the glint can be
+       // composited ONLY onto opaque logo pixels (not the black background).
+       compositingStrategy = CompositingStrategy.Offscreen
+       alpha = (letters.value * 3f).coerceIn(0f, 1f)
+      }
       .drawWithContent {
        val progress = letters.value
        val revealed = size.width * (progress * 1.18f).coerceIn(0f, 1f)
        clipRect(left = 0f, top = 0f, right = revealed, bottom = size.height) {
         this@drawWithContent.drawContent()
-       }
-       // A brilliant, soft vertical light sweep runs ahead of the reveal
-       // and exits completely to the right at the end.
-       if(progress > .005f && progress < .999f) {
-        val x = size.width * (-.07f + progress * 1.20f)
-        val radius = size.width * .095f
-        drawRect(
-         brush = Brush.horizontalGradient(
-          colors = listOf(
-           Color.Transparent,
-           Color(0x554B0DAA),
-           Color(0x99F4DFFF),
-           Color(0x99FFFFFF),
-           Color(0x554B0DAA),
-           Color.Transparent
+        if (progress > .04f && progress < .98f) {
+         // A narrow, softly feathered diagonal LIGHTNING GLINT.
+         // SrcAtop keeps the logo's alpha; rectangular edges cannot appear.
+         val x = size.width * (-.09f + progress * 1.24f)
+         val radius = size.width * .075f
+         drawRect(
+          brush = Brush.linearGradient(
+           0.0f to Color.Transparent,
+           .32f to Color.Transparent,
+           .43f to Color(0x77BA73FF),
+           .50f to Color(0xDDFFFFFF),
+           .57f to Color(0x77C9ABFF),
+           .68f to Color.Transparent,
+           1.0f to Color.Transparent,
+           start = Offset(x - radius, size.height),
+           end = Offset(x + radius, 0f)
           ),
-          startX = x - radius,
-          endX = x + radius
-         ),
-         topLeft = Offset(x - radius, 0f),
-         size = Size(radius * 2f, size.height)
-        )
+          blendMode = BlendMode.SrcAtop
+         )
+        }
        }
       }
     )
