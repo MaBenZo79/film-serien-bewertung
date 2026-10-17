@@ -222,7 +222,7 @@ class MainActivity: ComponentActivity() {
        LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
         items(rated) { (name,score) ->
          Column {
-          ScoriumTitleCard(name,"${score / 10}.${score % 10} · ${grade(score)}",score,grade(score)) {
+          ScoriumTitleCard(name,"${score / 10}.${score % 10} · ${grade(score)}",score,grade(score),onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           }
           if(section=="Download" && name !in series && name !in customSeries) {
