@@ -35,9 +35,9 @@ jobs:
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_header.png app/src/main/res/drawable-nodpi/scorium_header.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_poster.png app/src/main/res/drawable-nodpi/scorium_poster.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_collection.png app/src/main/res/drawable-nodpi/scorium_collection.png
-          for n in $(seq -w 1 10); do
-            test -s "Scorium-Paket-${n}.zip"
-            unzip -q -o "Scorium-Paket-${n}.zip" -d app/src/main/assets/starter
+          for n in 1 2; do
+            test -s "Scorium-Poster-Teil-${n}.zip"
+            unzip -q -o "Scorium-Poster-Teil-${n}.zip" -d app/src/main/assets/starter
           done
           cp app/src/main/assets/starter/scorium-data.json /tmp/scorium-personal-data.json
           rm app/src/main/assets/starter/scorium-data.json
