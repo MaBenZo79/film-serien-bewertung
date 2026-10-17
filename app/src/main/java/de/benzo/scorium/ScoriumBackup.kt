@@ -16,7 +16,7 @@ object ScoriumBackup {
   */
  fun initializeStarterCatalog(context:Context) {
   val prefs=context.getSharedPreferences("ratings",Context.MODE_PRIVATE)
-  if(prefs.getBoolean("starter_catalog_initialized",false)) return
+  if(prefs.getBoolean("starter_assets_v2_initialized",false)) return
   val data=JSONObject(context.assets.open("starter/catalog.json").bufferedReader().use { it.readText() })
   val editor=prefs.edit()
   data.keys().forEach { key ->
@@ -42,6 +42,7 @@ object ScoriumBackup {
    }
   }
   editor.putBoolean("starter_catalog_initialized",true)
+  editor.putBoolean("starter_assets_v2_initialized",true)
   check(editor.commit()) { "Startkatalog konnte nicht gespeichert werden" }
  }
 
