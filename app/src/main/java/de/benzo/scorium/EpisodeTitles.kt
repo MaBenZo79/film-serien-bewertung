@@ -7,6 +7,32 @@ object EpisodeTitles {
    "Condemned","Stick","Shadows in the Glass","Speak of the Devil","Nelson v. Murdock",
    "The Path of the Righteous","The Ones We Leave Behind","Daredevil"
   ),
+  ("MARVEL's Daredevil" to 2) to listOf(
+   "Bang","Dogs to a Gunfight","New York's Finest","Penny and Dime","Kinbaku",
+   "Regrets Only","Semper Fidelis","Guilty as Sin","Seven Minutes in Heaven",
+   "The Man in the Box",".380","The Dark at the End of the Tunnel","A Cold Day in Hell's Kitchen"
+  ),
+  ("MARVEL's Daredevil" to 3) to listOf(
+   "Resurrection","Please","No Good Deed","Blindsided","The Perfect Game",
+   "The Devil You Know","Aftermath","Upstairs/Downstairs","Revelations",
+   "Karen","Reunion","One Last Shot","A New Napkin"
+  ),
+  ("MARVEL's Jessica Jones" to 1) to listOf(
+   "AKA Ladies Night","AKA Crush Syndrome","AKA It's Called Whiskey","AKA 99 Friends",
+   "AKA The Sandwich Saved Me","AKA You're a Winner!","AKA Top Shelf Perverts",
+   "AKA WWJD?","AKA Sin Bin","AKA 1,000 Cuts","AKA I've Got the Blues",
+   "AKA Take a Bloody Number","AKA Smile"
+  ),
+  ("MARVEL's Luke Cage" to 1) to listOf(
+   "Moment of Truth","Code of the Streets","Who's Gonna Take the Weight?",
+   "Step in the Arena","Just to Get a Rep","Suckas Need Bodyguards",
+   "Manifest","Blowin' Up the Spot","DWYCK","Take It Personal",
+   "Now You're Mine","Soliloquy of Chaos","You Know My Steez"
+  ),
+  ("MARVEL's DEFENDERS" to 1) to listOf(
+   "The H Word","Mean Right Hook","Worst Behavior","Royal Dragon",
+   "Take Shelter","Ashes, Ashes","Fish in the Jailhouse","The Defenders"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
