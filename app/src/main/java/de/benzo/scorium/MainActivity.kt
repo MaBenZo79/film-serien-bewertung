@@ -183,7 +183,7 @@ class MainActivity: ComponentActivity() {
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
          Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++;home=false }) {
-          ScoriumPoster(name,Modifier.width(128.dp).height(175.dp))
+          ScoriumPoster(name,Modifier.width(128.dp).height(175.dp),refresh)
           Spacer(Modifier.height(6.dp))
           Text(name,color=Color.White,fontWeight=FontWeight.Bold,maxLines=2)
          }
@@ -239,8 +239,9 @@ class MainActivity: ComponentActivity() {
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
       val revision=refresh
-      LazyColumn(Modifier.weight(1f)) {
-       items(entries) { name ->
+      val titleListState=rememberLazyListState()
+      LazyColumn(Modifier.weight(1f),state=titleListState) {
+       items(entries,key={ it }) { name ->
         val isShow=name in series || name in customSeries
         val value=if(isShow) {
          val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
@@ -289,7 +290,7 @@ class MainActivity: ComponentActivity() {
       TextButton(onClick={
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
-      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film")
+      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh)
       PosterPicker(selected!!) { refresh++ }
       Spacer(Modifier.height(8.dp))
       val revision=refresh
