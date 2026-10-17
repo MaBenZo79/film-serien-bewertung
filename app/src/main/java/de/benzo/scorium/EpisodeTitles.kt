@@ -96,6 +96,35 @@ object EpisodeTitles {
    "Bright Eyes","Tolerance Is Extinction - Part 1",
    "Tolerance Is Extinction - Part 2","Tolerance Is Extinction - Part 3"
   ),
+  ("MARVEL's Agents of Shield" to 4) to listOf(
+   "The Ghost","Meet the New Boss","Uprising","Let Me Stand Next to Your Fire",
+   "Lockup","The Good Samaritan","Deals with Our Devils","The Laws of Inferno Dynamics",
+   "Broken Promises","The Patriot","Wake Up","Hot Potato Soup","BOOM",
+   "The Man Behind the Shield","Self Control","What If...","Identity and Change",
+   "No Regrets","All the Madame's Men","Farewell, Cruel World!",
+   "The Return","World's End"
+  ),
+  ("MARVEL's Agents of Shield" to 5) to listOf(
+   "Orientation (Part One)","Orientation (Part Two)","A Life Spent",
+   "A Life Earned","Rewind","Fun & Games","Together or Not at All",
+   "The Last Day","Best Laid Plans","Past Life","All the Comforts of Home",
+   "The Real Deal","Principia","The Devil Complex","Rise and Shine",
+   "Inside Voices","The Honeymoon","All Roads Lead...","Option Two",
+   "The One Who Will Save Us All","The Force of Gravity","The End"
+  ),
+  ("MARVEL's Agents of Shield" to 6) to listOf(
+   "Missing Pieces","Window of Opportunity","Fear and Loathing on the Planet of Kitson",
+   "Code Yellow","The Other Thing","Inescapable","Toldja",
+   "Collision Course (Part I)","Collision Course (Part II)","Leap",
+   "From the Ashes","The Sign","New Life"
+  ),
+  ("MARVEL's Agents of Shield" to 7) to listOf(
+   "The New Deal","Know Your Onions","Alien Commies from the Future!",
+   "Out of the Past","A Trout in the Milk","Adapt or Die",
+   "The Totally Excellent Adventures of Mack and the D",
+   "After, Before","As I Have Always Been","Stolen","Brand New Day",
+   "The End Is at Hand","What We're Fighting For"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
