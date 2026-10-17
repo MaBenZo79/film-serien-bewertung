@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -73,13 +75,13 @@ fun ScoriumHero(onExplore:()->Unit) {
 }
 
 @Composable
-fun ScoriumPoster(title:String,modifier:Modifier=Modifier) {
+fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
- val bitmap=remember(title,stamp) { if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null }
+ val bitmap=remember(title,stamp,revision) { if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null }
  if(bitmap!=null) {
-  Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",modifier=modifier,contentScale=ContentScale.Crop)
+  Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",modifier=modifier.shadow(5.dp,RoundedCornerShape(9.dp)).clip(RoundedCornerShape(9.dp)),contentScale=ContentScale.Crop)
   return
  }
  val palette=listOf(
@@ -89,8 +91,8 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier) {
   listOf(Color(0xFF513766),Color(0xFF171B36))
  )[Math.floorMod(title.hashCode(),4)]
  val initials=title.split(" ").filter { it.isNotBlank() }.take(2).map { it.first() }.joinToString("")
- Box(modifier.background(Brush.linearGradient(palette),RoundedCornerShape(12.dp))
-  .border(1.dp,Color(0x35FFFFFF),RoundedCornerShape(12.dp)),contentAlignment=Alignment.Center) {
+ Box(modifier.shadow(5.dp,RoundedCornerShape(9.dp)).clip(RoundedCornerShape(9.dp)).background(Brush.linearGradient(palette),RoundedCornerShape(9.dp))
+  .border(1.dp,Color(0x35FFFFFF),RoundedCornerShape(9.dp)),contentAlignment=Alignment.Center) {
   Text(initials,fontSize=24.sp,fontWeight=FontWeight.Black,color=Color(0xDDE8D2AB))
  }
 }
@@ -137,7 +139,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
     }
    }
    Spacer(Modifier.height(13.dp))
-   Slider(value=(value ?: 5).toFloat(),onValueChange={onChange(it.toInt().coerceIn(1,10))},
+   Slider(value=(value ?: 5).toFloat(),onValueChange={onChange(kotlin.math.round(it).toInt().coerceIn(1,10))},
     valueRange=1f..10f,steps=8,
     colors=SliderDefaults.colors(thumbColor=gold,activeTrackColor=gold,
      inactiveTrackColor=Color(0xFF42445A)))
@@ -152,12 +154,12 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
 }
 
 @Composable
-fun ScoriumDetailHero(title:String,kind:String) {
+fun ScoriumDetailHero(title:String,kind:String,revision:Int=0) {
  Card(shape=RoundedCornerShape(24.dp),
   colors=CardDefaults.cardColors(containerColor=Color(0xFF19243A)),
   modifier=Modifier.fillMaxWidth()) {
   Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp))
+   ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp),revision)
    Spacer(Modifier.width(17.dp))
    Column(Modifier.weight(1f)) {
     Text(kind.uppercase(),color=gold,fontSize=11.sp,letterSpacing=1.5.sp)
