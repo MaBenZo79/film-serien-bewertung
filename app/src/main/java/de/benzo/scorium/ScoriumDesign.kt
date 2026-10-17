@@ -83,34 +83,29 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0) {
   if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
  }
  val shape=RoundedCornerShape(9.dp)
- val palette=listOf(
-  listOf(Color(0xFF752A42),Color(0xFF182B48)),
-  listOf(Color(0xFF234E67),Color(0xFF0E182F)),
-  listOf(Color(0xFF66502B),Color(0xFF211C2F)),
-  listOf(Color(0xFF513766),Color(0xFF171B36))
- )[Math.floorMod(title.hashCode(),4)]
  Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,Color(0xFFB46AFF),shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop)
   } else {
-   val initials=title.split(" ").filter { it.isNotBlank() }.take(2).map { it.first() }.joinToString("")
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
-    .background(Brush.linearGradient(palette)),contentAlignment=Alignment.Center) {
-    Text(initials,fontSize=24.sp,fontWeight=FontWeight.Black,color=Color(0xDDE8D2AB))
+    .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
+    Image(painter=painterResource(R.drawable.scorium_logo),
+     contentDescription="SCORIUM Platzhalter für $title",
+     modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit)
    }
   }
  }
 }
 
 @Composable
-fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit) {
+fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit,imageKey:String=title,revision:Int=0) {
  Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
   colors=CardDefaults.cardColors(containerColor=Color(0xFF182235)),
   modifier=Modifier.fillMaxWidth()) {
   Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(title,Modifier.size(width=75.dp,height=100.dp))
+   ScoriumPoster(imageKey,Modifier.size(width=75.dp,height=100.dp),revision)
    Spacer(Modifier.width(15.dp))
    Column(Modifier.weight(1f)) {
     Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=gold)
@@ -207,11 +202,11 @@ fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
 }
 
 @Composable
-fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit) {
+fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0) {
  Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
   Column(Modifier.padding(10.dp)) {
    Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick))
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick),revision)
     Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
    }
    Spacer(Modifier.height(10.dp))
