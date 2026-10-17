@@ -361,7 +361,7 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..episodeCount).forEach { number ->
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
-         ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) },onClick={
+         ScoriumTitleCard(EpisodeTitles.title(seriesKey,selectedSeason,number)?.let { "$number · $it" } ?: "Episode $number","Episode",score,score?.let { grade(it) },onClick={
           selectedEpisode=number
          },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
         }
