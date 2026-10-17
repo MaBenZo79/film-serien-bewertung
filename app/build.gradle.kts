@@ -10,8 +10,26 @@ android {
         applicationId = "de.benzo.scorium"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 75).coerceAtLeast(75)
+        versionName = "0.3." + versionCode
+    }
+    signingConfigs {
+        create("distribution") {
+            val store = System.getenv("SCORIUM_KEYSTORE_PATH")
+            if (!store.isNullOrBlank()) {
+                storeFile = file(store)
+                storePassword = System.getenv("SCORIUM_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("SCORIUM_KEY_ALIAS")
+                keyPassword = System.getenv("SCORIUM_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        getByName("debug") {
+            if (!System.getenv("SCORIUM_KEYSTORE_PATH").isNullOrBlank()) {
+                signingConfig = signingConfigs.getByName("distribution")
+            }
+        }
     }
     buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
