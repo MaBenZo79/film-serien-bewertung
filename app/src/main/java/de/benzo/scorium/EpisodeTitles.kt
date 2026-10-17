@@ -125,6 +125,52 @@ object EpisodeTitles {
    "After, Before","As I Have Always Been","Stolen","Brand New Day",
    "The End Is at Hand","What We're Fighting For"
   ),
+  ("WandaVision" to 1) to listOf(
+   "Filmed Before a Live Studio Audience","Don't Touch That Dial","Now in Color",
+   "We Interrupt This Program","On a Very Special Episode...","All-New Halloween Spooktacular!",
+   "Breaking the Fourth Wall","Previously On","The Series Finale"
+  ),
+  ("The Falcon and the Winter Soldier" to 1) to listOf(
+   "New World Order","The Star-Spangled Man","Power Broker","The Whole World Is Watching",
+   "Truth","One World, One People"
+  ),
+  ("Loki" to 1) to listOf(
+   "Glorious Purpose","The Variant","Lamentis","The Nexus Event",
+   "Journey Into Mystery","For All Time. Always."
+  ),
+  ("Loki" to 2) to listOf(
+   "Ouroboros","Breaking Brad","1893","Heart of the TVA",
+   "Science/Fiction","Glorious Purpose"
+  ),
+  ("Hawkeye" to 1) to listOf(
+   "Never Meet Your Heroes","Hide and Seek","Echoes","Partners, Am I Right?",
+   "Ronin","So This Is Christmas?"
+  ),
+  ("Moon Knight" to 1) to listOf(
+   "The Goldfish Problem","Summon the Suit","The Friendly Type","The Tomb",
+   "Asylum","Gods and Monsters"
+  ),
+  ("Ms. Marvel" to 1) to listOf(
+   "Generation Why","Crushed","Destined","Seeing Red","Time and Again","No Normal"
+  ),
+  ("She-Hulk" to 1) to listOf(
+   "A Normal Amount of Rage","Superhuman Law","The People vs. Emil Blonsky",
+   "Is This Not Real Magic?","Mean, Green, and Straight Poured into These Jeans",
+   "Just Jen","The Retreat","Ribbit and Rip It","Whose Show Is This?"
+  ),
+  ("Secret Invasion" to 1) to listOf(
+   "Resurrection","Promises","Betrayed","Beloved","Harvest","Home"
+  ),
+  ("Echo" to 1) to listOf(
+   "Chafa","Lowak","Tuklo","Taloa","Maya"
+  ),
+  ("Agatha All Along" to 1) to listOf(
+   "Seekest Thou the Road","Circle Sewn with Fate / Unlock Thy Hidden Gate",
+   "Through Many Miles / Of Tricks and Trials","If I Can't Reach You / Let My Song Teach You",
+   "Darkest Hour / Wake Thy Power","Familiar by Thy Side",
+   "Death's Hand in Mine","Follow Me My Friend / To Glory at the End",
+   "Maiden Mother Crone"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
