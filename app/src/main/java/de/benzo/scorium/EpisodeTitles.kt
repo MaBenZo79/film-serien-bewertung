@@ -63,6 +63,39 @@ object EpisodeTitles {
    "Morning of the Mindstorm","Citadel on the Edge of Vengeance",
    "War Without End","A Duel of Iron"
   ),
+  ("MARVEL's Punisher" to 1) to listOf(
+   "3 AM","Two Dead Men","Kandahar","Resupply","Gunner","The Judas Goat",
+   "Crosshairs","Cold Steel","Front Toward Enemy","Virtue of the Vicious",
+   "Danger Close","Home","Memento Mori"
+  ),
+  ("MARVEL's Punisher" to 2) to listOf(
+   "Roadhouse Blues","Fight or Flight","Trouble the Water","Scar Tissue",
+   "One-Eyed Jacks","Nakazat","One Bad Day","My Brother's Keeper",
+   "Flustercluck","The Dark Hearts of Men","The Abyss","Collision Course","The Whirlwind"
+  ),
+  ("MARVEL's Agents of Shield" to 2) to listOf(
+   "Shadows","Heavy Is the Head","Making Friends and Influencing People",
+   "Face My Enemy","A Hen in the Wolf House","A Fractured House",
+   "The Writing on the Wall","The Things We Bury","...Ye Who Enter Here",
+   "What They Become","Aftershocks","Who You Really Are","One of Us",
+   "Love in the Time of Hydra","One Door Closes","Afterlife","Melinda",
+   "The Frenemy of My Enemy","The Dirty Half Dozen","Scars",
+   "S.O.S. Part One","S.O.S. Part Two"
+  ),
+  ("MARVEL's Agents of Shield" to 3) to listOf(
+   "Laws of Nature","Purpose in the Machine","A Wanted (Inhu)man",
+   "Devils You Know","4,722 Hours","Among Us Hide...","Chaos Theory",
+   "Many Heads, One Tale","Closure","Maveth","Bouncing Back",
+   "The Inside Man","Parting Shot","Watchdogs","Spacetime","Paradise Lost",
+   "The Team","The Singularity","Failed Experiments","Emancipation",
+   "Absolution","Ascension"
+  ),
+  ("X-MEN 97" to 1) to listOf(
+   "To Me, My X-Men","Mutant Liberation Begins","Fire Made Flesh",
+   "Motendo / Lifedeath - Part 1","Remember It","Lifedeath - Part 2",
+   "Bright Eyes","Tolerance Is Extinction - Part 1",
+   "Tolerance Is Extinction - Part 2","Tolerance Is Extinction - Part 3"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
