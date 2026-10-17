@@ -154,9 +154,9 @@ class MainActivity: ComponentActivity() {
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     ScoriumBackdrop { Column(Modifier.fillMaxSize().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
-     ScoriumHeader()
-     Spacer(Modifier.height(12.dp))
      if(home) {
+      ScoriumHeader()
+      Spacer(Modifier.height(12.dp))
       val imageRevision=refresh
       val homeScroll=rememberScrollState()
       Column(Modifier.weight(1f).verticalScroll(homeScroll)) {
