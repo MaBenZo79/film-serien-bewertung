@@ -11,6 +11,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,6 +103,17 @@ class MainActivity: ComponentActivity() {
      } ?: error("Ausgabedatei nicht geöffnet")
     }.onFailure { exportError=it.localizedMessage }
    }
+   var backupMessage by remember { mutableStateOf<String?>(null) }
+   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+    if(uri!=null) runCatching { contentResolver.openOutputStream(uri)?.use { ScoriumBackup.export(this@MainActivity,it) } ?: error("Datei konnte nicht geöffnet werden") }
+     .onSuccess { backupMessage="Sicherung erfolgreich gespeichert." }
+     .onFailure { backupMessage=it.localizedMessage ?: "Export fehlgeschlagen" }
+   }
+   val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
+     .onSuccess { backupMessage="Sicherung importiert. Bitte die App neu starten, damit alle Daten aktualisiert werden.";refresh++ }
+     .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
+   }
    val customSeries=remember {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_series","[]")) }.getOrDefault(JSONArray())
@@ -121,22 +138,53 @@ class MainActivity: ComponentActivity() {
      confirmButton={TextButton(onClick={showExitDialog=false;this@MainActivity.finish()}) { Text("Ja, beenden") }},
      dismissButton={TextButton(onClick={showExitDialog=false}) { Text("Nein, bleiben") }}
     )
+    if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     ScoriumBackdrop { Column(Modifier.fillMaxSize().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
      ScoriumHeader()
      Spacer(Modifier.height(12.dp))
      if(home) {
-      Spacer(Modifier.height(10.dp))
-      Text("DEIN KINO. DEINE WERTUNG.",fontSize=12.sp,color=gold,fontWeight=FontWeight.Bold)
-      Spacer(Modifier.height(8.dp))
-      Text("Willkommen in deiner Filmwelt.",fontSize=24.sp,color=Color.White,fontWeight=FontWeight.Bold)
-      Spacer(Modifier.height(18.dp))
-      Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-       ScoriumMenuTile("Franchises","Marvel Cinematic Universe",0) { section="Franchises";home=false;tab="Alle" }
-       ScoriumMenuTile("Filme","Entdecken und bewerten",1) { section="Filme";home=false;tab="Filme" }
-       ScoriumMenuTile("Serien","Staffeln und Episoden",2) { section="Serien";home=false;tab="Serien" }
-       ScoriumMenuTile("Ranking","Deine besten Bewertungen",3) { section="Ranking";home=false }
-       ScoriumMenuTile("Download","Bewertungen als PDF oder Bild",4) { section="Download";home=false }
+      val homeScroll=rememberScrollState()
+      Column(Modifier.fillMaxSize().verticalScroll(homeScroll)) {
+       Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
+       Spacer(Modifier.height(14.dp))
+       OutlinedTextField(value=search,onValueChange={search=it;home=false;section="Franchises";tab="Alle"},placeholder={Text("Filme und Serien suchen …")},modifier=Modifier.fillMaxWidth(),singleLine=true)
+       Spacer(Modifier.height(22.dp))
+       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+        Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
+        TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
+       }
+       Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={home=false;section="Franchises";tab="Alle"},onImageSaved={refresh++})
+        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={add=true},onImageSaved={refresh++})
+        ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++})
+        ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={home=false;section="Serien";tab="Serien"},onImageSaved={refresh++})
+       }
+       Spacer(Modifier.height(26.dp))
+       Text("Zuletzt angesehen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
+       Spacer(Modifier.height(12.dp))
+       val recent=listOf("Iron Man","Avengers: Endgame","Loki")
+       Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        recent.forEach { name ->
+         Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;home=false }) {
+          ScoriumPoster(name,Modifier.width(128.dp).height(175.dp))
+          Spacer(Modifier.height(6.dp))
+          Text(name,color=Color.White,fontWeight=FontWeight.Bold,maxLines=2)
+         }
+        }
+       }
+       Spacer(Modifier.height(24.dp))
+       Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(onClick={home=false;section="Ranking"}) { Text("Ranking") }
+        OutlinedButton(onClick={home=false;section="Download"}) { Text("Downloads") }
+       }
+       Spacer(Modifier.height(18.dp))
+       Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
+       Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick={backupExport.launch("Scorium-Sicherung.zip")}) { Text("Alles exportieren") }
+        OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
+       }
+       Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
       TextButton(onClick={home=true}) { Text("← Startseite") }
