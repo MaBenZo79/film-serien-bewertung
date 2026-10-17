@@ -229,6 +229,7 @@ class MainActivity: ComponentActivity() {
          OutlinedButton(onClick={updateExport.launch(null)}) { Text("Nur Änderungen") }
         }
         OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
+        Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
        }
        Spacer(Modifier.height(28.dp))
       }
