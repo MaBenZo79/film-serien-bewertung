@@ -142,11 +142,9 @@ class MainActivity: ComponentActivity() {
      .onSuccess { parts -> backupMessage="$parts ZIP-Datei(en) mit maximal 24 MB erstellt. Hinweis: Mehrteilige Exporte sind für den GitHub-Upload gedacht; der bisherige Import kann sie noch nicht zusammenführen." }
      .onFailure { backupMessage=it.localizedMessage ?: "Export fehlgeschlagen" }
    }
-   val updateExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
-    if(uri!=null) runCatching {
-     contentResolver.openOutputStream(uri)?.use { ScoriumTransfer.delta(this@MainActivity,it) }
-      ?: error("Datei konnte nicht geöffnet werden")
-    }.onSuccess { backupMessage=it+". Hinweis: Update-Dateien dienen dem Nachtragen in den Katalog; der bisherige Import kann sie nicht zusammenführen." }
+   val updateExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+    if(uri!=null) runCatching { ScoriumTransfer.delta(this@MainActivity,uri) }
+     .onSuccess { backupMessage=it+". Hinweis: Der bisherige Import kann Update-Dateien noch nicht zusammenführen." }
      .onFailure { backupMessage=it.localizedMessage ?: "Update-Export fehlgeschlagen" }
    }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -228,7 +226,7 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
          OutlinedButton(onClick={backupExport.launch(null)}) { Text("Komplett sichern") }
-         OutlinedButton(onClick={updateExport.launch("SCORIUM-Update.zip")}) { Text("Nur Änderungen") }
+         OutlinedButton(onClick={updateExport.launch(null)}) { Text("Nur Änderungen") }
         }
         OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
        }
