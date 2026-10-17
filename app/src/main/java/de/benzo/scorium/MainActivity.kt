@@ -61,6 +61,25 @@ private fun seasonScore(prefs: android.content.SharedPreferences, seriesName: St
 private val legacyFilms = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
 private val legacySeries = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
 private fun grade(p: Int) = when { p>=95->"A+";p>=90->"A";p>=85->"A-";p>=80->"B+";p>=75->"B";p>=70->"B-";p>=65->"C+";p>=60->"C";p>=55->"C-";p>=50->"D+";p>=45->"D";p>=40->"D-";else->"F" }
+private val releaseOrder = listOf(
+"Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers",
+"Iron Man 3","MARVEL's Agents of Shield","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy",
+"MARVEL's Daredevil","Avengers: Age of Ultron","Ant-Man","MARVEL's Jessica Jones","Captain America: Civil War","MARVEL's Luke Cage",
+"Doctor Strange","MARVEL's Iron Fist","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","MARVEL's DEFENDERS",
+"Thor: Ragnarok","MARVEL's Punisher","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel",
+"Avengers: Endgame","Spider-Man: Far From Home","WandaVision","The Falcon and the Winter Soldier","Loki","Black Widow",
+"What If...?","Shang-Chi and the Legend of the Ten Rings","Eternals","Hawkeye","Spider-Man: No Way Home",
+"Moon Knight","Doctor Strange in the Multiverse of Madness","Ms. Marvel","Thor: Love and Thunder","I Am Groot",
+"She-Hulk","Black Panther: Wakanda Forever","Ant-Man and the Wasp: Quantumania","Guardians of the Galaxy Vol. 3",
+"Secret Invasion","The Marvels","Echo","X-MEN 97","Deadpool & Wolverine","Agatha All Along",
+"Your Friendly Neighborhood Spider-Man","Captain America: Brave New World","Daredevil: Born Again","Thunderbolts*",
+"Ironheart","The Fantastic Four: First Steps","Eyes of Wakanda","Marvel Zombies","Wonder Man","VisionQuest",
+"Spider-Man: Brand New Day"
+)
+private fun releaseRank(name:String):Int {
+ val rank=releaseOrder.indexOf(name)
+ return if(rank>=0) rank else Int.MAX_VALUE
+}
 private val films get() = McuCatalog.films
 private val series get() = McuCatalog.shows.map { it.title }
 private fun recordRecentlyOpened(prefs:android.content.SharedPreferences,name:String) {
@@ -240,7 +259,7 @@ class MainActivity: ComponentActivity() {
       } else {
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }
+      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else series+customSeries)).filter { it.contains(search,true) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
       val revision=refresh
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(entries,key={ it }) { name ->
