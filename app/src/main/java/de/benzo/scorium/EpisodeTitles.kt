@@ -226,6 +226,10 @@ object EpisodeTitles {
    "Duel with the Devil","Scorpion Rising","Tangled Web",
    "Hero or Menace","If This Be My Destiny..."
   ),
+  ("Wonder Man" to 1) to listOf(
+   "Matinee","Self-Tape","Pacoima","Doorman","Found Footage",
+   "Callback","Kathy Friedman","Yucca Valley"
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
