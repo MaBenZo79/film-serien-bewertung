@@ -11,6 +11,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +72,7 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
  val exit = remember { Animatable(0f) }
  var leaving by remember { mutableStateOf(false) }
  val scope = rememberCoroutineScope()
+ val touchBarrier = remember { MutableInteractionSource() }
 
  LaunchedEffect(Unit) {
   launch { clouds.animateTo(1f, tween(2700, easing = LinearOutSlowInEasing)) }
@@ -98,6 +101,8 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
 
  Box(
   modifier = Modifier.fillMaxSize().background(Color(0xFF010007))
+   // Prevent taps from hitting the home screen beneath the intro overlay.
+   .clickable(interactionSource = touchBarrier, indication = null) { }
    .graphicsLayer {
     alpha = 1f - exit.value
     scaleX = 1f + exit.value * .035f
