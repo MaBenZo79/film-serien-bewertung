@@ -215,6 +215,17 @@ object EpisodeTitles {
   ("Eyes of Wakanda" to 1) to listOf(
    "Into the Lion's Den","Legends and Lies","Lost and Found","The Last Panther"
   ),
+  ("Daredevil: Born Again" to 1) to listOf(
+   "Heaven's Half Hour","Optics","The Hollow of His Hand",
+   "Sic Semper Systema","With Interest","Excessive Force",
+   "Art for Art's Sake","Isle of Joy","Straight to Hell"
+  ),
+  ("Your Friendly Neighborhood Spider-Man" to 1) to listOf(
+   "Amazing Fantasy","The Parker Luck","Secret Identity",
+   "Hitting the Big Time","The Unicorn Unleashed",
+   "Duel with the Devil","Scorpion Rising","Tangled Web",
+   "Hero or Menace","If This Be My Destiny..."
+  ),
   ("MARVEL's Agents of Shield" to 1) to listOf(
    "Pilot","0-8-4","The Asset","Eye Spy","Girl in the Flower Dress","FZZT",
    "The Hub","The Well","Repairs","The Bridge","The Magical Place","Seeds",
