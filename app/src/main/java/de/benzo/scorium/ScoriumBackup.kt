@@ -10,6 +10,18 @@ import java.util.zip.ZipOutputStream
 
 object ScoriumBackup {
  /**
+  * Only portable catalog metadata belongs in shared backups.
+  * Ratings use title names (and season/episode suffixes) as preference keys,
+  * so do not export arbitrary preference entries from the "ratings" store.
+  * Local ratings remain untouched on the exporting device.
+  */
+ fun isCatalogKey(key: String): Boolean =
+  key == "custom_titles" ||
+  key == "custom_series" ||
+  key.startsWith("seasons::") ||
+  key.startsWith("episodes::")
+
+ /**
   * Public starter catalog derived from the user's backup. Ratings and personal history
   * are deliberately excluded. Never overwrites data on subsequent launches.
   * The complete built-in MCU catalog continues to come from McuCatalog.
@@ -50,6 +62,7 @@ object ScoriumBackup {
  fun export(context:Context,out:OutputStream) {
   val json=JSONObject()
   context.getSharedPreferences("ratings",Context.MODE_PRIVATE).all.forEach { (key,value) ->
+   if (!isCatalogKey(key)) return@forEach
    when(value) {
     is String -> json.put(key,value)
     is Int -> json.put(key,value)
