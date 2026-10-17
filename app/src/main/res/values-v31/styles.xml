@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ forces an OS splash; keep it dark and logo-free so the
+         cinematic SCORIUM animation remains the first visible branding. -->
+    <style name="Theme.Scorium" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#010007</item>
+        <item name="android:colorBackground">#010007</item>
+        <item name="android:statusBarColor">#010007</item>
+        <item name="android:navigationBarColor">#010007</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowSplashScreenBackground">#010007</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/scorium_splash_transparent</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@android:color/transparent</item>
+    </style>
+</resources>
