@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match the first frame of the Compose intro from the first instant. -->
+    <style name="Theme.Scorium" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#010007</item>
+        <item name="android:colorBackground">#010007</item>
+        <item name="android:statusBarColor">#010007</item>
+        <item name="android:navigationBarColor">#010007</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
