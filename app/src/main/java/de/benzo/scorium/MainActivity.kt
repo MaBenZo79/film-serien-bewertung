@@ -173,7 +173,7 @@ class MainActivity: ComponentActivity() {
     )
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop { Column(Modifier.fillMaxSize().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
+    ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
      if(home) {
       ScoriumHeader()
       Spacer(Modifier.height(12.dp))
@@ -319,8 +319,8 @@ class MainActivity: ComponentActivity() {
        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
        PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
        if(selectedEpisode>0) {
-        Text("Episode $selectedEpisode · Eigenes Bild",color=gold)
-        ScoriumPoster("$seriesKey::season:$selectedSeason:episode:$selectedEpisode",Modifier.width(112.dp).height(154.dp),refresh)
+        Text("Episode $selectedEpisode · Staffelposter",color=gold)
+        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
         PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
        }
       }
@@ -363,7 +363,7 @@ class MainActivity: ComponentActivity() {
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
          ScoriumTitleCard("Episode $number","Episode",score,score?.let { grade(it) },onClick={
           selectedEpisode=number
-         },imageKey="$seriesKey::season:$selectedSeason:episode:$number",revision=refresh)
+         },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
         }
        }
        Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
