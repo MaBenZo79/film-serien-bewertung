@@ -156,7 +156,7 @@ class MainActivity: ComponentActivity() {
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={home=false;section="Franchises";tab="Alle"},onImageSaved={refresh++})
-        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={add=true},onImageSaved={refresh++})
+        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++})
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++})
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={home=false;section="Serien";tab="Serien"},onImageSaved={refresh++})
        }
