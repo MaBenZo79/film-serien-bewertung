@@ -144,7 +144,7 @@ class MainActivity: ComponentActivity() {
    }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
     if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
-     .onSuccess { backupMessage="Sicherung importiert. Katalog und Serien wurden aktualisiert.";refresh++ }
+     .onSuccess { posterCount -> backupMessage="Sicherung importiert: $posterCount Poster wiederhergestellt. Filme und Serien wurden aktualisiert.";refresh++ }
      .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
    }
    val customSeries=remember(refresh) {
