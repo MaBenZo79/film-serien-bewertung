@@ -110,7 +110,8 @@ class MainActivity: ComponentActivity() {
    var search by remember { mutableStateOf("") }
    var tab by remember { mutableStateOf("Alle") }
    val titleListState=rememberLazyListState()
-   val extras=remember {
+   var refresh by remember { mutableIntStateOf(0) }
+   val extras=remember(refresh) {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_titles","[]")) }.getOrDefault(JSONArray())
      for(i in 0 until data.length()) add(data.optString(i))
@@ -119,7 +120,6 @@ class MainActivity: ComponentActivity() {
    var add by remember { mutableStateOf(false) }
    var newTitle by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
-   var refresh by remember { mutableIntStateOf(0) }
    var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
    var exportError by remember { mutableStateOf<String?>(null) }
    val pngLauncher=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
@@ -144,10 +144,10 @@ class MainActivity: ComponentActivity() {
    }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
     if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
-     .onSuccess { backupMessage="Sicherung importiert. Die Daten werden beim nächsten App-Start vollständig geladen.";refresh++ }
+     .onSuccess { backupMessage="Sicherung importiert. Katalog und Serien wurden aktualisiert.";refresh++ }
      .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
    }
-   val customSeries=remember {
+   val customSeries=remember(refresh) {
     mutableStateListOf<String>().apply {
      val data=runCatching { JSONArray(prefs.getString("custom_series","[]")) }.getOrDefault(JSONArray())
      for(i in 0 until data.length()) add(data.optString(i))
