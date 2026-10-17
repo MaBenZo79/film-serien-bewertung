@@ -28,6 +28,27 @@ jobs:
           mkdir -p app/src/main/res/drawable-nodpi
           base64 --decode app/src/main/scorium_logo.png.base64 > app/src/main/res/drawable-nodpi/scorium_logo.png
           test -s app/src/main/res/drawable-nodpi/scorium_logo.png
+      - name: Bundle public SCORIUM catalog and artwork
+        run: |
+          mkdir -p app/src/main/assets/starter/posters app/src/main/res/drawable-nodpi
+          unzip -q -o SCORIUM_Originalgrafiken.zip -d /tmp/scorium-artwork
+          cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_header.png app/src/main/res/drawable-nodpi/scorium_header.png
+          cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_poster.png app/src/main/res/drawable-nodpi/scorium_poster.png
+          cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_collection.png app/src/main/res/drawable-nodpi/scorium_collection.png
+          unzip -q -o Scorium-Sicherung.zip 'posters/*.jpg' -d app/src/main/assets/starter
+          unzip -p Scorium-Sicherung.zip scorium-data.json > /tmp/scorium-personal-data.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/scorium-personal-data.json',encoding='utf-8') as f:
+              source=json.load(f)
+          allowed=lambda k: k in ('custom_titles','custom_series') or k.startswith(('seasons::','episodes::'))
+          public={k:v for k,v in source.items() if allowed(k)}
+          with open('app/src/main/assets/starter/catalog.json','w',encoding='utf-8') as f:
+              json.dump(public,f,ensure_ascii=False)
+          print('Bundled',len(public),'catalog keys and',__import__('glob').glob('app/src/main/assets/starter/posters/*.jpg').__len__(),'posters; ratings excluded')
+          PY
+          test -s app/src/main/res/drawable-nodpi/scorium_header.png
+          test -s app/src/main/assets/starter/catalog.json
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
       - name: Upload debug APK
