@@ -129,7 +129,13 @@ fun McuOpeningOverlay(
                                 onStarted = {},
                                 onFirstFrame = { firstVideoFrame = true })
                         },
-                        modifier = Modifier.fillMaxSize()
+                        // Start with the logo smaller, matching the MCU card more closely.
+                        // Grow smoothly into full-screen framing as the reveal opens.
+                        modifier = Modifier.fillMaxSize().graphicsLayer {
+                            val zoom = 0.62f + 0.38f * expand.value
+                            scaleX = zoom
+                            scaleY = zoom
+                        }
                     )
                 }
             }
