@@ -8,7 +8,6 @@ import android.net.Uri
 import android.view.Surface
 import android.view.TextureView
 import android.widget.FrameLayout
-import kotlin.math.max
 
 /**
  * A center-cropped video layer. Unlike VideoView, the video fills the animated
@@ -20,6 +19,8 @@ class McuCoverVideoView(
 ) : FrameLayout(context), TextureView.SurfaceTextureListener {
     private val texture = TextureView(context)
     private var player: MediaPlayer? = null
+    // Keep a live Surface until the player has stopped and released it.
+    private var playbackSurface: Surface? = null
     private var videoWidth = 720
     private var videoHeight = 1280
 
@@ -34,7 +35,9 @@ class McuCoverVideoView(
         player = media
         try {
             media.setDataSource(context, Uri.parse("android.resource://${context.packageName}/${R.raw.mcu_collection_intro}"))
-            media.setSurface(Surface(surfaceTexture).also { it.release() })
+            val renderSurface = Surface(surfaceTexture)
+            playbackSurface = renderSurface
+            media.setSurface(renderSurface)
             media.isLooping = false
             media.setOnVideoSizeChangedListener { _, w, h ->
                 if (w > 0 && h > 0) {
@@ -87,6 +90,8 @@ class McuCoverVideoView(
         player?.runCatching { stop() }
         player?.release()
         player = null
+        playbackSurface?.release()
+        playbackSurface = null
     }
 
     override fun onDetachedFromWindow() {
