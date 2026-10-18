@@ -35,8 +35,17 @@ private val fog=Color(0xFFB5B7CD)
 
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
- Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-  Color(0xFF0B1528),Color(0xFF0C111D),ink)))) { content() }
+ // Unified background for the home screen and all nested pages.
+ // Keep the existing poster tiles, cards, controls and their colors intact.
+ Box(Modifier.fillMaxSize().background(Color(0xFF010007))) {
+  Image(
+   painter = painterResource(R.drawable.scorium_menu_background),
+   contentDescription = null,
+   contentScale = ContentScale.FillBounds,
+   modifier = Modifier.fillMaxSize()
+  )
+  content()
+ }
 }
 
 @Composable
