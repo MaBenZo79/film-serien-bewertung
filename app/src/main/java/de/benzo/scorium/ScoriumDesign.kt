@@ -97,18 +97,13 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop)
   } else if(title.startsWith("collection::mcu::")) {
-   // MCU phase covers never fall back to the generic SCORIUM collection artwork.
-   Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
-    .background(Brush.radialGradient(listOf(Color(0xFFB52122),Color(0xFF730C12),Color(0xFF280306)))),
-    contentAlignment=Alignment.Center) {
-    Column(horizontalAlignment=Alignment.CenterHorizontally) {
-     Text("MARVEL  STUDIOS",color=Color(0xFFE5E2E2),fontWeight=FontWeight.Black,
-      fontSize=15.sp,letterSpacing=(-0.5).sp,maxLines=1)
-     Spacer(Modifier.height(3.dp))
-     Text("MCU",color=Color(0xFFF1EDED),fontWeight=FontWeight.Black,
-      fontSize=27.sp,letterSpacing=2.sp,maxLines=1)
-    }
-   }
+   // Original uploaded 4:3 MCU cover, used only for the seven MCU phase tiles.
+   Image(
+    painter=painterResource(R.drawable.mcu_phase_cover),
+    contentDescription="Marvel Studios MCU",
+    modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
+    contentScale=ContentScale.Crop
+   )
   } else {
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
     .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
