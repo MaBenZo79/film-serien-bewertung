@@ -17,6 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -112,23 +114,34 @@ fun McuOpeningOverlay(
             val x = movedX + (cardWidth - w) * 0.5f
             val y = movedY + (cardHeight - h) * 0.5f
             val radius = 16.dp * (1f - expand.value)
+            // The video remains at full-screen dimensions throughout playback.
+            // Only its visible window expands; the video pixels no longer rescale.
+            if (playVideo) {
+                Box(
+                    Modifier.fillMaxSize().drawWithContent {
+                        clipRect(x, y, x + w, y + h) { drawContent() }
+                    }
+                ) {
+                    AndroidView(
+                        factory = { ctx ->
+                            McuCoverVideoView(ctx,
+                                onFinished = { finished = true },
+                                onStarted = { videoStarted = true },
+                                onFirstFrame = { firstVideoFrame = true })
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
             Box(
                 modifier = Modifier
                     .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
                     .width(with(density) { w.toDp() })
                     .height(with(density) { h.toDp() })
                     .clip(RoundedCornerShape(radius))
-                    .background(Color(0xFF620402)),
+                    .background(Color(0xFF620402).copy(alpha = posterOpacity)),
                 contentAlignment = Alignment.Center
             ) {
-                if (playVideo) {
-                    AndroidView(
-                        factory = { ctx ->
-                            McuCoverVideoView(ctx, onFinished = { finished = true }, onStarted = { videoStarted = true }, onFirstFrame = { firstVideoFrame = true })
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
                 if (posterOpacity > 0f) {
                     Box(Modifier.fillMaxSize().graphicsLayer { alpha = posterOpacity }, contentAlignment = Alignment.Center) {
                         ScoriumCollectionTile(
