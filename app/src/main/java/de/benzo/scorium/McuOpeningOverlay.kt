@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
@@ -52,15 +53,15 @@ fun McuOpeningOverlay(
 ) {
     val density = LocalDensity.current
     val move = remember { Animatable(0f) }
-    val expand = remember { Animatable(0f) }
     val enlarge = remember { Animatable(0f) }
     var overlayBounds by remember { mutableStateOf<Rect?>(null) }
     var playVideo by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
     var firstVideoFrame by remember { mutableStateOf(false) }
+    var handoff by remember { mutableStateOf(false) }
     val posterOpacity by animateFloatAsState(
-        targetValue = if (firstVideoFrame) 0f else 1f,
-        animationSpec = tween(durationMillis = 480), label = "mcuPosterHandoff"
+        targetValue = if (handoff) 0f else 1f,
+        animationSpec = tween(durationMillis = 520), label = "mcuPosterHandoff"
     )
 
     BackHandler { onSkip() }
@@ -69,16 +70,20 @@ fun McuOpeningOverlay(
         // A single playback sequence: layout updates must not restart the animation.
         snapshotFlow { overlayBounds }.filterNotNull().first()
         move.snapTo(0f)
-        expand.snapTo(0f)
-        move.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
-        enlarge.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
-        delay(120)
+        enlarge.snapTo(0f)
+        // Prepare the fullscreen video during the single continuous tile movement.
+        // Keep it hidden until its first decoded frame is available.
         playVideo = true
-        // Do not expand an empty video surface: wait until playback really starts.
+        val travel = launch {
+            move.animateTo(1f, tween(durationMillis = 1000, easing = FastOutSlowInEasing))
+        }
+        val grow = launch {
+            enlarge.animateTo(1f, tween(durationMillis = 1000, easing = FastOutSlowInEasing))
+        }
+        travel.join()
+        grow.join()
         snapshotFlow { firstVideoFrame }.first { it }
-        // Fade the original card only once a real video frame exists.
-        delay(100)
-        expand.animateTo(1f, tween(durationMillis = 4200, easing = LinearOutSlowInEasing))
+        handoff = true
     }
     LaunchedEffect(finished) {
         if (finished) onComplete()
@@ -94,7 +99,7 @@ fun McuOpeningOverlay(
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
             .onGloballyPositioned { overlayBounds = it.boundsInWindow() }
-            .background(Color(0xFF39070C).copy(alpha = expand.value.coerceIn(0f, 1f)))
+            .background(Color.Transparent)
             .clickable { onSkip() }
     ) {
         val bounds = overlayBounds
@@ -130,65 +135,21 @@ fun McuOpeningOverlay(
             val tileCenterY = movedY + cardHeight / 2f
             val posterCenterOffsetX = poster.center.x - original.center.x
             val posterCenterOffsetY = poster.center.y - original.center.y
-            val posterX = tileCenterX + posterCenterOffsetX * cardScale - posterW / 2f
-            val posterY = tileCenterY + posterCenterOffsetY * cardScale - posterH / 2f
-            val w = posterW + (fullWidth - posterW) * expand.value
-            val h = posterH + (fullHeight - posterH) * expand.value
-            val x = posterX * (1f - expand.value)
-            val y = posterY * (1f - expand.value)
-                // The video remains at full-screen dimensions throughout playback.
-            // Only its visible window expands; the video pixels no longer rescale.
+            // The new portrait intro stays at its final fullscreen dimensions.
+            // No iris or circular clipping: fade the video in over the centered,
+            // enlarged tile, while the tile and its glowing border dissolve.
             if (playVideo) {
-                Box(
-                    Modifier.fillMaxSize().drawWithContent {
-                        val content = this
-                        val progress = expand.value.coerceIn(0f, 1f)
-                        val revealPath = Path().apply {
-                            if (progress >= 0.999f) {
-                                addRect(Rect(0f, 0f, fullWidth, fullHeight))
-                            } else if (progress < 0.35f) {
-                                // Phase one: grow the original 4:3 poster into a circle.
-                                val t = (progress / 0.35f).coerceIn(0f, 1f)
-                                val eased = t * t * (3f - 2f * t)
-                                val centerX = posterX + posterW / 2f
-                                val centerY = posterY + posterH / 2f
-                                val diameter = maxOf(posterW, posterH) * (1f + 0.22f * eased)
-                                val rectW = posterW + (diameter - posterW) * eased
-                                val rectH = posterH + (diameter - posterH) * eased
-                                val radius = minOf(rectW, rectH) / 2f * eased
-                                addRoundRect(RoundRect(
-                                    centerX - rectW / 2f, centerY - rectH / 2f,
-                                    centerX + rectW / 2f, centerY + rectH / 2f,
-                                    CornerRadius(radius)
-                                ))
-                            } else {
-                                // Phase two: circular iris expands past the farthest screen corner.
-                                val t = ((progress - 0.35f) / 0.65f).coerceIn(0f, 1f)
-                                val eased = t * t * (3f - 2f * t)
-                                val centerX = posterX + posterW / 2f
-                                val centerY = posterY + posterH / 2f
-                                val startRadius = maxOf(posterW, posterH) * 1.22f / 2f
-                                val maxDx = maxOf(centerX, fullWidth - centerX)
-                                val maxDy = maxOf(centerY, fullHeight - centerY)
-                                val endRadius = kotlin.math.sqrt(maxDx * maxDx + maxDy * maxDy) + 2f
-                                val radius = startRadius + (endRadius - startRadius) * eased
-                                addOval(Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius))
-                            }
-                        }
-                        clipPath(revealPath) { content.drawContent() }
+                AndroidView(
+                    factory = { ctx ->
+                        McuCoverVideoView(ctx,
+                            onFinished = { finished = true },
+                            onStarted = {},
+                            onFirstFrame = { firstVideoFrame = true })
+                    },
+                    modifier = Modifier.fillMaxSize().graphicsLayer {
+                        alpha = if (firstVideoFrame) 1f - posterOpacity else 0f
                     }
-                ) {
-                    AndroidView(
-                        factory = { ctx ->
-                            McuCoverVideoView(ctx,
-                                onFinished = { finished = true },
-                                onStarted = {},
-                                onFirstFrame = { firstVideoFrame = true })
-                        },
-                        // Fixed fullscreen video: reveal only through the mask.
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                )
             }
             // Keep the full card static while fading it; never scale its text/buttons.
             if (posterOpacity > 0f) {
