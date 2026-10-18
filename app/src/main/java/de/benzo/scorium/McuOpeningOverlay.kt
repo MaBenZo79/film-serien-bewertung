@@ -50,7 +50,6 @@ fun McuOpeningOverlay(
     var overlayBounds by remember { mutableStateOf<Rect?>(null) }
     var playVideo by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
-    var videoStarted by remember { mutableStateOf(false) }
     var firstVideoFrame by remember { mutableStateOf(false) }
     val posterOpacity by animateFloatAsState(
         targetValue = if (firstVideoFrame) 0f else 1f,
@@ -126,7 +125,7 @@ fun McuOpeningOverlay(
                         factory = { ctx ->
                             McuCoverVideoView(ctx,
                                 onFinished = { finished = true },
-                                onStarted = { videoStarted = true },
+                                onStarted = {},
                                 onFirstFrame = { firstVideoFrame = true })
                         },
                         modifier = Modifier.fillMaxSize()
