@@ -218,7 +218,7 @@ fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
 }
 
 @Composable
-fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0) {
+fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0,onPosterBounds:((androidx.compose.ui.geometry.Rect)->Unit)?=null) {
  Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
   Column(Modifier.padding(10.dp)) {
    Box {
