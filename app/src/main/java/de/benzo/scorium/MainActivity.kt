@@ -78,11 +78,11 @@ private fun savedPercent(prefs: android.content.SharedPreferences, key: String, 
  return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
 }
 private fun episodeTotal(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
- val official=McuCatalog.find(name)?.seasons?.getOrNull(season-1)
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.getOrNull(season-1)
  return official ?: prefs.getInt("episodes::$name::$season",6).coerceAtLeast(1)
 }
 private fun seasonCountFor(prefs:android.content.SharedPreferences,name:String):Int {
- val official=McuCatalog.find(name)?.seasons?.size
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size
  return official ?: prefs.getInt("seasons::$name",1).coerceAtLeast(1)
 }
 private fun episodeProgress(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
@@ -146,6 +146,10 @@ class MainActivity: ComponentActivity() {
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
+   var openingDc by remember { mutableStateOf(false) }
+   var dcHub by remember { mutableStateOf(false) }
+   var dcCollectionRoute by remember { mutableStateOf(false) }
+   var dcSection by remember { mutableStateOf("Komplett") }
    var mcuHub by remember { mutableStateOf(false) }
    var mcuCollectionRoute by remember { mutableStateOf(false) }
    var mcuPhase by remember { mutableStateOf("Komplett") }
@@ -217,18 +221,21 @@ class MainActivity: ComponentActivity() {
    val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
    BackHandler(enabled=true) {
     when {
-     openingMcu -> openingMcu=false
+     openingDc -> openingDc=false
+      openingMcu -> openingMcu=false
      showIntro -> showExitDialog=true
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
      selected!=null -> selected=null
-     mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
-     !home -> { if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else home=true }
+     dcHub -> { dcHub=false; dcCollectionRoute=false; home=true }
+      mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
+     !home -> { if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else home=true }
      else -> showExitDialog=true
     }
    }
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
-   val scopedPalette = if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+   val activeDcTheme = dcCollectionRoute && !home && !openingDc
+    val scopedPalette = if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
    CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme) {
    MaterialTheme(colorScheme=scopedPalette) {
     if(showExitDialog) AlertDialog(
@@ -241,7 +248,7 @@ class MainActivity: ComponentActivity() {
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
-     if(mcuHub) {
+     if(mcuHub || dcHub) {
       Spacer(Modifier.fillMaxSize())
      } else if(home) {
       ScoriumHeader()
@@ -251,7 +258,7 @@ class MainActivity: ComponentActivity() {
       Column(Modifier.weight(1f).verticalScroll(homeScroll)) {
        Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       Card(onClick={mcuCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
+       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
        Spacer(Modifier.height(22.dp))
        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -261,7 +268,8 @@ class MainActivity: ComponentActivity() {
         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
-        ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
+         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
        }
@@ -298,7 +306,7 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
-      TextButton(onClick={if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(mcuCollectionRoute) "← MCU-Phasen" else "← Startseite") }
+      TextButton(onClick={if(dcCollectionRoute) { dcHub=true;dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(dcCollectionRoute) "← DC-Sammlung" else if(mcuCollectionRoute) "← MCU-Phasen" else "← Startseite") }
       if(section=="Ranking" || section=="Download") {
        val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
@@ -346,9 +354,9 @@ class MainActivity: ComponentActivity() {
         if(pos>=0) pos else 100000+releaseRank(it)
        }
       }.thenBy { it })
-      val visibleEntries=if(editingOrder && !mcuCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
+      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
       val revision=refresh
-      if(!mcuCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
+      if(!mcuCollectionRoute && !dcCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
        horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
        if(editingOrder) {
         SmallIconAction(Icons.Default.Close,"Änderungen verwerfen") { editingOrder=false;pendingOrder.clear() }
@@ -371,9 +379,9 @@ class MainActivity: ComponentActivity() {
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(visibleEntries,key={ it }) { name ->
-        val isShow=name in series || name in customSeries
+        val isShow=name in series || name in customSeries || name in DcCatalog.series
         val value=if(isShow) {
-         val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
+         val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
         } else savedPercent(prefs,name,categories)
@@ -383,7 +391,7 @@ class MainActivity: ComponentActivity() {
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           },revision=refresh)
          }
-         if(editingOrder && !mcuCollectionRoute) Column {
+         if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) Column {
           SmallIconAction(Icons.Default.ArrowUpward,"Nach oben") {
            val order=visibleEntries.toMutableList();val index=order.indexOf(name)
            if(index>0) { java.util.Collections.swap(order,index,index-1);pendingOrder.clear();pendingOrder.addAll(order);orderRevision++ }
@@ -421,7 +429,7 @@ class MainActivity: ComponentActivity() {
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
       }
      } else {
-      val isSeries=selected!! in series || selected!! in customSeries
+      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
        seasonCount=seasonCountFor(prefs,seriesKey)
@@ -476,7 +484,7 @@ class MainActivity: ComponentActivity() {
          },imageKey="$seriesKey::season:$number",revision=refresh)
         }
        }
-       if(McuCatalog.find(seriesKey)==null) Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
+       if(McuCatalog.find(seriesKey)==null && DcCatalog.find(seriesKey)==null) Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
       } else if(isSeries && selectedEpisode==0) {
        Text("Staffel $selectedSeason"+(ReleaseYears.seasonLabel(seriesKey,selectedSeason)?.let { " · $it" } ?: ""),color=gold,fontSize=18.sp)
        Row {
@@ -511,7 +519,7 @@ class MainActivity: ComponentActivity() {
          },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
         }
        }
-       if(McuCatalog.find(seriesKey)==null) Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
+       if(McuCatalog.find(seriesKey)==null && DcCatalog.find(seriesKey)==null) Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
       } else {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
@@ -549,7 +557,11 @@ class MainActivity: ComponentActivity() {
     // The existing home UI is composed underneath for a seamless fade-out.
     // Crossfade the MCU phase hub in and out over the destination content.
     // Keep the hub as a separate layer so the selected phase list is visible underneath.
-    Crossfade(targetState=mcuHub,animationSpec=tween(durationMillis=450),label="mcuPhaseHubCrossfade") { visible ->
+    Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
+      if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
+     }
+     if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingDc=false},onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
+     Crossfade(targetState=mcuHub,animationSpec=tween(durationMillis=450),label="mcuPhaseHubCrossfade") { visible ->
      if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
     }
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
