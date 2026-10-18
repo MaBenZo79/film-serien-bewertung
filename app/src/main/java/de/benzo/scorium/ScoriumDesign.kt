@@ -103,7 +103,8 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
   if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
  }
  val shape=RoundedCornerShape(9.dp)
- Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,borderColor,shape)) {
+ val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else borderColor
+ Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
