@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -114,6 +115,7 @@ class MainActivity: ComponentActivity() {
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
    var mcuHub by remember { mutableStateOf(false) }
+   var mcuCollectionRoute by remember { mutableStateOf(false) }
    var mcuPhase by remember { mutableStateOf("Komplett") }
    var mcuTileBounds by remember { mutableStateOf<Rect?>(null) }
    var mcuPosterBounds by remember { mutableStateOf<Rect?>(null) }
@@ -182,12 +184,15 @@ class MainActivity: ComponentActivity() {
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
      selected!=null -> selected=null
-     mcuHub -> { mcuHub=false; home=true }
-     !home -> { if(mcuPhase!="Komplett") { mcuHub=true; mcuPhase="Komplett" } else home=true }
+     mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
+     !home -> { if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else home=true }
      else -> showExitDialog=true
     }
    }
-   MaterialTheme(colorScheme=palette) {
+   val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
+   val scopedPalette = if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+   CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme) {
+   MaterialTheme(colorScheme=scopedPalette) {
     if(showExitDialog) AlertDialog(
      onDismissRequest={showExitDialog=false},
      title={Text("SCORIUM beenden?")},
@@ -208,7 +213,7 @@ class MainActivity: ComponentActivity() {
       Column(Modifier.weight(1f).verticalScroll(homeScroll)) {
        Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       Card(onClick={home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
+       Card(onClick={mcuCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
        Spacer(Modifier.height(22.dp))
        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -216,11 +221,11 @@ class MainActivity: ComponentActivity() {
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
-         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
+         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
        }
        Spacer(Modifier.height(26.dp))
        Text("Zuletzt angesehen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -433,9 +438,10 @@ class MainActivity: ComponentActivity() {
      }
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
-    if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;home=true},onPhase={phase -> mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"})
+    if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
+   }
    }
   }
  }
