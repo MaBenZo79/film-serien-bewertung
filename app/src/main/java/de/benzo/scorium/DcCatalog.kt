@@ -2,7 +2,7 @@ package de.benzo.scorium
 
 /** Curated offline DC catalog. Entries are shared across the three collection filters. */
 object DcCatalog {
- val dcuFilms = listOf("Superman","Supergirl","Clayface")
+ val dcuFilms = listOf("Superman (2025)","Supergirl","Clayface")
  val dcuShows = listOf(ShowInfo("Creature Commandos",listOf(7)),ShowInfo("Peacemaker",listOf(8,8)),ShowInfo("Lanterns",listOf(8)))
  val dceuFilms = listOf(
   "Man of Steel","Batman v Superman: Dawn of Justice","Suicide Squad","Wonder Woman",
@@ -10,9 +10,10 @@ object DcCatalog {
   "Zack Snyder's Justice League","The Suicide Squad","Black Adam","Shazam! Fury of the Gods",
   "The Flash","Blue Beetle","Aquaman and the Lost Kingdom"
  )
+ // Season one connects to the DCEU; season two transitions into the DCU.
  val dceuShows = listOf(ShowInfo("Peacemaker",listOf(8,8)))
  val otherFilms = listOf(
-  "Superman","Superman II","Superman III","Superman IV: The Quest for Peace","Superman Returns",
+  "Superman (1978)","Superman II","Superman III","Superman IV: The Quest for Peace","Superman Returns",
   "Batman","Batman Returns","Batman Forever","Batman & Robin","Batman Begins",
   "The Dark Knight","The Dark Knight Rises","Joker","Joker: Folie à Deux",
   "The Batman","Constantine","Watchmen","V for Vendetta","Green Lantern"
