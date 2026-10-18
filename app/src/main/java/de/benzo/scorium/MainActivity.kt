@@ -36,6 +36,8 @@ import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -154,6 +156,7 @@ class MainActivity: ComponentActivity() {
    var pendingAction by remember { mutableStateOf<String?>(null) }
    var pendingReset by remember { mutableStateOf<String?>(null) }
    var editingOrder by remember { mutableStateOf(false) }
+   val pendingOrder=remember { mutableStateListOf<String>() }
    var orderRevision by remember { mutableIntStateOf(0) }
    var newTitle by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
@@ -329,13 +332,31 @@ class MainActivity: ComponentActivity() {
         if(pos>=0) pos else 100000+releaseRank(it)
        }
       }.thenBy { it })
+      val visibleEntries=if(editingOrder && !mcuCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
       val revision=refresh
-      if(!mcuCollectionRoute) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
-       SmallIconAction(Icons.Default.Edit,"Reihenfolge bearbeiten") { editingOrder=!editingOrder }
-       SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+      if(!mcuCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
+       horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
+       if(editingOrder) {
+        SmallIconAction(Icons.Default.Close,"Änderungen verwerfen") { editingOrder=false;pendingOrder.clear() }
+        Spacer(Modifier.width(8.dp))
+        SmallIconAction(Icons.Default.Check,"Reihenfolge speichern") {
+         val original=prefs.getString("order::titles","")?.split("|")?.filter { it.isNotBlank() } ?: emptyList()
+         val merged=pendingOrder.toList()+original.filter { it !in pendingOrder }
+         prefs.edit().putString("order::titles",merged.joinToString("|")).apply()
+         editingOrder=false;pendingOrder.clear();refresh++
+        }
+       } else {
+        SmallIconAction(Icons.Default.Edit,"Reihenfolge bearbeiten") {
+         pendingOrder.clear()
+         pendingOrder.addAll(entries)
+         editingOrder=true
+        }
+        Spacer(Modifier.width(8.dp))
+        SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+       }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
-       items(entries,key={ it }) { name ->
+       items(visibleEntries,key={ it }) { name ->
         val isShow=name in series || name in customSeries
         val value=if(isShow) {
          val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
@@ -350,8 +371,8 @@ class MainActivity: ComponentActivity() {
          }
          if(editingOrder && !mcuCollectionRoute) Column {
           SmallIconAction(Icons.Default.ArrowUpward,"Nach oben") {
-           val order=entries.toMutableList();val index=order.indexOf(name)
-           if(index>0) { java.util.Collections.swap(order,index,index-1);prefs.edit().putString("order::titles",order.joinToString("|")).apply();orderRevision++;refresh++ }
+           val order=visibleEntries.toMutableList();val index=order.indexOf(name)
+           if(index>0) { java.util.Collections.swap(order,index,index-1);pendingOrder.clear();pendingOrder.addAll(order);orderRevision++ }
           }
           SmallIconAction(Icons.Default.ArrowDownward,"Nach unten") {
            val order=entries.toMutableList();val index=order.indexOf(name)
@@ -404,7 +425,7 @@ class MainActivity: ComponentActivity() {
         val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
-      Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+      Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
        PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
        if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
@@ -473,10 +494,7 @@ class MainActivity: ComponentActivity() {
        }
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
        if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=gold,fontSize=19.sp)
-       else Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        ScoriumScoreRing(percent,100.dp)
-        Text("GESAMTBEWERTUNG",color=Color(0xFFC5C7D1),fontSize=13.sp,fontWeight=FontWeight.Bold)
-       }
+
        if(percent!=null) {
         val report=RatingExport.Report(
          selected!!,
