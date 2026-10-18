@@ -5,6 +5,8 @@ import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -50,9 +52,10 @@ fun McuOpeningOverlay(
         if (overlayBounds == null) return@LaunchedEffect
         move.snapTo(0f)
         expand.snapTo(0f)
-        move.animateTo(1f, tween(durationMillis = 430))
+        move.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
+        delay(160)
         playVideo = true
-        expand.animateTo(1f, tween(durationMillis = 720))
+        expand.animateTo(1f, tween(durationMillis = 1050, easing = LinearOutSlowInEasing))
     }
     LaunchedEffect(finished) {
         if (finished) onComplete()
@@ -60,7 +63,7 @@ fun McuOpeningOverlay(
     // Fail-safe if media playback cannot start on a particular device.
     LaunchedEffect(playVideo) {
         if (playVideo) {
-            delay(7500)
+            delay(8000)
             if (!finished) onComplete()
         }
     }
@@ -68,7 +71,7 @@ fun McuOpeningOverlay(
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
             .onGloballyPositioned { overlayBounds = it.boundsInWindow() }
-            .background(Color(0xFF39070C).copy(alpha = 0.96f))
+            .background(Color(0xFF39070C).copy(alpha = expand.value.coerceIn(0f, 1f)))
             .clickable { onSkip() }
     ) {
         val bounds = overlayBounds
