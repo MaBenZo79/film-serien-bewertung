@@ -262,7 +262,7 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
-      TextButton(onClick={home=true}) { Text("← Startseite") }
+      TextButton(onClick={if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(mcuCollectionRoute) "← MCU-Phasen" else "← Startseite") }
       if(section=="Ranking" || section=="Download") {
        val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
@@ -294,9 +294,10 @@ class MainActivity: ComponentActivity() {
         }
        }
       } else {
+      if(mcuCollectionRoute) Text("MARVEL STUDIOS MCU  ·  $mcuPhase",color=Color(0xFFEF3945),fontSize=20.sp,fontWeight=FontWeight.Bold)
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
+      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
       val revision=refresh
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(entries,key={ it }) { name ->
