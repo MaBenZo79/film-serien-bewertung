@@ -53,6 +53,7 @@ fun McuOpeningOverlay(
     val density = LocalDensity.current
     val move = remember { Animatable(0f) }
     val expand = remember { Animatable(0f) }
+    val enlarge = remember { Animatable(0f) }
     var overlayBounds by remember { mutableStateOf<Rect?>(null) }
     var playVideo by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
@@ -70,7 +71,8 @@ fun McuOpeningOverlay(
         move.snapTo(0f)
         expand.snapTo(0f)
         move.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
-        delay(160)
+        enlarge.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
+        delay(120)
         playVideo = true
         // Do not expand an empty video surface: wait until playback really starts.
         snapshotFlow { firstVideoFrame }.first { it }
@@ -116,10 +118,20 @@ fun McuOpeningOverlay(
             val movedY = startY + (centerY - startY) * move.value
             // The collection card moves unchanged. Only the actual poster is the reveal origin.
             val poster = posterBounds ?: original
-            val posterX = movedX + poster.left - original.left
-            val posterY = movedY + poster.top - original.top
-            val posterW = poster.width.coerceAtLeast(1f)
-            val posterH = poster.height.coerceAtLeast(1f)
+            // Enlarge the tile so its poster approaches the width of the fullscreen
+            // reference image. The fullscreen video itself never scales.
+            val basePosterW = poster.width.coerceAtLeast(1f)
+            val basePosterH = poster.height.coerceAtLeast(1f)
+            val targetScale = (fullWidth / basePosterW).coerceAtLeast(1f)
+            val cardScale = 1f + (targetScale - 1f) * enlarge.value
+            val posterW = basePosterW * cardScale
+            val posterH = basePosterH * cardScale
+            val tileCenterX = movedX + cardWidth / 2f
+            val tileCenterY = movedY + cardHeight / 2f
+            val posterCenterOffsetX = poster.center.x - original.center.x
+            val posterCenterOffsetY = poster.center.y - original.center.y
+            val posterX = tileCenterX + posterCenterOffsetX * cardScale - posterW / 2f
+            val posterY = tileCenterY + posterCenterOffsetY * cardScale - posterH / 2f
             val w = posterW + (fullWidth - posterW) * expand.value
             val h = posterH + (fullHeight - posterH) * expand.value
             val x = posterX * (1f - expand.value)
@@ -173,17 +185,8 @@ fun McuOpeningOverlay(
                                 onStarted = {},
                                 onFirstFrame = { firstVideoFrame = true })
                         },
-                        // Anchor the opening video to the real poster centre, not
-                        // the device centre. No center-crop: source margins survive.
-                        modifier = Modifier.fillMaxSize().graphicsLayer {
-                            val progress = expand.value.coerceIn(0f, 1f)
-                            val zoom = 0.38f + 0.62f * progress
-                            transformOrigin = TransformOrigin.Center
-                            scaleX = zoom
-                            scaleY = zoom
-                            translationX = (posterX + posterW / 2f - fullWidth / 2f) * (1f - progress)
-                            translationY = (posterY + posterH / 2f - fullHeight / 2f) * (1f - progress)
-                        }
+                        // Fixed fullscreen video: reveal only through the mask.
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }
@@ -194,7 +197,11 @@ fun McuOpeningOverlay(
                         .offset { IntOffset(movedX.roundToInt(), movedY.roundToInt()) }
                         .width(with(density) { cardWidth.toDp() })
                         .height(with(density) { cardHeight.toDp() })
-                        .graphicsLayer { alpha = posterOpacity },
+                        .graphicsLayer {
+                            alpha = posterOpacity
+                            scaleX = cardScale
+                            scaleY = cardScale
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     ScoriumCollectionTile(
