@@ -503,7 +503,8 @@ class MainActivity: ComponentActivity() {
        else Text("Noch keine vollständige Wertung – erst nach allen $total Folgen wird der Durchschnitt angezeigt.",color=Color.LightGray,fontSize=13.sp)
        Text("Episoden",color=gold)
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        (1..episodeCount).forEach { number ->
+        val visibleEpisodes=McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1)?.coerceAtLeast(0) ?: episodeCount
+        (1..visibleEpisodes).forEach { number ->
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
          ScoriumTitleCard(EpisodeTitles.title(seriesKey,selectedSeason,number)?.let { "$number · $it" } ?: "Episode $number","Episode",score,null,onClick={
           selectedEpisode=number
