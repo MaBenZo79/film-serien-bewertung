@@ -43,7 +43,15 @@ class McuCoverVideoView(
                     updateCrop()
                 }
             }
-            media.setOnPreparedListener { it.start() }
+            media.setOnPreparedListener {
+                started = true
+                it.start()
+            }
+            media.setOnErrorListener { _, _, _ ->
+                releasePlayer()
+                onFinished()
+                true
+            }
             media.setOnCompletionListener { onFinished() }
             media.prepareAsync()
         } catch (_: Exception) {
@@ -58,6 +66,8 @@ class McuCoverVideoView(
         if (width <= 0f || height <= 0f) return
         val sourceRatio = videoWidth.toFloat() / videoHeight
         val viewRatio = width / height
+        // TextureView transforms scale video pixels, not the view bounds.
+        // Fill the viewport while preserving the original aspect ratio.
         val sx = if (viewRatio > sourceRatio) 1f else sourceRatio / viewRatio
         val sy = if (viewRatio > sourceRatio) viewRatio / sourceRatio else 1f
         texture.setTransform(Matrix().apply { setScale(sx, sy, width / 2f, height / 2f) })
