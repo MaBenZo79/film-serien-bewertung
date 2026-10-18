@@ -46,6 +46,7 @@ fun McuOpeningOverlay(
     var overlayBounds by remember { mutableStateOf<Rect?>(null) }
     var playVideo by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
+    var videoStarted by remember { mutableStateOf(false) }
 
     BackHandler { onSkip() }
 
@@ -57,6 +58,8 @@ fun McuOpeningOverlay(
         move.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
         delay(160)
         playVideo = true
+        // Do not expand an empty video surface: wait until playback really starts.
+        snapshotFlow { videoStarted }.first { it }
         expand.animateTo(1f, tween(durationMillis = 1050, easing = LinearOutSlowInEasing))
     }
     LaunchedEffect(finished) {
@@ -65,7 +68,7 @@ fun McuOpeningOverlay(
     // Fail-safe if media playback cannot start on a particular device.
     LaunchedEffect(playVideo) {
         if (playVideo) {
-            delay(8000)
+            delay(10000)
             if (!finished) onComplete()
         }
     }
@@ -112,7 +115,7 @@ fun McuOpeningOverlay(
                 if (playVideo) {
                     AndroidView(
                         factory = { ctx ->
-                            McuCoverVideoView(ctx) { finished = true }
+                            McuCoverVideoView(ctx, onFinished = { finished = true }, onStarted = { videoStarted = true })
                         },
                         modifier = Modifier.fillMaxSize()
                     )
