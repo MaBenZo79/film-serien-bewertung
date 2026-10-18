@@ -111,7 +111,10 @@ fun McuOpeningOverlay(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    ScoriumCollectionTile(\n                        "Marvel / MCU", "Filme & Serien", "collection::mcu",\n                        onClick = {}, onImageSaved = {}, revision = imageRevision\n                    )
+                    ScoriumCollectionTile(
+                        "Marvel / MCU", "Filme & Serien", "collection::mcu",
+                        onClick = {}, onImageSaved = {}, revision = imageRevision
+                    )
                 }
             }
         }
