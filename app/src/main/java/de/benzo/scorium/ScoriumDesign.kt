@@ -22,6 +22,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -159,40 +163,66 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
  val mcu=LocalMcuCollectionTheme.current
  val accent=if(mcu) mcuAccent else gold
- val animated by animateFloatAsState(targetValue=(value ?: 5).toFloat(),animationSpec=tween(230),label="score")
+ val color=when(value ?: 0) {
+  in 1..4 -> Color(0xFFED173B)
+  5 -> Color(0xFFFF6538)
+  6 -> Color(0xFFFF9828)
+  7 -> Color(0xFFFFD633)
+  8 -> Color(0xFF5DE348)
+  9 -> Color(0xFF13C74D)
+  10 -> Color(0xFF007E32)
+  else -> accent
+ }
  Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF171C32)),
   modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(22.dp)) else Modifier)) {
-  Column(Modifier.padding(horizontal=18.dp,vertical=20.dp)) {
+  Column(Modifier.padding(16.dp)) {
    Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=18.sp)
-   Spacer(Modifier.height(13.dp))
-   Box(Modifier.fillMaxWidth().background(Color(0xFF252A3F),RoundedCornerShape(18.dp)).padding(18.dp),
-    contentAlignment=Alignment.Center) {
-    Column(horizontalAlignment=Alignment.CenterHorizontally) {
-     Text(if(value==null) "– / 10" else "${animated.toInt()}/10",
-      color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Black)
-     Spacer(Modifier.height(10.dp))
+   Spacer(Modifier.height(12.dp))
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+     ScoriumScoreRing(value?.times(10),70.dp,wholeNumber=true)
      Text(if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
-       else criterionDescription(label,value),
-      color=Color(0xFFE1DDED),fontSize=14.sp,lineHeight=21.sp,textAlign=TextAlign.Center)
+      else criterionDescription(label,value),
+      color=Color(0xFFE1DDED),fontSize=13.sp,lineHeight=19.sp,textAlign=TextAlign.Justify,
+      modifier=Modifier.fillMaxWidth().background(Color(0xFF252A3F),RoundedCornerShape(14.dp)).padding(12.dp))
     }
-   }
-   Spacer(Modifier.height(13.dp))
-   var dragging by remember { mutableStateOf<Float?>(null) }
-   Slider(value=dragging ?: (value ?: 5).toFloat(),onValueChange={ next ->
-     dragging=next
-     onChange(kotlin.math.round(next).toInt().coerceIn(1,10))
-    },onValueChangeFinished={ dragging=null },
-    valueRange=1f..10f,steps=0,
-    colors=SliderDefaults.colors(thumbColor=accent,activeTrackColor=accent,
-     inactiveTrackColor=Color(0xFF42445A)))
-   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-    Text("1",color=fog,fontSize=12.sp)
-    Text("5",color=fog,fontSize=12.sp)
-    Text("10",color=fog,fontSize=12.sp)
+    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+     Text("10",color=fog,fontSize=11.sp)
+     val height=228.dp
+     Box(Modifier.width(56.dp).height(height).pointerInput(label) {
+      awaitPointerEventScope {
+       while(true) {
+        val event=awaitPointerEvent()
+        val change=event.changes.firstOrNull() ?: continue
+        if(change.pressed && change.position.y in 0f..size.height.toFloat()) {
+         val n=(10-kotlin.math.floor(change.position.y/size.height*10).toInt()).coerceIn(1,10)
+         if(n!=value) onChange(n)
+        }
+       }
+      }
+     },contentAlignment=Alignment.Center) {
+      Column(Modifier.fillMaxHeight().width(38.dp),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+       (10 downTo 1).forEach { n ->
+        val segmentColor=when(n) {
+         in 1..4 -> Color(0xFFED173B)
+         5 -> Color(0xFFFF6538)
+         6 -> Color(0xFFFF9828)
+         7 -> Color(0xFFFFD633)
+         8 -> Color(0xFF5DE348)
+         9 -> Color(0xFF13C74D)
+         else -> Color(0xFF007E32)
+        }
+        Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(5.dp))
+         .background(segmentColor.copy(alpha=if(value!=null && n<=value) 1f else 0.25f))
+         .border(if(value==n) 2.dp else 0.dp,Color.White,RoundedCornerShape(5.dp)))
+       }
+      }
+     }
+     Text("1",color=fog,fontSize=11.sp)
+    }
    }
   }
  }
-
 }
 
 @Composable
