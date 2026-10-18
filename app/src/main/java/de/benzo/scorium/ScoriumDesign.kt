@@ -83,7 +83,7 @@ fun ScoriumHero(onExplore:()->Unit) {
 }
 
 @Composable
-fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false) {
+fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false,borderColor:Color=Color(0xFFB46AFF)) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
@@ -91,7 +91,7 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
   if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
  }
  val shape=RoundedCornerShape(9.dp)
- Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,Color(0xFFB46AFF),shape)) {
+ Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,borderColor,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
