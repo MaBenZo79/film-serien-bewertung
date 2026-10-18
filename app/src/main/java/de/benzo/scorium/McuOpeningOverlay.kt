@@ -34,6 +34,7 @@ import kotlin.math.roundToInt
 @Composable
 fun McuOpeningOverlay(
     tileBounds: Rect?,
+    imageRevision: Int,
     onComplete: () -> Unit,
     onSkip: () -> Unit
 ) {
@@ -110,7 +111,7 @@ fun McuOpeningOverlay(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    Text("MARVEL STUDIOS MCU", color = Color.White, fontSize = 17.sp)
+                    ScoriumCollectionTile(\n                        "Marvel / MCU", "Filme & Serien", "collection::mcu",\n                        onClick = {}, onImageSaved = {}, revision = imageRevision\n                    )
                 }
             }
         }
