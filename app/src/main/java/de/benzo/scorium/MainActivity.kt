@@ -466,7 +466,7 @@ class MainActivity: ComponentActivity() {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
        if(isSeries) Text(if(selectedEpisode == -1) "Staffel $selectedSeason bewerten" else "Episode $selectedEpisode bewerten",color=gold)
-       val ratings=remember(key) {
+       val ratings=remember(key,refresh) {
         val json=runCatching { JSONObject(prefs.getString(key,"{}") ?: "{}") }.getOrDefault(JSONObject())
         mutableStateMapOf<String,Int>().apply { criteria.forEach { if(json.has(it)) put(it,json.optInt(it)) } }
        }
