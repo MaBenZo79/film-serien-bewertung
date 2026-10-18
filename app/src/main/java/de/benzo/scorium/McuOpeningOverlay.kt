@@ -36,11 +36,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
-import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.min
-import kotlin.math.PI
 
 /**
  * Stage 1: the tapped 4:3 collection card moves from its real window coordinates
@@ -137,31 +132,35 @@ fun McuOpeningOverlay(
                         val content = this
                         val progress = expand.value.coerceIn(0f, 1f)
                         val revealPath = Path().apply {
-                            if (progress >= 0.995f) {
+                            if (progress >= 0.999f) {
                                 addRect(Rect(0f, 0f, fullWidth, fullHeight))
+                            } else if (progress < 0.35f) {
+                                // Phase one: grow the original 4:3 poster into a circle.
+                                val t = (progress / 0.35f).coerceIn(0f, 1f)
+                                val eased = t * t * (3f - 2f * t)
+                                val centerX = posterX + posterW / 2f
+                                val centerY = posterY + posterH / 2f
+                                val diameter = maxOf(posterW, posterH) * (1f + 0.22f * eased)
+                                val rectW = posterW + (diameter - posterW) * eased
+                                val rectH = posterH + (diameter - posterH) * eased
+                                val radius = minOf(rectW, rectH) / 2f * eased
+                                addRoundRect(RoundRect(
+                                    centerX - rectW / 2f, centerY - rectH / 2f,
+                                    centerX + rectW / 2f, centerY + rectH / 2f,
+                                    CornerRadius(radius)
+                                ))
                             } else {
-                                // Organic paint-like spread with drifting, uneven edges.
-                                val cx = x + w / 2f
-                                val cy = y + h / 2f
-                                val ripple = min(w, h) * 0.105f * sin(PI.toFloat() * progress)
-                                val steps = 192
-                                for (i in 0 until steps) {
-                                    val angle = (2.0 * PI * i / steps).toFloat()
-                                    val dx = cos(angle)
-                                    val dy = sin(angle)
-                                    val edge = min(
-                                        (w / 2f) / abs(dx).coerceAtLeast(0.0001f),
-                                        (h / 2f) / abs(dy).coerceAtLeast(0.0001f)
-                                    )
-                                    val flow = 0.47f * sin(3f * angle + progress * 3.7f) +
-                                        0.32f * sin(7f * angle - progress * 5.1f) +
-                                        0.21f * sin(11f * angle + progress * 2.3f)
-                                    val distance = (edge + ripple * flow).coerceAtLeast(0f)
-                                    val px = cx + dx * distance
-                                    val py = cy + dy * distance
-                                    if (i == 0) moveTo(px, py) else lineTo(px, py)
-                                }
-                                close()
+                                // Phase two: circular iris expands past the farthest screen corner.
+                                val t = ((progress - 0.35f) / 0.65f).coerceIn(0f, 1f)
+                                val eased = t * t * (3f - 2f * t)
+                                val centerX = posterX + posterW / 2f
+                                val centerY = posterY + posterH / 2f
+                                val startRadius = maxOf(posterW, posterH) * 1.22f / 2f
+                                val maxDx = maxOf(centerX, fullWidth - centerX)
+                                val maxDy = maxOf(centerY, fullHeight - centerY)
+                                val endRadius = kotlin.math.sqrt(maxDx * maxDx + maxDy * maxDy) + 2f
+                                val radius = startRadius + (endRadius - startRadius) * eased
+                                addOval(Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius))
                             }
                         }
                         clipPath(revealPath) { content.drawContent() }
