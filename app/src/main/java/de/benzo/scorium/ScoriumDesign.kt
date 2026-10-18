@@ -44,12 +44,19 @@ private val gold=Color(0xFFAC88F6)
 private val fog=Color(0xFFB5B7CD)
 
 val LocalMcuCollectionTheme = compositionLocalOf { false }
+val LocalDcCollectionTheme = compositionLocalOf { false }
+private val dcAccent = Color(0xFF438FEA)
 private val mcuAccent = Color(0xFFEF3945)
 private val mcuSurface = Color(0xFF30090F)
 
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
  val mcu=LocalMcuCollectionTheme.current
+ val dc=LocalDcCollectionTheme.current
+ if(dc) {
+  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF06152D),Color(0xFF102E58),Color(0xFF06152D))))) { content() }
+  return
+ }
  if(mcu) {
   Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF150306),Color(0xFF39070C),Color(0xFF110306))))) { content() }
   return
@@ -110,12 +117,14 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
   if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
  }
  val shape=RoundedCornerShape(9.dp)
- val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else borderColor
+ val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else borderColor
  Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop)
+  } else if(title=="collection::dc" || title.startsWith("collection::dc::")) {
+   Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
   } else if(title.startsWith("collection::mcu::")) {
    // Original uploaded 4:3 MCU cover, used only for the seven MCU phase tiles.
    Image(
@@ -138,7 +147,7 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
 @Composable
 fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit,imageKey:String=title,revision:Int=0) {
  val mcu=LocalMcuCollectionTheme.current
- val accent=if(mcu) mcuAccent else gold
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
  Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
   colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF182235)),
   modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else Modifier)) {
@@ -164,7 +173,7 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 @Composable
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
  val mcu=LocalMcuCollectionTheme.current
- val accent=if(mcu) mcuAccent else gold
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
  // Read the latest callback during an ongoing gesture; do not restart the
  // pointer input handler every time a rating changes.
  val currentOnChange by rememberUpdatedState(onChange)
@@ -253,7 +262,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
 @Composable
 fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
  val mcu=LocalMcuCollectionTheme.current
- val accent=if(mcu) mcuAccent else gold
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
  Card(shape=RoundedCornerShape(24.dp),
   colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF19243A)),
   modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent, RoundedCornerShape(24.dp)) else Modifier)) {
