@@ -11,7 +11,7 @@ import android.widget.FrameLayout
 import android.graphics.Color
 
 /**
- * An aspect-fit video layer that preserves the source logo's side margins.
+ * A fullscreen center-cropped video layer with no added side bars.
  * Remaining screen area is filled with the matching dark red backdrop.
  */
 class McuCoverVideoView(
@@ -24,8 +24,8 @@ class McuCoverVideoView(
     private var player: MediaPlayer? = null
     // Keep a live Surface until the player has stopped and released it.
     private var playbackSurface: Surface? = null
-    private var videoWidth = 720
-    private var videoHeight = 1280
+    private var videoWidth = 640
+    private var videoHeight = 1408
     private var playbackStarted = false
     private var firstFrameDelivered = false
 
@@ -77,10 +77,11 @@ class McuCoverVideoView(
         if (width <= 0f || height <= 0f) return
         val sourceRatio = videoWidth.toFloat() / videoHeight
         val viewRatio = width / height
-        // Fit the entire 9:16 source without cropping its left/right logo margins.
-        // Any unused screen area is filled by the red background behind the video.
-        val sx = if (viewRatio > sourceRatio) sourceRatio / viewRatio else 1f
-        val sy = if (viewRatio > sourceRatio) 1f else viewRatio / sourceRatio
+        // Center-crop: fill the entire viewport. For the new 640x1408
+        // portrait intro this trims only a little from the top and bottom
+        // on a 9:19.5 screen, without adding side bars.
+        val sx = if (viewRatio > sourceRatio) 1f else sourceRatio / viewRatio
+        val sy = if (viewRatio > sourceRatio) viewRatio / sourceRatio else 1f
         texture.setTransform(Matrix().apply { setScale(sx, sy, width / 2f, height / 2f) })
     }
 
