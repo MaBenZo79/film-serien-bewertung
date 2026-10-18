@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -143,12 +144,16 @@ fun McuOpeningOverlay(
                                 onStarted = {},
                                 onFirstFrame = { firstVideoFrame = true })
                         },
-                        // Start with the logo smaller, matching the MCU card more closely.
-                        // Grow smoothly into full-screen framing as the reveal opens.
+                        // Anchor the opening video to the real poster centre, not
+                        // the device centre. No center-crop: source margins survive.
                         modifier = Modifier.fillMaxSize().graphicsLayer {
-                            val zoom = 0.62f + 0.38f * expand.value
+                            val progress = expand.value.coerceIn(0f, 1f)
+                            val zoom = 0.38f + 0.62f * progress
+                            transformOrigin = TransformOrigin.Center
                             scaleX = zoom
                             scaleY = zoom
+                            translationX = (posterX + posterW / 2f - fullWidth / 2f) * (1f - progress)
+                            translationY = (posterY + posterH / 2f - fullHeight / 2f) * (1f - progress)
                         }
                     )
                 }
