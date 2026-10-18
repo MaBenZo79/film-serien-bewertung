@@ -447,4 +447,3 @@ class MainActivity: ComponentActivity() {
   }
  }
 }
-}
