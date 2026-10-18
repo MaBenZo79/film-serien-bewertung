@@ -18,7 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -40,6 +43,7 @@ import kotlin.math.roundToInt
 @Composable
 fun McuOpeningOverlay(
     tileBounds: Rect?,
+    posterBounds: Rect?,
     imageRevision: Int,
     onComplete: () -> Unit,
     onSkip: () -> Unit
@@ -108,18 +112,28 @@ fun McuOpeningOverlay(
             // Keep the same center while expanding; the visible area grows from 4:3.
             val movedX = startX + (centerX - startX) * move.value
             val movedY = startY + (centerY - startY) * move.value
-            val w = cardWidth + (fullWidth - cardWidth) * expand.value
-            val h = cardHeight + (fullHeight - cardHeight) * expand.value
-            val x = movedX + (cardWidth - w) * 0.5f
-            val y = movedY + (cardHeight - h) * 0.5f
-            val radius = 16.dp * (1f - expand.value)
+            // The collection card moves unchanged. Only the actual poster is the reveal origin.
+            val poster = posterBounds ?: original
+            val posterX = movedX + poster.left - original.left
+            val posterY = movedY + poster.top - original.top
+            val posterW = poster.width.coerceAtLeast(1f)
+            val posterH = poster.height.coerceAtLeast(1f)
+            val w = posterW + (fullWidth - posterW) * expand.value
+            val h = posterH + (fullHeight - posterH) * expand.value
+            val x = posterX * (1f - expand.value)
+            val y = posterY * (1f - expand.value)
+            val radius = 12.dp
             // The video remains at full-screen dimensions throughout playback.
             // Only its visible window expands; the video pixels no longer rescale.
             if (playVideo) {
                 Box(
                     Modifier.fillMaxSize().drawWithContent {
                         val content = this
-                        clipRect(x, y, x + w, y + h) { content.drawContent() }
+                        val rounding = minOf(w, h) * (0.06f + 0.44f * expand.value)
+                        val revealPath = Path().apply {
+                            addRoundRect(RoundRect(x, y, x + w, y + h, CornerRadius(rounding)))
+                        }
+                        clipPath(revealPath) { content.drawContent() }
                     }
                 ) {
                     AndroidView(
@@ -132,29 +146,27 @@ fun McuOpeningOverlay(
                         // Start with the logo smaller, matching the MCU card more closely.
                         // Grow smoothly into full-screen framing as the reveal opens.
                         modifier = Modifier.fillMaxSize().graphicsLayer {
-                            val zoom = 0.62f + 0.38f * expand.value
+                            val zoom = 0.62f + 0.28f * expand.value
                             scaleX = zoom
                             scaleY = zoom
                         }
                     )
                 }
             }
-            Box(
-                modifier = Modifier
-                    .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
-                    .width(with(density) { w.toDp() })
-                    .height(with(density) { h.toDp() })
-                    .clip(RoundedCornerShape(radius))
-                    .background(Color(0xFF620402).copy(alpha = posterOpacity)),
-                contentAlignment = Alignment.Center
-            ) {
-                if (posterOpacity > 0f) {
-                    Box(Modifier.fillMaxSize().graphicsLayer { alpha = posterOpacity }, contentAlignment = Alignment.Center) {
-                        ScoriumCollectionTile(
-                            "Marvel / MCU", "Filme & Serien", "collection::mcu",
-                            onClick = {}, onImageSaved = {}, revision = imageRevision
-                        )
-                    }
+            // Keep the full card static while fading it; never scale its text/buttons.
+            if (posterOpacity > 0f) {
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(movedX.roundToInt(), movedY.roundToInt()) }
+                        .width(with(density) { cardWidth.toDp() })
+                        .height(with(density) { cardHeight.toDp() })
+                        .graphicsLayer { alpha = posterOpacity },
+                    contentAlignment = Alignment.Center
+                ) {
+                    ScoriumCollectionTile(
+                        "Marvel / MCU", "Filme & Serien", "collection::mcu",
+                        onClick = {}, onImageSaved = {}, revision = imageRevision
+                    )
                 }
             }
         }
