@@ -58,7 +58,8 @@ fun McuOpeningOverlay(
 
     Box(
         modifier = Modifier.fillMaxSize()
-            .background(Color(0xFF39070C))
+            .background(Color.Transparent)
+            .graphicsLayer { alpha = videoAlpha }
             .clickable { onSkip() }
     ) {
         AndroidView(
@@ -70,9 +71,7 @@ fun McuOpeningOverlay(
                     onFirstFrame = { firstFrame = true }
                 )
             },
-            modifier = Modifier.fillMaxSize().graphicsLayer {
-                alpha = videoAlpha
-            }
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
