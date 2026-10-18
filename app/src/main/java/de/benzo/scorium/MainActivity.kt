@@ -198,7 +198,7 @@ class MainActivity: ComponentActivity() {
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
     ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
      if(mcuHub) {
-      McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;home=true},onPhase={phase -> mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
+      Spacer(Modifier.fillMaxSize())
      } else if(home) {
       ScoriumHeader()
       Spacer(Modifier.height(12.dp))
@@ -432,6 +432,7 @@ class MainActivity: ComponentActivity() {
      }
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
+    if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;home=true},onPhase={phase -> mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
