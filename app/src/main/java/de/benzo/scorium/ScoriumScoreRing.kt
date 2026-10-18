@@ -39,7 +39,7 @@ private fun glowColor(score:Int):Color = when {
 }
 
 @Composable
-fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp) {
+fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp,wholeNumber:Boolean=false) {
  val color=score?.let(::scoreColor) ?: Color(0xFF757587)
  val glow=score?.let(::glowColor) ?: Color(0xFFA0A0AF)
  val progress=score?.coerceIn(0,100)?.div(100f) ?: 0f
@@ -57,7 +57,7 @@ fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp) {
    }
   }
   Box(Modifier.size(diameter*0.73f).clip(CircleShape).background(color),contentAlignment=Alignment.Center) {
-   Text(if(score==null) "–" else "${score/10}.${score%10}",color=if(score==null) Color.White else Color.White,
+   Text(if(score==null) "–" else if(wholeNumber) "${score/10}" else "${score/10}.${score%10}",color=if(score==null) Color.White else Color.White,
     fontSize=if(diameter>=90.dp) 28.sp else 21.sp,fontWeight=FontWeight.Black)
   }
  }
