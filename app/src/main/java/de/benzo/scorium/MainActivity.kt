@@ -116,6 +116,7 @@ class MainActivity: ComponentActivity() {
    var mcuHub by remember { mutableStateOf(false) }
    var mcuPhase by remember { mutableStateOf("Komplett") }
    var mcuTileBounds by remember { mutableStateOf<Rect?>(null) }
+   var mcuPosterBounds by remember { mutableStateOf<Rect?>(null) }
    var section by remember { mutableStateOf("Franchises") }
    var showExitDialog by remember { mutableStateOf(false) }
    var selectedSeason by remember { mutableIntStateOf(0) }
@@ -215,7 +216,7 @@ class MainActivity: ComponentActivity() {
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
-         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={openingMcu=true},onImageSaved={refresh++},revision=refresh)
+         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
@@ -433,7 +434,7 @@ class MainActivity: ComponentActivity() {
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
     if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;home=true},onPhase={phase -> mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuHub=true;mcuPhase="Komplett"})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
   }
