@@ -25,6 +25,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -103,6 +109,7 @@ class MainActivity: ComponentActivity() {
    var showIntro by rememberSaveable { mutableStateOf(true) }
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
+   var openingMcu by remember { mutableStateOf(false) }
    var section by remember { mutableStateOf("Franchises") }
    var showExitDialog by remember { mutableStateOf(false) }
    var selectedSeason by remember { mutableIntStateOf(0) }
@@ -163,6 +170,7 @@ class MainActivity: ComponentActivity() {
    val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
    BackHandler(enabled=true) {
     when {
+     openingMcu -> openingMcu=false
      showIntro -> showExitDialog=true
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
@@ -197,7 +205,7 @@ class MainActivity: ComponentActivity() {
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={home=false;section="Franchises";tab="Alle"},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={openingMcu=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
@@ -413,6 +421,7 @@ class MainActivity: ComponentActivity() {
      }
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
+    if(openingMcu) McuOpeningOverlay(onComplete={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""},onSkip={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
   }
