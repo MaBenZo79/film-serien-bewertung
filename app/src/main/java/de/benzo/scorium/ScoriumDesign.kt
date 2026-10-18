@@ -140,13 +140,13 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
  Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
   colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF182235)),
   modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else Modifier)) {
-  Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(imageKey,Modifier.size(width=75.dp,height=100.dp),revision)
-   Spacer(Modifier.width(15.dp))
+  Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(imageKey,Modifier.size(width=68.dp,height=92.dp),revision)
+   Spacer(Modifier.width(12.dp))
    Column(Modifier.weight(1f)) {
     Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=accent)
     Spacer(Modifier.height(6.dp))
-    Text(title,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White,
+    Text(title,fontSize=16.sp,fontWeight=FontWeight.Bold,color=Color.White,
      maxLines=3,overflow=TextOverflow.Ellipsis)
     ReleaseYears.label(title)?.let { years ->
      Spacer(Modifier.height(3.dp))
@@ -154,7 +154,7 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
     }
     if(score==null) { Spacer(Modifier.height(9.dp)); Text("NOCH NICHT BEWERTET",color=fog,fontSize=11.sp) }
    }
-   ScoriumScoreRing(score,76.dp)
+   ScoriumScoreRing(score,70.dp)
   }
  }
 }
@@ -163,45 +163,68 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
  val mcu=LocalMcuCollectionTheme.current
  val accent=if(mcu) mcuAccent else gold
- val color=when(value ?: 0) {
-  in 1..4 -> Color(0xFFED173B)
-  5 -> Color(0xFFFF6538)
-  6 -> Color(0xFFFF9828)
-  7 -> Color(0xFFFFD633)
-  8 -> Color(0xFF5DE348)
-  9 -> Color(0xFF13C74D)
-  10 -> Color(0xFF007E32)
-  else -> accent
- }
- Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF171C32)),
-  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(22.dp)) else Modifier)) {
-  Column(Modifier.padding(16.dp)) {
-   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=18.sp)
-   Spacer(Modifier.height(12.dp))
-   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(10.dp)) {
-     ScoriumScoreRing(value?.times(10),70.dp,wholeNumber=true)
-     Text(if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
+ // Read the latest callback during an ongoing gesture; do not restart the
+ // pointer input handler every time a rating changes.
+ val currentOnChange by rememberUpdatedState(onChange)
+ Card(shape=RoundedCornerShape(18.dp),
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF171C32)),
+  modifier=Modifier.fillMaxWidth().then(
+   if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(18.dp))
+   else Modifier
+  )) {
+  Column(Modifier.padding(horizontal=12.dp,vertical=12.dp)) {
+   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)
+   Spacer(Modifier.height(6.dp))
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top,
+    horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+     ScoriumScoreRing(value?.times(10),60.dp,wholeNumber=true)
+     Text(
+      if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
       else criterionDescription(label,value),
-      color=Color(0xFFE1DDED),fontSize=13.sp,lineHeight=19.sp,textAlign=TextAlign.Justify,
-      modifier=Modifier.fillMaxWidth().background(Color(0xFF252A3F),RoundedCornerShape(14.dp)).padding(12.dp))
+      color=Color(0xFFE1DDED),fontSize=12.5.sp,lineHeight=17.sp,
+      fontStyle=FontStyle.Italic,textAlign=TextAlign.Start,
+      modifier=Modifier.fillMaxWidth()
+     )
     }
     Column(horizontalAlignment=Alignment.CenterHorizontally) {
-     Text("10",color=fog,fontSize=11.sp)
-     val height=228.dp
-     Box(Modifier.width(56.dp).height(height).pointerInput(label) {
-      awaitPointerEventScope {
-       while(true) {
-        val event=awaitPointerEvent()
-        val change=event.changes.firstOrNull() ?: continue
-        if(change.pressed && change.position.y in 0f..size.height.toFloat()) {
-         val n=(10-kotlin.math.floor(change.position.y/size.height*10).toInt()).coerceIn(1,10)
-         if(n!=value) onChange(n)
+     Text("10",color=fog,fontSize=10.sp)
+     val height=206.dp
+     val gap=3.dp
+     Box(
+      Modifier.width(64.dp).height(height).pointerInput(label) {
+       // Claim gestures beginning on the scale so the page never scrolls
+       // instead of changing the score. Taps and sliding both work.
+       awaitEachGesture {
+        val down=awaitFirstDown(requireUnconsumed=false)
+        var lastScore:Int?=null
+        val segmentStep=(size.height.toFloat()+gap.toPx())/10f
+        fun choose(y:Float) {
+         val index=(y.coerceIn(0f,size.height.toFloat())/segmentStep).toInt().coerceIn(0,9)
+         val score=10-index
+         if(score!=lastScore) {
+          lastScore=score
+          currentOnChange(score)
+         }
+        }
+        down.consume()
+        choose(down.position.y)
+        while(true) {
+         val event=awaitPointerEvent()
+         val change=event.changes.firstOrNull { it.id==down.id }
+         if(change==null || !change.pressed) {
+          change?.consume()
+          break
+         }
+         change.consume()
+         choose(change.position.y)
         }
        }
-      }
-     },contentAlignment=Alignment.Center) {
-      Column(Modifier.fillMaxHeight().width(38.dp),verticalArrangement=Arrangement.spacedBy(3.dp)) {
+      },
+      contentAlignment=Alignment.Center
+     ) {
+      Column(Modifier.fillMaxHeight().width(44.dp),
+       verticalArrangement=Arrangement.spacedBy(gap)) {
        (10 downTo 1).forEach { n ->
         val segmentColor=when(n) {
          in 1..4 -> Color(0xFFED173B)
@@ -218,7 +241,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
        }
       }
      }
-     Text("1",color=fog,fontSize=11.sp)
+     Text("1",color=fog,fontSize=10.sp)
     }
    }
   }
@@ -232,13 +255,13 @@ fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
  Card(shape=RoundedCornerShape(24.dp),
   colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF19243A)),
   modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent, RoundedCornerShape(24.dp)) else Modifier)) {
-  Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp),revision)
-   Spacer(Modifier.width(17.dp))
+  Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(title,Modifier.size(width=98.dp,height=134.dp),revision)
+   Spacer(Modifier.width(12.dp))
    Column(Modifier.weight(1f)) {
     Text(kind.uppercase(),color=accent,fontSize=11.sp,letterSpacing=1.5.sp)
     Spacer(Modifier.height(8.dp))
-    Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
+    Text(title,color=Color.White,fontSize=21.sp,fontWeight=FontWeight.Black,
      maxLines=4,overflow=TextOverflow.Ellipsis)
     ReleaseYears.label(title)?.let { years -> Spacer(Modifier.height(5.dp)); Text(years,color=fog,fontSize=12.sp,fontStyle=FontStyle.Italic) }
    }
