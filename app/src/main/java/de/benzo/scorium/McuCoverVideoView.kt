@@ -16,7 +16,8 @@ import android.widget.FrameLayout
 class McuCoverVideoView(
     context: Context,
     private val onFinished: () -> Unit,
-    private val onStarted: () -> Unit
+    private val onStarted: () -> Unit,
+    private val onFirstFrame: () -> Unit
 ) : FrameLayout(context), TextureView.SurfaceTextureListener {
     private val texture = TextureView(context)
     private var player: MediaPlayer? = null
@@ -24,6 +25,8 @@ class McuCoverVideoView(
     private var playbackSurface: Surface? = null
     private var videoWidth = 720
     private var videoHeight = 1280
+    private var playbackStarted = false
+    private var firstFrameDelivered = false
 
     init {
         addView(texture, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
@@ -49,6 +52,7 @@ class McuCoverVideoView(
             }
             media.setOnPreparedListener {
                 it.start()
+                playbackStarted = true
                 onStarted()
             }
             media.setOnErrorListener { _, _, _ ->
@@ -86,7 +90,12 @@ class McuCoverVideoView(
         return true
     }
 
-    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {
+        if (playbackStarted && !firstFrameDelivered) {
+            firstFrameDelivered = true
+            onFirstFrame()
+        }
+    }
 
     private fun releasePlayer() {
         player?.runCatching { stop() }
