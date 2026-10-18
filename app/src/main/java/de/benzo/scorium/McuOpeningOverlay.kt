@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -57,7 +58,7 @@ fun McuOpeningOverlay(
     var firstVideoFrame by remember { mutableStateOf(false) }
     val posterOpacity by animateFloatAsState(
         targetValue = if (firstVideoFrame) 0f else 1f,
-        animationSpec = tween(durationMillis = 220), label = "mcuPosterHandoff"
+        animationSpec = tween(durationMillis = 480), label = "mcuPosterHandoff"
     )
 
     BackHandler { onSkip() }
@@ -73,8 +74,8 @@ fun McuOpeningOverlay(
         // Do not expand an empty video surface: wait until playback really starts.
         snapshotFlow { firstVideoFrame }.first { it }
         // Fade the original card only once a real video frame exists.
-        delay(240)
-        expand.animateTo(1f, tween(durationMillis = 1050, easing = LinearOutSlowInEasing))
+        delay(100)
+        expand.animateTo(1f, tween(durationMillis = 4200, easing = LinearOutSlowInEasing))
     }
     LaunchedEffect(finished) {
         if (finished) onComplete()
@@ -122,14 +123,13 @@ fun McuOpeningOverlay(
             val h = posterH + (fullHeight - posterH) * expand.value
             val x = posterX * (1f - expand.value)
             val y = posterY * (1f - expand.value)
-            val radius = 12.dp
-            // The video remains at full-screen dimensions throughout playback.
+                // The video remains at full-screen dimensions throughout playback.
             // Only its visible window expands; the video pixels no longer rescale.
             if (playVideo) {
                 Box(
                     Modifier.fillMaxSize().drawWithContent {
                         val content = this
-                        val rounding = minOf(w, h) * (0.06f + 0.44f * expand.value)
+                        val rounding = minOf(w, h) * 0.06f * (1f - expand.value)
                         val revealPath = Path().apply {
                             addRoundRect(RoundRect(x, y, x + w, y + h, CornerRadius(rounding)))
                         }
@@ -146,7 +146,7 @@ fun McuOpeningOverlay(
                         // Start with the logo smaller, matching the MCU card more closely.
                         // Grow smoothly into full-screen framing as the reveal opens.
                         modifier = Modifier.fillMaxSize().graphicsLayer {
-                            val zoom = 0.62f + 0.28f * expand.value
+                            val zoom = 0.62f + 0.38f * expand.value
                             scaleX = zoom
                             scaleY = zoom
                         }
