@@ -14,9 +14,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -294,7 +296,13 @@ class MainActivity: ComponentActivity() {
         }
        }
       } else {
-      if(mcuCollectionRoute) Text("MARVEL STUDIOS MCU  ·  $mcuPhase",color=Color(0xFFEF3945),fontSize=20.sp,fontWeight=FontWeight.Bold)
+      if(mcuCollectionRoute) {
+       Column(Modifier.fillMaxWidth(),horizontalAlignment=Alignment.CenterHorizontally) {
+        Image(painter=painterResource(R.drawable.scorium_mcu_logo),contentDescription="MARVEL STUDIOS MCU",modifier=Modifier.fillMaxWidth().height(92.dp),contentScale=ContentScale.Fit)
+        Text(mcuPhase.uppercase(),color=Color(0xFFC8CDD3),fontSize=20.sp,fontWeight=FontWeight.Bold,letterSpacing=2.sp,textAlign=TextAlign.Center,modifier=Modifier.fillMaxWidth())
+        Spacer(Modifier.height(16.dp))
+       }
+      }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
       val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
@@ -440,7 +448,7 @@ class MainActivity: ComponentActivity() {
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
     if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
    }
