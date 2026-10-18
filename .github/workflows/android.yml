@@ -28,8 +28,11 @@ jobs:
           mkdir -p app/src/main/res/drawable-nodpi
           base64 --decode app/src/main/scorium_logo.png.base64 > app/src/main/res/drawable-nodpi/scorium_logo.png
           base64 --decode app/src/main/scorium_icon.png.base64 > app/src/main/res/drawable-nodpi/scorium_icon.png
+          base64 --decode app/src/main/scorium_menu_background.webp.base64 > app/src/main/res/drawable-nodpi/scorium_menu_background.webp
           test -s app/src/main/res/drawable-nodpi/scorium_logo.png
           test -s app/src/main/res/drawable-nodpi/scorium_icon.png
+          test -s app/src/main/res/drawable-nodpi/scorium_menu_background.webp
+          file app/src/main/res/drawable-nodpi/scorium_menu_background.webp | grep -i Web/P
           file app/src/main/res/drawable-nodpi/scorium_icon.png
       - name: Bundle public SCORIUM catalog and artwork
         run: |
