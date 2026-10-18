@@ -29,9 +29,19 @@ private fun scoreColor(score:Int):Color = when {
  else -> Color(0xFFED173B)
 }
 
+private fun glowColor(score:Int):Color = when {
+ score>=90 -> Color(0xFF00FF65)
+ score>=76 -> Color(0xFF91FF50)
+ score>=66 -> Color(0xFFFFFF36)
+ score>=56 -> Color(0xFFFFC13A)
+ score>=46 -> Color(0xFFFF8B48)
+ else -> Color(0xFFFF2953)
+}
+
 @Composable
 fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp) {
  val color=score?.let(::scoreColor) ?: Color(0xFF757587)
+ val glow=score?.let(::glowColor) ?: Color(0xFFA0A0AF)
  val progress=score?.coerceIn(0,100)?.div(100f) ?: 0f
  val animated=animateFloatAsState(progress,tween(450),label="scoreRingProgress").value
  Box(Modifier.size(diameter),contentAlignment=Alignment.Center) {
@@ -40,11 +50,14 @@ fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp) {
    val inset=stroke/2+2.dp.toPx()
    val arcSize=androidx.compose.ui.geometry.Size(size.width-2*inset,size.height-2*inset)
    val topLeft=androidx.compose.ui.geometry.Offset(inset,inset)
-   drawArc(color.copy(alpha=0.22f),-90f,360f,false,topLeft,arcSize,style=Stroke(stroke))
-   if(animated>0f) drawArc(color,-90f,360f*animated,false,topLeft,arcSize,style=Stroke(stroke,cap=StrokeCap.Round))
+   drawArc(glow.copy(alpha=0.22f),-90f,360f,false,topLeft,arcSize,style=Stroke(stroke))
+   if(animated>0f) {
+    drawArc(glow.copy(alpha=0.27f),-90f,360f*animated,false,topLeft,arcSize,style=Stroke(stroke*1.65f,cap=StrokeCap.Round))
+    drawArc(glow,-90f,360f*animated,false,topLeft,arcSize,style=Stroke(stroke,cap=StrokeCap.Round))
+   }
   }
-  Box(Modifier.size(diameter*0.73f).clip(CircleShape).background(color.copy(alpha=0.19f)),contentAlignment=Alignment.Center) {
-   Text(if(score==null) "–" else "${score/10}.${score%10}",color=if(score==null) Color.LightGray else color,
+  Box(Modifier.size(diameter*0.73f).clip(CircleShape).background(color),contentAlignment=Alignment.Center) {
+   Text(if(score==null) "–" else "${score/10}.${score%10}",color=if(score==null) Color.White else Color.White,
     fontSize=if(diameter>=90.dp) 28.sp else 21.sp,fontWeight=FontWeight.Black)
   }
  }
