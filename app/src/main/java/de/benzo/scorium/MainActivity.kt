@@ -427,7 +427,7 @@ class MainActivity: ComponentActivity() {
      }
     } }
     // The existing home UI is composed underneath for a seamless fade-out.
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,onComplete={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""},onSkip={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,imageRevision=refresh,onComplete={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""},onSkip={openingMcu=false;home=false;section="Franchises";tab="Alle";search=""})
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
   }
