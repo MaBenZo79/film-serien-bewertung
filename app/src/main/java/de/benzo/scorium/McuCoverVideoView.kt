@@ -15,7 +15,8 @@ import android.widget.FrameLayout
  */
 class McuCoverVideoView(
     context: Context,
-    private val onFinished: () -> Unit
+    private val onFinished: () -> Unit,
+    private val onStarted: () -> Unit
 ) : FrameLayout(context), TextureView.SurfaceTextureListener {
     private val texture = TextureView(context)
     private var player: MediaPlayer? = null
