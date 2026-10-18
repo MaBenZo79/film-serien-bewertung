@@ -151,6 +151,7 @@ class MainActivity: ComponentActivity() {
    }
    var add by remember { mutableStateOf(false) }
    var pendingDelete by remember { mutableStateOf<String?>(null) }
+   var pendingAction by remember { mutableStateOf<String?>(null) }
    var pendingReset by remember { mutableStateOf<String?>(null) }
    var editingOrder by remember { mutableStateOf(false) }
    var orderRevision by remember { mutableIntStateOf(0) }
@@ -271,10 +272,10 @@ class MainActivity: ComponentActivity() {
        Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-         SmallIconAction(Icons.Default.FileDownload,"Komplettsicherung exportieren") { backupExport.launch(null) }
-         SmallIconAction(Icons.Default.FileDownload,"Änderungen exportieren") { updateExport.launch(null) }
+         SmallIconAction(Icons.Default.FileDownload,"Komplettsicherung exportieren") { pendingAction="export_full" }
+         SmallIconAction(Icons.Default.FileDownload,"Änderungen exportieren") { pendingAction="export_delta" }
         }
-        SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*")) }
+        SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { pendingAction="import" }
         Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
        }
        Spacer(Modifier.height(28.dp))
@@ -484,8 +485,8 @@ class MainActivity: ComponentActivity() {
          criteria.map { it to "${ratings[it] ?: 0}/10" }
         )
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pngLauncher.launch("Scorium-Bewertung.png") }
-         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pdfLauncher.launch("Scorium-Bewertung.pdf") }
+         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pendingAction="rating_png" }
+         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
         }
        }
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -506,6 +507,29 @@ class MainActivity: ComponentActivity() {
      if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
     }
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    pendingAction?.let { action ->
+     val title=when(action) {
+      "import" -> "Sicherung importieren?"
+      "export_full" -> "Komplettsicherung exportieren?"
+      "export_delta" -> "Änderungen exportieren?"
+      "rating_png" -> "Bewertung als PNG exportieren?"
+      else -> "Bewertung als PDF exportieren?"
+     }
+     val description=if(action=="import") "Möchtest du eine Sicherungsdatei auswählen und importieren? Vorhandene Daten können dabei überschrieben werden."
+      else "Möchtest du den Export starten und den Speicherort auswählen?"
+     AlertDialog(onDismissRequest={pendingAction=null},title={Text(title)},text={Text(description)},
+      confirmButton={TextButton(onClick={
+       pendingAction=null
+       when(action) {
+        "import" -> backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))
+        "export_full" -> backupExport.launch(null)
+        "export_delta" -> updateExport.launch(null)
+        "rating_png" -> pngLauncher.launch("Scorium-Bewertung.png")
+        "rating_pdf" -> pdfLauncher.launch("Scorium-Bewertung.pdf")
+       }
+      }) { Text("Ja, fortfahren") }},
+      dismissButton={TextButton(onClick={pendingAction=null}) { Text("Abbrechen") }})
+    }
     pendingReset?.let { target ->
      AlertDialog(onDismissRequest={pendingReset=null},title={Text("Bewertung zurücksetzen?")},
       text={Text("Alle Bewertungen für „$target“ werden gelöscht. Der Titel und sein Poster bleiben erhalten.")},
