@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.filterNotNull
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -47,6 +49,11 @@ fun McuOpeningOverlay(
     var playVideo by remember { mutableStateOf(false) }
     var finished by remember { mutableStateOf(false) }
     var videoStarted by remember { mutableStateOf(false) }
+    var firstVideoFrame by remember { mutableStateOf(false) }
+    val posterOpacity by animateFloatAsState(
+        targetValue = if (firstVideoFrame) 0f else 1f,
+        animationSpec = tween(durationMillis = 220), label = "mcuPosterHandoff"
+    )
 
     BackHandler { onSkip() }
 
@@ -59,9 +66,9 @@ fun McuOpeningOverlay(
         delay(160)
         playVideo = true
         // Do not expand an empty video surface: wait until playback really starts.
-        snapshotFlow { videoStarted }.first { it }
-        // Keep the logo/card stationary briefly at the video handoff.
-        delay(180)
+        snapshotFlow { firstVideoFrame }.first { it }
+        // Fade the original card only once a real video frame exists.
+        delay(240)
         expand.animateTo(1f, tween(durationMillis = 1050, easing = LinearOutSlowInEasing))
     }
     LaunchedEffect(finished) {
@@ -117,15 +124,18 @@ fun McuOpeningOverlay(
                 if (playVideo) {
                     AndroidView(
                         factory = { ctx ->
-                            McuCoverVideoView(ctx, onFinished = { finished = true }, onStarted = { videoStarted = true })
+                            McuCoverVideoView(ctx, onFinished = { finished = true }, onStarted = { videoStarted = true }, onFirstFrame = { firstVideoFrame = true })
                         },
                         modifier = Modifier.fillMaxSize()
                     )
-                } else {
-                    ScoriumCollectionTile(
-                        "Marvel / MCU", "Filme & Serien", "collection::mcu",
-                        onClick = {}, onImageSaved = {}, revision = imageRevision
-                    )
+                }
+                if (posterOpacity > 0f) {
+                    Box(Modifier.fillMaxSize().graphicsLayer { alpha = posterOpacity }, contentAlignment = Alignment.Center) {
+                        ScoriumCollectionTile(
+                            "Marvel / MCU", "Filme & Serien", "collection::mcu",
+                            onClick = {}, onImageSaved = {}, revision = imageRevision
+                        )
+                    }
                 }
             }
         }
