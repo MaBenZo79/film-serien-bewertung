@@ -14,67 +14,111 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 
-/** Plays the bundled MCU clip once, expands the collection card, then opens the catalog. */
+/**
+ * Stage 1: the tapped 4:3 collection card moves from its real window coordinates
+ * to the center. Stage 2: the centered card grows to the full available viewport.
+ * The portrait intro and MCU destination screen are added in subsequent steps.
+ */
 @Composable
-fun McuOpeningOverlay(onComplete: () -> Unit, onSkip: () -> Unit) {
-    val context = LocalContext.current
-    val progress = remember { Animatable(0f) }
-    var videoFinished by remember { mutableStateOf(false) }
-    val videoId = R.raw.mcu_collection_intro
+fun McuOpeningOverlay(
+    tileBounds: Rect?,
+    onComplete: () -> Unit,
+    onSkip: () -> Unit
+) {
+    val density = LocalDensity.current
+    val move = remember { Animatable(0f) }
+    val expand = remember { Animatable(0f) }
+    var overlayBounds by remember { mutableStateOf<Rect?>(null) }
+    var playVideo by remember { mutableStateOf(false) }
+    var finished by remember { mutableStateOf(false) }
 
     BackHandler { onSkip() }
 
-    LaunchedEffect(Unit) {
-        // The clip starts in the collection-card-sized frame.
-        delay(1550)
-        progress.animateTo(1f, tween(durationMillis = 900))
-        // Allow the roughly three-second clip to finish before opening the catalog.
-        delay(750)
-        onComplete()
+    LaunchedEffect(overlayBounds, tileBounds) {
+        if (overlayBounds == null) return@LaunchedEffect
+        move.snapTo(0f)
+        expand.snapTo(0f)
+        move.animateTo(1f, tween(durationMillis = 430))
+        playVideo = true
+        expand.animateTo(1f, tween(durationMillis = 720))
+    }
+    LaunchedEffect(finished) {
+        if (finished) onComplete()
+    }
+    // Fail-safe if media playback cannot start on a particular device.
+    LaunchedEffect(playVideo) {
+        if (playVideo) {
+            delay(7500)
+            if (!finished) onComplete()
+        }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.94f))
-            .clickable { onSkip() },
-        contentAlignment = Alignment.Center
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize()
+            .onGloballyPositioned { overlayBounds = it.boundsInWindow() }
+            .background(Color(0xFF39070C).copy(alpha = 0.96f))
+            .clickable { onSkip() }
     ) {
-        val expansion = progress.value
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(0.76f + 0.24f * expansion)
-                .fillMaxHeight(0.28f + 0.72f * expansion)
-                .clip(RoundedCornerShape((18f * (1f - expansion)).dp))
-                .background(Color(0xFF210B17)),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    VideoView(ctx).apply {
-                        setVideoURI(Uri.parse("android.resource://${ctx.packageName}/$videoId"))
-                        setOnPreparedListener { player ->
-                            player.isLooping = false
-                            start()
-                        }
-                        setOnCompletionListener { videoFinished = true }
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
+        val bounds = overlayBounds
+        if (bounds != null) {
+            val fullWidth = constraints.maxWidth.toFloat()
+            val fullHeight = constraints.maxHeight.toFloat()
+            val original = tileBounds ?: Rect(
+                left = fullWidth * 0.25f + bounds.left,
+                top = fullHeight * 0.35f + bounds.top,
+                right = fullWidth * 0.75f + bounds.left,
+                bottom = fullHeight * 0.65f + bounds.top
             )
+            val cardWidth = original.width.coerceAtLeast(1f)
+            val cardHeight = original.height.coerceAtLeast(1f)
+            val startX = original.left - bounds.left
+            val startY = original.top - bounds.top
+            val centerX = (fullWidth - cardWidth) / 2f
+            val centerY = (fullHeight - cardHeight) / 2f
+            val x = (startX + (centerX - startX) * move.value) * (1f - expand.value)
+            val y = (startY + (centerY - startY) * move.value) * (1f - expand.value)
+            val w = cardWidth + (fullWidth - cardWidth) * expand.value
+            val h = cardHeight + (fullHeight - cardHeight) * expand.value
+            val radius = 16.dp * (1f - expand.value)
             Box(
-                Modifier.fillMaxSize().background(
-                    Color(0xFFDD233A).copy(alpha = (expansion * 0.13f).coerceIn(0f, 0.13f))
-                )
-            )
+                modifier = Modifier
+                    .offset { IntOffset(x.roundToInt(), y.roundToInt()) }
+                    .width(with(density) { w.toDp() })
+                    .height(with(density) { h.toDp() })
+                    .clip(RoundedCornerShape(radius))
+                    .background(Color(0xFF620402)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (playVideo) {
+                    AndroidView(
+                        factory = { ctx ->
+                            VideoView(ctx).apply {
+                                setVideoURI(Uri.parse("android.resource://${ctx.packageName}/${R.raw.mcu_collection_intro}"))
+                                setOnPreparedListener { player ->
+                                    player.isLooping = false
+                                    start()
+                                }
+                                setOnCompletionListener { finished = true }
+                            }
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    Text("MARVEL STUDIOS MCU", color = Color.White, fontSize = 17.sp)
+                }
+            }
         }
         Text(
             "Tippen zum Überspringen",
