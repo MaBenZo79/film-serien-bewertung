@@ -77,15 +77,30 @@ private fun savedPercent(prefs: android.content.SharedPreferences, key: String, 
  if(!names.all { json.has(it) }) return null
  return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
 }
+private fun episodeTotal(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
+ val official=McuCatalog.find(name)?.seasons?.getOrNull(season-1)
+ return official ?: prefs.getInt("episodes::$name::$season",6).coerceAtLeast(1)
+}
+private fun seasonCountFor(prefs:android.content.SharedPreferences,name:String):Int {
+ val official=McuCatalog.find(name)?.seasons?.size
+ return official ?: prefs.getInt("seasons::$name",1).coerceAtLeast(1)
+}
+private fun episodeProgress(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
+ return (1..episodeTotal(prefs,name,season)).count { savedPercent(prefs,"$name::season:$season:episode:$it",episodeCategories)!=null }
+}
 private fun seasonAverage(prefs: android.content.SharedPreferences, seriesName: String, season: Int): Int? {
- val count=prefs.getInt("episodes::$seriesName::$season",McuCatalog.find(seriesName)?.seasons?.getOrNull(season-1) ?: 6).coerceAtLeast(1)
+ val count=episodeTotal(prefs,seriesName,season)
  val results=(1..count).mapNotNull { ep -> savedPercent(prefs,"$seriesName::season:$season:episode:$ep",episodeCategories) }
  return if(results.size==count) kotlin.math.round(results.average()).toInt() else null
 }
 private fun seasonScore(prefs: android.content.SharedPreferences, seriesName: String, season: Int): Int? {
  val manual=savedPercent(prefs,"$seriesName::season:$season",seasonCategories)
  val average=seasonAverage(prefs,seriesName,season)
- return if(prefs.getString("mode::$seriesName::$season","manual")=="episodes") average ?: manual else manual ?: average
+ return when(prefs.getString("mode::$seriesName::$season","auto")) {
+  "manual" -> manual
+  "episodes" -> average
+  else -> average ?: manual
+ }
 }
 private val legacyFilms = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
 private val legacySeries = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
@@ -287,7 +302,7 @@ class MainActivity: ComponentActivity() {
       if(section=="Ranking" || section=="Download") {
        val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
-         val count=prefs.getInt("seasons::$name",McuCatalog.find(name)?.seasons?.size ?: 1)
+         val count=seasonCountFor(prefs,name)
          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
         } else savedPercent(prefs,name,categories)
@@ -409,18 +424,18 @@ class MainActivity: ComponentActivity() {
       val isSeries=selected!! in series || selected!! in customSeries
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
-       seasonCount=prefs.getInt("seasons::$seriesKey",McuCatalog.find(seriesKey)?.seasons?.size ?: 1).coerceAtLeast(1)
-       episodeCount=prefs.getInt("episodes::$seriesKey::1",McuCatalog.find(seriesKey)?.available?.firstOrNull() ?: 6).coerceAtLeast(1)
+       seasonCount=seasonCountFor(prefs,seriesKey)
+       episodeCount=episodeTotal(prefs,seriesKey,1)
       }
       LaunchedEffect(seriesKey,selectedSeason) {
-       if(selectedSeason>0) episodeCount=prefs.getInt("episodes::$seriesKey::$selectedSeason",McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1) ?: 6).coerceAtLeast(1)
+       if(selectedSeason>0) episodeCount=episodeTotal(prefs,seriesKey,selectedSeason)
       }
       TextButton(onClick={
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
       ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh,
        if(isSeries) {
-        val count=prefs.getInt("seasons::${selected!!}",McuCatalog.find(selected!!)?.seasons?.size ?: 1)
+        val count=seasonCountFor(prefs,selected!!)
         val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
@@ -456,32 +471,36 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..seasonCount).forEach { number ->
          val score=seasonScore(prefs,seriesKey,number)
-         ScoriumTitleCard("Staffel $number","Staffel",score,null,onClick={
+         ScoriumTitleCard("Staffel $number"+(ReleaseYears.seasonLabel(seriesKey,number)?.let { " ($it)" } ?: ""),"Staffel",score,null,onClick={
           selectedSeason=number;selectedEpisode=0
          },imageKey="$seriesKey::season:$number",revision=refresh)
         }
        }
-       Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
+       if(McuCatalog.find(seriesKey)==null) Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
       } else if(isSeries && selectedEpisode==0) {
-       Text("Staffel $selectedSeason",color=gold,fontSize=18.sp)
+       Text("Staffel $selectedSeason"+(ReleaseYears.seasonLabel(seriesKey,selectedSeason)?.let { " · $it" } ?: ""),color=gold,fontSize=18.sp)
        Row {
         Button(onClick={selectedEpisode=-1}) { Text("Staffel bewerten") }
        }
        val manual=savedPercent(prefs,"$seriesKey::season:$selectedSeason",seasonCategories)
        val average=seasonAverage(prefs,seriesKey,selectedSeason)
+       val finished=episodeProgress(prefs,seriesKey,selectedSeason)
+       val total=episodeTotal(prefs,seriesKey,selectedSeason)
+       Text("Folgen vollständig bewertet: $finished/$total",color=gold,fontSize=13.sp)
        if(manual!=null && average!=null) {
-        Text("Aktive Staffelwertung",color=gold)
-        val mode=prefs.getString("mode::$seriesKey::$selectedSeason","manual") ?: "manual"
-        Row {
+        Text("Welche Wertung soll gelten?",color=gold)
+        val mode=prefs.getString("mode::$seriesKey::$selectedSeason","auto") ?: "auto"
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
          FilterChip(selected=mode=="manual",onClick={
           prefs.edit().putString("mode::$seriesKey::$selectedSeason","manual").apply();refresh++
-         },label={Text("Manuell: ${manual / 10}.${manual % 10}")})
-         Spacer(Modifier.width(8.dp))
-         FilterChip(selected=mode=="episodes",onClick={
+         },label={Text("Staffel: ${manual / 10}.${manual % 10}")})
+         FilterChip(selected=mode!="manual",onClick={
           prefs.edit().putString("mode::$seriesKey::$selectedSeason","episodes").apply();refresh++
-         },label={Text("Episoden: ${average / 10}.${average % 10}")})
+         },label={Text("Folgen: ${average / 10}.${average % 10}")})
         }
-       } else if(average!=null) Text("Episodendurchschnitt: ${average / 10}.${average % 10}",color=gold)
+       } else if(average!=null) Text("Folgendurchschnitt: ${average / 10}.${average % 10} (automatisch aktiv)",color=gold)
+       else if(manual!=null) Text("Staffelwertung: ${manual / 10}.${manual % 10}",color=gold)
+       else Text("Noch keine vollständige Wertung – erst nach allen $total Folgen wird der Durchschnitt angezeigt.",color=Color.LightGray,fontSize=13.sp)
        Text("Episoden",color=gold)
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..episodeCount).forEach { number ->
@@ -491,7 +510,7 @@ class MainActivity: ComponentActivity() {
          },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
         }
        }
-       Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
+       if(McuCatalog.find(seriesKey)==null) Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
       } else {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
