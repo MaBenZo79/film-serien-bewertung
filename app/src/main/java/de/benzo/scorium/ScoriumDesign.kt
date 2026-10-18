@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
@@ -143,6 +144,10 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
     Spacer(Modifier.height(6.dp))
     Text(title,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White,
      maxLines=3,overflow=TextOverflow.Ellipsis)
+    ReleaseYears.label(title)?.let { years ->
+     Spacer(Modifier.height(3.dp))
+     Text(years,color=Color(0xFFAEB0BA),fontSize=12.sp,fontWeight=FontWeight.Normal,fontStyle=FontStyle.Italic)
+    }
     Spacer(Modifier.height(9.dp))
     Text(if(score==null) "NOCH NICHT BEWERTET" else "${score / 10}.${score % 10}  ·  $grade",
      color=if(score==null) fog else accent,fontSize=12.sp,fontWeight=FontWeight.Bold)
