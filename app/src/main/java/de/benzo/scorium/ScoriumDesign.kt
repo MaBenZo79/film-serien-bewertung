@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInWindow
@@ -35,8 +36,17 @@ private val slate=Color(0xFF1A203A)
 private val gold=Color(0xFFAC88F6)
 private val fog=Color(0xFFB5B7CD)
 
+val LocalMcuCollectionTheme = compositionLocalOf { false }
+private val mcuAccent = Color(0xFFEF3945)
+private val mcuSurface = Color(0xFF30090F)
+
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
+ val mcu=LocalMcuCollectionTheme.current
+ if(mcu) {
+  Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF150306),Color(0xFF39070C),Color(0xFF110306))))) { content() }
+  return
+ }
  // Unified background for the home screen and all nested pages.
  // Keep the existing poster tiles, cards, controls and their colors intact.
  Box(Modifier.fillMaxSize().background(Color(0xFF010007))) {
@@ -119,20 +129,22 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
 
 @Composable
 fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit,imageKey:String=title,revision:Int=0) {
+ val mcu=LocalMcuCollectionTheme.current
+ val accent=if(mcu) mcuAccent else gold
  Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
-  colors=CardDefaults.cardColors(containerColor=Color(0xFF182235)),
-  modifier=Modifier.fillMaxWidth()) {
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF182235)),
+  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else Modifier)) {
   Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
    ScoriumPoster(imageKey,Modifier.size(width=75.dp,height=100.dp),revision)
    Spacer(Modifier.width(15.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=gold)
+    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=accent)
     Spacer(Modifier.height(6.dp))
     Text(title,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White,
      maxLines=3,overflow=TextOverflow.Ellipsis)
     Spacer(Modifier.height(9.dp))
     Text(if(score==null) "NOCH NICHT BEWERTET" else "${score / 10}.${score % 10}  ·  $grade",
-     color=if(score==null) fog else gold,fontSize=12.sp,fontWeight=FontWeight.Bold)
+     color=if(score==null) fog else accent,fontSize=12.sp,fontWeight=FontWeight.Bold)
    }
    Text("›",fontSize=28.sp,color=fog)
   }
@@ -141,9 +153,11 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 
 @Composable
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
+ val mcu=LocalMcuCollectionTheme.current
+ val accent=if(mcu) mcuAccent else gold
  val animated by animateFloatAsState(targetValue=(value ?: 5).toFloat(),animationSpec=tween(230),label="score")
- Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF171C32)),
-  modifier=Modifier.fillMaxWidth()) {
+ Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF171C32)),
+  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(22.dp)) else Modifier)) {
   Column(Modifier.padding(horizontal=18.dp,vertical=20.dp)) {
    Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=18.sp)
    Spacer(Modifier.height(13.dp))
@@ -165,7 +179,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
      onChange(kotlin.math.round(next).toInt().coerceIn(1,10))
     },onValueChangeFinished={ dragging=null },
     valueRange=1f..10f,steps=0,
-    colors=SliderDefaults.colors(thumbColor=gold,activeTrackColor=gold,
+    colors=SliderDefaults.colors(thumbColor=accent,activeTrackColor=accent,
      inactiveTrackColor=Color(0xFF42445A)))
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
     Text("1",color=fog,fontSize=12.sp)
@@ -179,14 +193,16 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
 
 @Composable
 fun ScoriumDetailHero(title:String,kind:String,revision:Int=0) {
+ val mcu=LocalMcuCollectionTheme.current
+ val accent=if(mcu) mcuAccent else gold
  Card(shape=RoundedCornerShape(24.dp),
-  colors=CardDefaults.cardColors(containerColor=Color(0xFF19243A)),
-  modifier=Modifier.fillMaxWidth()) {
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF19243A)),
+  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent, RoundedCornerShape(24.dp)) else Modifier)) {
   Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
    ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp),revision)
    Spacer(Modifier.width(17.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),color=gold,fontSize=11.sp,letterSpacing=1.5.sp)
+    Text(kind.uppercase(),color=accent,fontSize=11.sp,letterSpacing=1.5.sp)
     Spacer(Modifier.height(8.dp))
     Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
      maxLines=4,overflow=TextOverflow.Ellipsis)
