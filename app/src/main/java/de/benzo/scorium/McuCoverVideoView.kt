@@ -49,6 +49,7 @@ class McuCoverVideoView(
             }
             media.setOnPreparedListener {
                 it.start()
+                onStarted()
             }
             media.setOnErrorListener { _, _, _ ->
                 releasePlayer()
