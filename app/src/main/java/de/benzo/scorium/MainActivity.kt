@@ -535,7 +535,7 @@ class MainActivity: ComponentActivity() {
          SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
         }
        }
-       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+       Column(verticalArrangement=Arrangement.spacedBy(7.dp)) {
         criteria.forEach { criterion ->
          ScoriumRatingCard(criterion,ratings[criterion]) { newScore ->
           ratings[criterion]=newScore
