@@ -36,6 +36,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.min
+import kotlin.math.PI
 
 /**
  * Stage 1: the tapped 4:3 collection card moves from its real window coordinates
@@ -130,9 +135,34 @@ fun McuOpeningOverlay(
                 Box(
                     Modifier.fillMaxSize().drawWithContent {
                         val content = this
-                        val rounding = minOf(w, h) * 0.06f * (1f - expand.value)
+                        val progress = expand.value.coerceIn(0f, 1f)
                         val revealPath = Path().apply {
-                            addRoundRect(RoundRect(x, y, x + w, y + h, CornerRadius(rounding)))
+                            if (progress >= 0.995f) {
+                                addRect(Rect(0f, 0f, fullWidth, fullHeight))
+                            } else {
+                                // Organic paint-like spread with drifting, uneven edges.
+                                val cx = x + w / 2f
+                                val cy = y + h / 2f
+                                val ripple = min(w, h) * 0.105f * sin(PI.toFloat() * progress)
+                                val steps = 192
+                                for (i in 0 until steps) {
+                                    val angle = (2.0 * PI * i / steps).toFloat()
+                                    val dx = cos(angle)
+                                    val dy = sin(angle)
+                                    val edge = min(
+                                        (w / 2f) / abs(dx).coerceAtLeast(0.0001f),
+                                        (h / 2f) / abs(dy).coerceAtLeast(0.0001f)
+                                    )
+                                    val flow = 0.47f * sin(3f * angle + progress * 3.7f) +
+                                        0.32f * sin(7f * angle - progress * 5.1f) +
+                                        0.21f * sin(11f * angle + progress * 2.3f)
+                                    val distance = (edge + ripple * flow).coerceAtLeast(0f)
+                                    val px = cx + dx * distance
+                                    val py = cy + dy * distance
+                                    if (i == 0) moveTo(px, py) else lineTo(px, py)
+                                }
+                                close()
+                            }
                         }
                         clipPath(revealPath) { content.drawContent() }
                     }
