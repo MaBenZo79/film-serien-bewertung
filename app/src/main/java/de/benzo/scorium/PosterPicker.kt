@@ -8,6 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.ui.unit.dp
 import java.io.File
 import java.security.MessageDigest
 
@@ -42,9 +45,7 @@ fun PosterPicker(title:String,onSaved:()->Unit = {}) {
    }.onFailure { failure=it.localizedMessage ?: "Unbekannter Bildfehler" }
   }
  }
- OutlinedButton(onClick={pick.launch("image/*")}) {
-  Text(if(posterFile(context,title).exists()) "Poster ändern" else "Poster auswählen")
- }
+ SmallIconAction(Icons.Default.Edit,if(posterFile(context,title).exists()) "Poster ändern" else "Poster auswählen") { pick.launch("image/*") }
  if(failure!=null) AlertDialog(onDismissRequest={failure=null},
   title={Text("Poster konnte nicht gespeichert werden")},
   text={Text(failure ?: "")},
