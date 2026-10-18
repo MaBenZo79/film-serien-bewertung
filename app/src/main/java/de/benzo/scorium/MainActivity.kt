@@ -209,7 +209,7 @@ class MainActivity: ComponentActivity() {
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }) {
+        Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={openingMcu=true},onImageSaved={refresh++},revision=refresh)
         }
         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
