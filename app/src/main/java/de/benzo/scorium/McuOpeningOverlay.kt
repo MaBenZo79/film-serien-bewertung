@@ -1,7 +1,5 @@
 package de.benzo.scorium
 
-import android.net.Uri
-import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -107,14 +105,7 @@ fun McuOpeningOverlay(
                 if (playVideo) {
                     AndroidView(
                         factory = { ctx ->
-                            VideoView(ctx).apply {
-                                setVideoURI(Uri.parse("android.resource://${ctx.packageName}/${R.raw.mcu_collection_intro}"))
-                                setOnPreparedListener { player ->
-                                    player.isLooping = false
-                                    start()
-                                }
-                                setOnCompletionListener { finished = true }
-                            }
+                            McuCoverVideoView(ctx) { finished = true }
                         },
                         modifier = Modifier.fillMaxSize()
                     )
