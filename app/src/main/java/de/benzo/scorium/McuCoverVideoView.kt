@@ -8,10 +8,11 @@ import android.net.Uri
 import android.view.Surface
 import android.view.TextureView
 import android.widget.FrameLayout
+import android.graphics.Color
 
 /**
- * A center-cropped video layer. Unlike VideoView, the video fills the animated
- * 4:3-to-fullscreen viewport without letterboxing or stretching its pixels.
+ * An aspect-fit video layer that preserves the source logo's side margins.
+ * Remaining screen area is filled with the matching dark red backdrop.
  */
 class McuCoverVideoView(
     context: Context,
@@ -29,6 +30,8 @@ class McuCoverVideoView(
     private var firstFrameDelivered = false
 
     init {
+        setBackgroundColor(Color.rgb(57, 7, 12))
+        texture.setOpaque(false)
         addView(texture, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         texture.surfaceTextureListener = this
         texture.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateCrop() }
@@ -74,10 +77,10 @@ class McuCoverVideoView(
         if (width <= 0f || height <= 0f) return
         val sourceRatio = videoWidth.toFloat() / videoHeight
         val viewRatio = width / height
-        // TextureView transforms scale video pixels, not the view bounds.
-        // Fill the viewport while preserving the original aspect ratio.
-        val sx = if (viewRatio > sourceRatio) 1f else sourceRatio / viewRatio
-        val sy = if (viewRatio > sourceRatio) viewRatio / sourceRatio else 1f
+        // Fit the entire 9:16 source without cropping its left/right logo margins.
+        // Any unused screen area is filled by the red background behind the video.
+        val sx = if (viewRatio > sourceRatio) sourceRatio / viewRatio else 1f
+        val sy = if (viewRatio > sourceRatio) 1f else viewRatio / sourceRatio
         texture.setTransform(Matrix().apply { setScale(sx, sy, width / 2f, height / 2f) })
     }
 
