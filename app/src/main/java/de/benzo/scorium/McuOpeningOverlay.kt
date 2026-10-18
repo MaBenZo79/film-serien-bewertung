@@ -118,7 +118,8 @@ fun McuOpeningOverlay(
             if (playVideo) {
                 Box(
                     Modifier.fillMaxSize().drawWithContent {
-                        clipRect(x, y, x + w, y + h) { drawContent() }
+                        val content = this
+                        clipRect(x, y, x + w, y + h) { content.drawContent() }
                     }
                 ) {
                     AndroidView(
