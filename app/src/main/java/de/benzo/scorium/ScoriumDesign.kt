@@ -222,7 +222,7 @@ fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:(
  Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
   Column(Modifier.padding(10.dp)) {
    Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick),revision,isCollection=true)
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),revision,isCollection=true)
     Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
    }
    Spacer(Modifier.height(10.dp))
