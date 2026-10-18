@@ -60,6 +60,8 @@ fun McuOpeningOverlay(
         playVideo = true
         // Do not expand an empty video surface: wait until playback really starts.
         snapshotFlow { videoStarted }.first { it }
+        // Keep the logo/card stationary briefly at the video handoff.
+        delay(180)
         expand.animateTo(1f, tween(durationMillis = 1050, easing = LinearOutSlowInEasing))
     }
     LaunchedEffect(finished) {
