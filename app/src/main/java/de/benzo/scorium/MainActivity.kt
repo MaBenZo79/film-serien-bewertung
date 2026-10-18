@@ -358,7 +358,12 @@ class MainActivity: ComponentActivity() {
       TextButton(onClick={
        when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
       }) { Text("← Zurück") }
-      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh)
+      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh,
+       if(isSeries) {
+        val count=prefs.getInt("seasons::${selected!!}",McuCatalog.find(selected!!)?.seasons?.size ?: 1)
+        val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
+        if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+       } else savedPercent(prefs,selected!!,categories))
       PosterPicker(selected!!) { refresh++ }
       if(isSeries && selectedSeason>0) {
        Spacer(Modifier.height(8.dp))
@@ -423,7 +428,11 @@ class MainActivity: ComponentActivity() {
         mutableStateMapOf<String,Int>().apply { criteria.forEach { if(json.has(it)) put(it,json.optInt(it)) } }
        }
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
-       Text(if(percent==null) "Bewertet: ${ratings.size}/${criteria.size}" else "Gesamt: ${percent / 10}.${percent % 10} · ${grade(percent)}",color=gold,fontSize=19.sp)
+       if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=gold,fontSize=19.sp)
+       else Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        ScoriumScoreRing(percent,100.dp)
+        Text("GESAMTBEWERTUNG",color=Color(0xFFC5C7D1),fontSize=13.sp,fontWeight=FontWeight.Bold)
+       }
        if(percent!=null) {
         val report=RatingExport.Report(
          selected!!,
