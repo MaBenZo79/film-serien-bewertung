@@ -26,6 +26,7 @@ fun McuOpeningOverlay(
     posterBounds: Rect?,
     imageRevision: Int,
     onComplete: () -> Unit,
+    onReveal: () -> Unit,
     onSkip: () -> Unit
 ) {
     var firstFrame by remember { mutableStateOf(false) }
@@ -45,6 +46,8 @@ fun McuOpeningOverlay(
     }
     LaunchedEffect(finished) {
         if (finished) {
+            // Put the red phase hub behind the video BEFORE fading it out.
+            onReveal()
             fadeOut = true
             delay(450)
             onComplete()
@@ -53,7 +56,7 @@ fun McuOpeningOverlay(
     // A fallback for devices where the decoder never produces a frame.
     LaunchedEffect(Unit) {
         delay(12000)
-        if (!finished) onComplete()
+        if (!finished) { onReveal(); onComplete() }
     }
 
     Box(
