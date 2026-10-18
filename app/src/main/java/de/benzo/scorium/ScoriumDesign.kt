@@ -211,9 +211,8 @@ fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
     Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
      maxLines=4,overflow=TextOverflow.Ellipsis)
     ReleaseYears.label(title)?.let { years -> Spacer(Modifier.height(5.dp)); Text(years,color=fog,fontSize=12.sp,fontStyle=FontStyle.Italic) }
-    Spacer(Modifier.height(10.dp))
-    ScoriumScoreRing(score,90.dp)
    }
+   ScoriumScoreRing(score,76.dp)
   }
  }
 }
