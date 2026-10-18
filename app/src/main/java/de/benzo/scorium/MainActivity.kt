@@ -618,4 +618,277 @@ class MainActivity: ComponentActivity() {
   }
  }
 }
+}       val sourceFilms=if(dcCollectionRoute) DcCatalog.films else films+extras
+       val sourceSeries=if(dcCollectionRoute) DcCatalog.series else (series+customSeries).distinct()
+       val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) }.sortedWith(compareBy<String> {
+        if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
+         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
+        val pos=saved.indexOf(it)
+        if(pos>=0) pos else 100000+releaseRank(it)
+       }
+      }.thenBy { it })
+      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
+      val revision=refresh
+      if(!mcuCollectionRoute && !dcCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
+       horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
+       if(editingOrder) {
+        SmallIconAction(Icons.Default.Close,"Änderungen verwerfen") { editingOrder=false;pendingOrder.clear() }
+        Spacer(Modifier.width(8.dp))
+        SmallIconAction(Icons.Default.Check,"Reihenfolge speichern") {
+         val original=prefs.getString("order::titles","")?.split("|")?.filter { it.isNotBlank() } ?: emptyList()
+         val merged=pendingOrder.toList()+original.filter { it !in pendingOrder }
+         prefs.edit().putString("order::titles",merged.joinToString("|")).apply()
+         editingOrder=false;pendingOrder.clear();refresh++
+        }
+       } else {
+        SmallIconAction(Icons.Default.Edit,"Reihenfolge bearbeiten") {
+         pendingOrder.clear()
+         pendingOrder.addAll(entries)
+         editingOrder=true
+        }
+        Spacer(Modifier.width(8.dp))
+        SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+       }
+      }
+      LazyColumn(Modifier.weight(1f),state=titleListState) {
+       items(visibleEntries,key={ it }) { name ->
+        val isShow=name in series || name in customSeries || name in DcCatalog.series
+        val value=if(isShow) {
+         val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
+         val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
+         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+        } else savedPercent(prefs,name,categories)
+        Row(verticalAlignment=Alignment.CenterVertically) {
+         Box(Modifier.weight(1f)) {
+          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,null,onClick={
+           selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
+          },revision=refresh)
+         }
+         if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) Column {
+          SmallIconAction(Icons.Default.ArrowUpward,"Nach oben") {
+           val order=visibleEntries.toMutableList();val index=order.indexOf(name)
+           if(index>0) { java.util.Collections.swap(order,index,index-1);pendingOrder.clear();pendingOrder.addAll(order);orderRevision++ }
+          }
+          SmallIconAction(Icons.Default.ArrowDownward,"Nach unten") {
+           val order=entries.toMutableList();val index=order.indexOf(name)
+           if(index>=0 && index<order.lastIndex) { java.util.Collections.swap(order,index,index+1);prefs.edit().putString("order::titles",order.joinToString("|")).apply();orderRevision++;refresh++ }
+          }
+         }
+        }
+       }
+      }
+
+      if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
+       Column {
+        OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
+        Row { listOf("Film","Serie").forEach { type ->
+         FilterChip(selected=newKind==type,onClick={newKind=type},label={Text(type)})
+         Spacer(Modifier.width(8.dp))
+        } }
+       }
+      },confirmButton={TextButton(onClick={if(newTitle.isNotBlank()){
+       val name=newTitle.trim()
+       if(newKind=="Serie"){
+        if(name !in customSeries && name !in series) customSeries.add(name)
+        val data=JSONArray();customSeries.forEach { data.put(it) }
+        prefs.edit().putString("custom_series",data.toString()).apply()
+       } else {
+        if(name !in extras && name !in films) extras.add(name)
+        val data=JSONArray();extras.forEach { data.put(it) }
+        prefs.edit().putString("custom_titles",data.toString()).apply()
+       }
+       newTitle=""
+      };add=false}){Text("Hinzufügen")}},
+       dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
+      }
+     } else {
+      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series
+      val seriesKey=selected!!
+      LaunchedEffect(seriesKey) {
+       seasonCount=seasonCountFor(prefs,seriesKey)
+       episodeCount=episodeTotal(prefs,seriesKey,1)
+      }
+      LaunchedEffect(seriesKey,selectedSeason) {
+       if(selectedSeason>0) episodeCount=episodeTotal(prefs,seriesKey,selectedSeason)
+      }
+      TextButton(onClick={
+       when { selectedEpisode!=0 -> selectedEpisode=0;selectedSeason>0 -> selectedSeason=0;else -> selected=null }
+      }) { Text("← Zurück") }
+      ScoriumDetailHero(selected!!,if(isSeries) "Serie" else "Film",refresh,
+       if(isSeries) {
+        val count=seasonCountFor(prefs,selected!!)
+        val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
+        if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+       } else savedPercent(prefs,selected!!,categories))
+      Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+       PosterPicker(selected!!) { refresh++ }
+       SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
+       if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if(!isSeries) {
+        val value=savedPercent(prefs,selected!!,categories)
+        if(value!=null) {
+         val data=runCatching { JSONObject(prefs.getString(selected!!,"{}") ?: "{}") }.getOrDefault(JSONObject())
+         val report=RatingExport.Report(selected!!,"Film","${value / 10}.${value % 10}",categories.map { it to "${data.optInt(it)}/10" })
+         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pendingAction="rating_png" }
+         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
+        }
+       }
+      }
+      if(isSeries && selectedSeason>0) {
+       Spacer(Modifier.height(8.dp))
+       Text("Staffel $selectedSeason · Eigenes Bild",color=gold)
+       ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
+       PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
+       if(selectedEpisode>0) {
+        Text("Episode $selectedEpisode · Staffelposter",color=gold)
+        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
+        PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
+       }
+      }
+      Spacer(Modifier.height(8.dp))
+      val revision=refresh
+      if(isSeries && selectedSeason==0) {
+       Text("Staffeln",color=gold,fontSize=18.sp)
+       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        (1..seasonCount).forEach { number ->
+         val score=seasonScore(prefs,seriesKey,number)
+         ScoriumTitleCard("Staffel $number"+(ReleaseYears.seasonLabel(seriesKey,number)?.let { " ($it)" } ?: ""),"Staffel",score,null,onClick={
+          selectedSeason=number;selectedEpisode=0
+         },imageKey="$seriesKey::season:$number",revision=refresh)
+        }
+       }
+       if(McuCatalog.find(seriesKey)==null && DcCatalog.find(seriesKey)==null) Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
+      } else if(isSeries && selectedEpisode==0) {
+       Text("Staffel $selectedSeason"+(ReleaseYears.seasonLabel(seriesKey,selectedSeason)?.let { " · $it" } ?: ""),color=gold,fontSize=18.sp)
+       Row {
+        Button(onClick={selectedEpisode=-1}) { Text("Staffel bewerten") }
+       }
+       val manual=savedPercent(prefs,"$seriesKey::season:$selectedSeason",seasonCategories)
+       val average=seasonAverage(prefs,seriesKey,selectedSeason)
+       val finished=episodeProgress(prefs,seriesKey,selectedSeason)
+       val total=episodeTotal(prefs,seriesKey,selectedSeason)
+       Text("Folgen vollständig bewertet: $finished/$total",color=gold,fontSize=13.sp)
+       if(manual!=null && average!=null) {
+        Text("Welche Wertung soll gelten?",color=gold)
+        val mode=prefs.getString("mode::$seriesKey::$selectedSeason","auto") ?: "auto"
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+         FilterChip(selected=mode=="manual",onClick={
+          prefs.edit().putString("mode::$seriesKey::$selectedSeason","manual").apply();refresh++
+         },label={Text("Staffel: ${manual / 10}.${manual % 10}")})
+         FilterChip(selected=mode!="manual",onClick={
+          prefs.edit().putString("mode::$seriesKey::$selectedSeason","episodes").apply();refresh++
+         },label={Text("Folgen: ${average / 10}.${average % 10}")})
+        }
+       } else if(average!=null) Text("Folgendurchschnitt: ${average / 10}.${average % 10} (automatisch aktiv)",color=gold)
+       else if(manual!=null) Text("Staffelwertung: ${manual / 10}.${manual % 10}",color=gold)
+       else Text("Noch keine vollständige Wertung – erst nach allen $total Folgen wird der Durchschnitt angezeigt.",color=Color.LightGray,fontSize=13.sp)
+       Text("Episoden",color=gold)
+       Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        val visibleEpisodes=McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1)?.coerceAtLeast(0) ?: episodeCount
+        (1..visibleEpisodes).forEach { number ->
+         val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
+         ScoriumTitleCard(EpisodeTitles.title(seriesKey,selectedSeason,number)?.let { "$number · $it" } ?: "Episode $number","Episode",score,null,onClick={
+          selectedEpisode=number
+         },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
+        }
+       }
+       if(McuCatalog.find(seriesKey)==null && DcCatalog.find(seriesKey)==null) Button(onClick={episodeCount++;prefs.edit().putInt("episodes::$seriesKey::$selectedSeason",episodeCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Episode hinzufügen") }
+      } else {
+       val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
+       val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
+       if(isSeries) Text(if(selectedEpisode == -1) "Staffel $selectedSeason bewerten" else "Episode $selectedEpisode bewerten",color=gold)
+       val ratings=remember(key,refresh) {
+        val json=runCatching { JSONObject(prefs.getString(key,"{}") ?: "{}") }.getOrDefault(JSONObject())
+        mutableStateMapOf<String,Int>().apply { criteria.forEach { if(json.has(it)) put(it,json.optInt(it)) } }
+       }
+       val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
+       if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=gold,fontSize=19.sp)
+
+       if(percent!=null && isSeries) {
+        val report=RatingExport.Report(
+         selected!!,
+         if(!isSeries) "Film" else if(selectedEpisode == -1) "Staffel $selectedSeason" else "Staffel $selectedSeason · Episode $selectedEpisode",
+         "${percent / 10}.${percent % 10}",
+         criteria.map { it to "${ratings[it] ?: 0}/10" }
+        )
+        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pendingAction="rating_png" }
+         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
+        }
+       }
+       Column(verticalArrangement=Arrangement.spacedBy(7.dp)) {
+        criteria.forEach { criterion ->
+         ScoriumRatingCard(criterion,ratings[criterion]) { newScore ->
+          ratings[criterion]=newScore
+          val json=JSONObject();ratings.forEach { (name,score)->json.put(name,score) }
+          prefs.edit().putString(key,json.toString()).apply();refresh++
+         }
+       }
+      }
+     }
+    } }
+    // The existing home UI is composed underneath for a seamless fade-out.
+    // Crossfade the MCU phase hub in and out over the destination content.
+    // Keep the hub as a separate layer so the selected phase list is visible underneath.
+    Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
+      if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
+     }
+     if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingDc=false},onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
+     Crossfade(targetState=mcuHub,animationSpec=tween(durationMillis=450),label="mcuPhaseHubCrossfade") { visible ->
+     if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    }
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    pendingAction?.let { action ->
+     val title=when(action) {
+      "import" -> "Sicherung importieren?"
+      "export_full" -> "Komplettsicherung exportieren?"
+      "export_delta" -> "Änderungen exportieren?"
+      "rating_png" -> "Bewertung als PNG exportieren?"
+      else -> "Bewertung als PDF exportieren?"
+     }
+     val description=if(action=="import") "Möchtest du eine Sicherungsdatei auswählen und importieren? Vorhandene Daten können dabei überschrieben werden."
+      else "Möchtest du den Export starten und den Speicherort auswählen?"
+     AlertDialog(onDismissRequest={pendingAction=null},title={Text(title)},text={Text(description)},
+      confirmButton={TextButton(onClick={
+       pendingAction=null
+       when(action) {
+        "import" -> backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))
+        "export_full" -> backupExport.launch(null)
+        "export_delta" -> updateExport.launch(null)
+        "rating_png" -> pngLauncher.launch("Scorium-Bewertung.png")
+        "rating_pdf" -> pdfLauncher.launch("Scorium-Bewertung.pdf")
+       }
+      }) { Text("Ja, fortfahren") }},
+      dismissButton={TextButton(onClick={pendingAction=null}) { Text("Abbrechen") }})
+    }
+    pendingReset?.let { target ->
+     AlertDialog(onDismissRequest={pendingReset=null},title={Text("Bewertung zurücksetzen?")},
+      text={Text("Alle Bewertungen für „$target“ werden gelöscht. Der Titel und sein Poster bleiben erhalten.")},
+      confirmButton={TextButton(onClick={
+       val editor=prefs.edit()
+       prefs.all.keys.filter { it==target || it.startsWith("$target::season:") }.forEach { editor.remove(it) }
+       editor.apply();pendingReset=null;refresh++
+      }) { Text("Zurücksetzen") }},
+      dismissButton={TextButton(onClick={pendingReset=null}) { Text("Abbrechen") }})
+    }
+    pendingDelete?.let { target ->
+     AlertDialog(onDismissRequest={pendingDelete=null},title={Text("Titel löschen?")},
+      text={Text("„$target“ und seine gespeicherten Bewertungen werden gelöscht. Das lässt sich nicht rückgängig machen.")},
+      confirmButton={TextButton(onClick={
+       val key=if(target in customSeries) "custom_series" else "custom_titles"
+       val current=runCatching { JSONArray(prefs.getString(key,"[]")) }.getOrDefault(JSONArray())
+       val result=JSONArray()
+       for(i in 0 until current.length()) if(current.optString(i)!=target) result.put(current.optString(i))
+       val editor=prefs.edit().putString(key,result.toString())
+       prefs.all.keys.filter { it==target || it.startsWith("$target::") || it.startsWith("seasons::$target") || it.startsWith("episodes::$target") }.forEach { editor.remove(it) }
+       editor.apply();selected=null;pendingDelete=null;refresh++
+      }) { Text("Löschen") }},
+      dismissButton={TextButton(onClick={pendingDelete=null}) { Text("Abbrechen") }})
+    }
+    if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
+   }
+   }
+  }
+ }
+}
 }
