@@ -33,6 +33,8 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Image
@@ -273,14 +275,12 @@ class MainActivity: ComponentActivity() {
        }
        Spacer(Modifier.height(18.dp))
        Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
-       Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-         SmallIconAction(Icons.Default.FileDownload,"Komplettsicherung exportieren") { pendingAction="export_full" }
-         SmallIconAction(Icons.Default.FileDownload,"Änderungen exportieren") { pendingAction="export_delta" }
-        }
+       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
+        SmallIconAction(Icons.Default.Save,"Komplettsicherung exportieren") { pendingAction="export_full" }
+        SmallIconAction(Icons.Default.CloudDownload,"Änderungen exportieren") { pendingAction="export_delta" }
         SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { pendingAction="import" }
-        Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
        }
+       Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
@@ -429,6 +429,15 @@ class MainActivity: ComponentActivity() {
        PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
        if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if(!isSeries) {
+        val value=savedPercent(prefs,selected!!,categories)
+        if(value!=null) {
+         val data=runCatching { JSONObject(prefs.getString(selected!!,"{}") ?: "{}") }.getOrDefault(JSONObject())
+         val report=RatingExport.Report(selected!!,"Film","${value / 10}.${value % 10} · ${grade(value)}",categories.map { it to "${data.optInt(it)}/10" })
+         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pendingAction="rating_png" }
+         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
+        }
+       }
       }
       if(isSeries && selectedSeason>0) {
        Spacer(Modifier.height(8.dp))
@@ -495,7 +504,7 @@ class MainActivity: ComponentActivity() {
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
        if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=gold,fontSize=19.sp)
 
-       if(percent!=null) {
+       if(percent!=null && isSeries) {
         val report=RatingExport.Report(
          selected!!,
          if(!isSeries) "Film" else if(selectedEpisode == -1) "Staffel $selectedSeason" else "Staffel $selectedSeason · Episode $selectedEpisode",
