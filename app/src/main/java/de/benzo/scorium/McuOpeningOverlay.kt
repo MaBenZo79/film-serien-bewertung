@@ -5,6 +5,9 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.snapshotFlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -47,8 +50,9 @@ fun McuOpeningOverlay(
 
     BackHandler { onSkip() }
 
-    LaunchedEffect(overlayBounds, tileBounds) {
-        if (overlayBounds == null) return@LaunchedEffect
+    LaunchedEffect(Unit) {
+        // A single playback sequence: layout updates must not restart the animation.
+        snapshotFlow { overlayBounds }.filterNotNull().first()
         move.snapTo(0f)
         expand.snapTo(0f)
         move.animateTo(1f, tween(durationMillis = 650, easing = FastOutSlowInEasing))
@@ -89,10 +93,13 @@ fun McuOpeningOverlay(
             val startY = original.top - bounds.top
             val centerX = (fullWidth - cardWidth) / 2f
             val centerY = (fullHeight - cardHeight) / 2f
-            val x = (startX + (centerX - startX) * move.value) * (1f - expand.value)
-            val y = (startY + (centerY - startY) * move.value) * (1f - expand.value)
+            // Keep the same center while expanding; the visible area grows from 4:3.
+            val movedX = startX + (centerX - startX) * move.value
+            val movedY = startY + (centerY - startY) * move.value
             val w = cardWidth + (fullWidth - cardWidth) * expand.value
             val h = cardHeight + (fullHeight - cardHeight) * expand.value
+            val x = movedX + (cardWidth - w) * 0.5f
+            val y = movedY + (cardHeight - h) * 0.5f
             val radius = 16.dp * (1f - expand.value)
             Box(
                 modifier = Modifier
