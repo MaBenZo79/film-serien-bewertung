@@ -25,6 +25,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.runtime.*
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -139,6 +150,10 @@ class MainActivity: ComponentActivity() {
     }
    }
    var add by remember { mutableStateOf(false) }
+   var pendingDelete by remember { mutableStateOf<String?>(null) }
+   var pendingReset by remember { mutableStateOf<String?>(null) }
+   var editingOrder by remember { mutableStateOf(false) }
+   var orderRevision by remember { mutableIntStateOf(0) }
    var newTitle by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
    var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
@@ -306,8 +321,18 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) }.sortedWith(compareBy<String> { releaseRank(it) }.thenBy { it })
+      val entries=((if(tab=="Serien") emptyList() else films+extras)+(if(tab=="Filme") emptyList() else (series+customSeries).distinct())).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) }.sortedWith(compareBy<String> {
+       if(mcuCollectionRoute) releaseRank(it) else {
+        val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
+        val pos=saved.indexOf(it)
+        if(pos>=0) pos else 100000+releaseRank(it)
+       }
+      }.thenBy { it })
       val revision=refresh
+      if(!mcuCollectionRoute) Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.End) {
+       SmallIconAction(Icons.Default.Edit,"Reihenfolge bearbeiten") { editingOrder=!editingOrder }
+       SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+      }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(entries,key={ it }) { name ->
         val isShow=name in series || name in customSeries
@@ -316,12 +341,26 @@ class MainActivity: ComponentActivity() {
          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
         } else savedPercent(prefs,name,categories)
-        ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) },onClick={
-         selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
-        },revision=refresh)
+        Row(verticalAlignment=Alignment.CenterVertically) {
+         Box(Modifier.weight(1f)) {
+          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) },onClick={
+           selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
+          },revision=refresh)
+         }
+         if(editingOrder && !mcuCollectionRoute) Column {
+          SmallIconAction(Icons.Default.ArrowUpward,"Nach oben") {
+           val order=entries.toMutableList();val index=order.indexOf(name)
+           if(index>0) { java.util.Collections.swap(order,index,index-1);prefs.edit().putString("order::titles",order.joinToString("|")).apply();orderRevision++;refresh++ }
+          }
+          SmallIconAction(Icons.Default.ArrowDownward,"Nach unten") {
+           val order=entries.toMutableList();val index=order.indexOf(name)
+           if(index>=0 && index<order.lastIndex) { java.util.Collections.swap(order,index,index+1);prefs.edit().putString("order::titles",order.joinToString("|")).apply();orderRevision++;refresh++ }
+          }
+         }
+        }
        }
       }
-      Button(onClick={add=true},modifier=Modifier.fillMaxWidth()) { Text("Titel hinzufügen") }
+
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
         OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
@@ -364,7 +403,11 @@ class MainActivity: ComponentActivity() {
         val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
-      PosterPicker(selected!!) { refresh++ }
+      Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+       PosterPicker(selected!!) { refresh++ }
+       SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
+       if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+      }
       if(isSeries && selectedSeason>0) {
        Spacer(Modifier.height(8.dp))
        Text("Staffel $selectedSeason · Eigenes Bild",color=gold)
@@ -463,6 +506,30 @@ class MainActivity: ComponentActivity() {
      if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
     }
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    pendingReset?.let { target ->
+     AlertDialog(onDismissRequest={pendingReset=null},title={Text("Bewertung zurücksetzen?")},
+      text={Text("Alle Bewertungen für „$target“ werden gelöscht. Der Titel und sein Poster bleiben erhalten.")},
+      confirmButton={TextButton(onClick={
+       val editor=prefs.edit()
+       prefs.all.keys.filter { it==target || it.startsWith("$target::season:") }.forEach { editor.remove(it) }
+       editor.apply();pendingReset=null;refresh++
+      }) { Text("Zurücksetzen") }},
+      dismissButton={TextButton(onClick={pendingReset=null}) { Text("Abbrechen") }})
+    }
+    pendingDelete?.let { target ->
+     AlertDialog(onDismissRequest={pendingDelete=null},title={Text("Titel löschen?")},
+      text={Text("„$target“ und seine gespeicherten Bewertungen werden gelöscht. Das lässt sich nicht rückgängig machen.")},
+      confirmButton={TextButton(onClick={
+       val key=if(target in customSeries) "custom_series" else "custom_titles"
+       val current=runCatching { JSONArray(prefs.getString(key,"[]")) }.getOrDefault(JSONArray())
+       val result=JSONArray()
+       for(i in 0 until current.length()) if(current.optString(i)!=target) result.put(current.optString(i))
+       val editor=prefs.edit().putString(key,result.toString())
+       prefs.all.keys.filter { it==target || it.startsWith("$target::") || it.startsWith("seasons::$target") || it.startsWith("episodes::$target") }.forEach { editor.remove(it) }
+       editor.apply();selected=null;pendingDelete=null;refresh++
+      }) { Text("Löschen") }},
+      dismissButton={TextButton(onClick={pendingDelete=null}) { Text("Abbrechen") }})
+    }
     if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
    }
    }
