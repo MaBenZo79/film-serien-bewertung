@@ -1,5 +1,8 @@
 package de.benzo.scorium
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,7 +41,12 @@ fun McuPhaseHub(
         Spacer(Modifier.height(16.dp))
         TextButton(onClick = onBack) { Text("← SCORIUM", color = Color.White) }
         Spacer(Modifier.height(22.dp))
-        Text("MARVEL STUDIOS MCU", fontSize = 27.sp, fontWeight = FontWeight.Black, color = Color.White)
+        Image(
+            painter = painterResource(R.drawable.scorium_mcu_logo),
+            contentDescription = "MARVEL STUDIOS MCU",
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxWidth().height(120.dp)
+        )
         Spacer(Modifier.height(26.dp))
         val phases = listOf("Komplett", "Phase 1", "Phase 2", "Phase 3", "Phase 4", "Phase 5", "Phase 6")
         phases.chunked(2).forEach { pair ->
