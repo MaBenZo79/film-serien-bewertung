@@ -235,6 +235,7 @@ class MainActivity: ComponentActivity() {
    }
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
    val activeDcTheme = dcCollectionRoute && !home && !openingDc
+   val scopedAccent = if(activeDcTheme) Color(0xFF438FEA) else gold
     val scopedPalette = if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
    CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme) {
    MaterialTheme(colorScheme=scopedPalette) {
@@ -317,7 +318,7 @@ class MainActivity: ComponentActivity() {
         value?.let { name to it }
        }.sortedByDescending { it.second }
        val revision=refresh
-       Text(if(section=="Ranking") "DEIN RANKING" else "DEINE EXPORTS",color=gold,fontSize=20.sp,fontWeight=FontWeight.Bold)
+       Text(if(section=="Ranking") "DEIN RANKING" else "DEINE EXPORTS",color=scopedAccent,fontSize=20.sp,fontWeight=FontWeight.Bold)
        Spacer(Modifier.height(12.dp))
        if(rated.isEmpty()) Text("Noch keine vollständig bewerteten Titel vorhanden.",color=Color.White)
        LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -465,11 +466,11 @@ class MainActivity: ComponentActivity() {
       }
       if(isSeries && selectedSeason>0) {
        Spacer(Modifier.height(8.dp))
-       Text("Staffel $selectedSeason · Eigenes Bild",color=gold)
+       Text("Staffel $selectedSeason · Eigenes Bild",color=scopedAccent)
        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
        PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
        if(selectedEpisode>0) {
-        Text("Episode $selectedEpisode · Staffelposter",color=gold)
+        Text("Episode $selectedEpisode · Staffelposter",color=scopedAccent)
         ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
         PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
        }
@@ -477,7 +478,7 @@ class MainActivity: ComponentActivity() {
       Spacer(Modifier.height(8.dp))
       val revision=refresh
       if(isSeries && selectedSeason==0) {
-       Text("Staffeln",color=gold,fontSize=18.sp)
+       Text("Staffeln",color=scopedAccent,fontSize=18.sp)
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..seasonCount).forEach { number ->
          val score=seasonScore(prefs,seriesKey,number)
@@ -488,7 +489,7 @@ class MainActivity: ComponentActivity() {
        }
        if(McuCatalog.find(seriesKey)==null && DcCatalog.find(seriesKey)==null) Button(onClick={seasonCount++;prefs.edit().putInt("seasons::$seriesKey",seasonCount).apply();refresh++},modifier=Modifier.fillMaxWidth()) { Text("Staffel hinzufügen") }
       } else if(isSeries && selectedEpisode==0) {
-       Text("Staffel $selectedSeason"+(ReleaseYears.seasonLabel(seriesKey,selectedSeason)?.let { " · $it" } ?: ""),color=gold,fontSize=18.sp)
+       Text("Staffel $selectedSeason"+(ReleaseYears.seasonLabel(seriesKey,selectedSeason)?.let { " · $it" } ?: ""),color=scopedAccent,fontSize=18.sp)
        Row {
         Button(onClick={selectedEpisode=-1}) { Text("Staffel bewerten") }
        }
@@ -496,9 +497,9 @@ class MainActivity: ComponentActivity() {
        val average=seasonAverage(prefs,seriesKey,selectedSeason)
        val finished=episodeProgress(prefs,seriesKey,selectedSeason)
        val total=episodeTotal(prefs,seriesKey,selectedSeason)
-       Text("Folgen vollständig bewertet: $finished/$total",color=gold,fontSize=13.sp)
+       Text("Folgen vollständig bewertet: $finished/$total",color=scopedAccent,fontSize=13.sp)
        if(manual!=null && average!=null) {
-        Text("Welche Wertung soll gelten?",color=gold)
+        Text("Welche Wertung soll gelten?",color=scopedAccent)
         val mode=prefs.getString("mode::$seriesKey::$selectedSeason","auto") ?: "auto"
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
          FilterChip(selected=mode=="manual",onClick={
@@ -508,10 +509,10 @@ class MainActivity: ComponentActivity() {
           prefs.edit().putString("mode::$seriesKey::$selectedSeason","episodes").apply();refresh++
          },label={Text("Folgen: ${average / 10}.${average % 10}")})
         }
-       } else if(average!=null) Text("Folgendurchschnitt: ${average / 10}.${average % 10} (automatisch aktiv)",color=gold)
-       else if(manual!=null) Text("Staffelwertung: ${manual / 10}.${manual % 10}",color=gold)
+       } else if(average!=null) Text("Folgendurchschnitt: ${average / 10}.${average % 10} (automatisch aktiv)",color=scopedAccent)
+       else if(manual!=null) Text("Staffelwertung: ${manual / 10}.${manual % 10}",color=scopedAccent)
        else Text("Noch keine vollständige Wertung – erst nach allen $total Folgen wird der Durchschnitt angezeigt.",color=Color.LightGray,fontSize=13.sp)
-       Text("Episoden",color=gold)
+       Text("Episoden",color=scopedAccent)
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         val visibleEpisodes=McuCatalog.find(seriesKey)?.available?.getOrNull(selectedSeason-1)?.coerceAtLeast(0) ?: episodeCount
         (1..visibleEpisodes).forEach { number ->
@@ -525,13 +526,13 @@ class MainActivity: ComponentActivity() {
       } else {
        val key=selected!! + if(!isSeries) "" else if(selectedEpisode == -1) "::season:$selectedSeason" else "::season:$selectedSeason:episode:$selectedEpisode"
        val criteria=if(!isSeries) categories else if(selectedEpisode == -1) seasonCategories else episodeCategories
-       if(isSeries) Text(if(selectedEpisode == -1) "Staffel $selectedSeason bewerten" else "Episode $selectedEpisode bewerten",color=gold)
+       if(isSeries) Text(if(selectedEpisode == -1) "Staffel $selectedSeason bewerten" else "Episode $selectedEpisode bewerten",color=scopedAccent)
        val ratings=remember(key,refresh) {
         val json=runCatching { JSONObject(prefs.getString(key,"{}") ?: "{}") }.getOrDefault(JSONObject())
         mutableStateMapOf<String,Int>().apply { criteria.forEach { if(json.has(it)) put(it,json.optInt(it)) } }
        }
        val percent=if(criteria.all { ratings.containsKey(it) }) criteria.sumOf { ratings[it] ?: 0 } * 10 / criteria.size else null
-       if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=gold,fontSize=19.sp)
+       if(percent==null) Text("Bewertet: ${ratings.size}/${criteria.size}",color=scopedAccent,fontSize=19.sp)
 
        if(percent!=null && isSeries) {
         val report=RatingExport.Report(
