@@ -148,11 +148,9 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
      Spacer(Modifier.height(3.dp))
      Text(years,color=Color(0xFFAEB0BA),fontSize=12.sp,fontWeight=FontWeight.Normal,fontStyle=FontStyle.Italic)
     }
-    Spacer(Modifier.height(9.dp))
-    Text(if(score==null) "NOCH NICHT BEWERTET" else "${score / 10}.${score % 10}  ·  $grade",
-     color=if(score==null) fog else accent,fontSize=12.sp,fontWeight=FontWeight.Bold)
+    if(score==null) { Spacer(Modifier.height(9.dp)); Text("NOCH NICHT BEWERTET",color=fog,fontSize=11.sp) }
    }
-   Text("›",fontSize=28.sp,color=fog)
+   ScoriumScoreRing(score,76.dp)
   }
  }
 }
@@ -198,7 +196,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
 }
 
 @Composable
-fun ScoriumDetailHero(title:String,kind:String,revision:Int=0) {
+fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
  val mcu=LocalMcuCollectionTheme.current
  val accent=if(mcu) mcuAccent else gold
  Card(shape=RoundedCornerShape(24.dp),
@@ -212,8 +210,9 @@ fun ScoriumDetailHero(title:String,kind:String,revision:Int=0) {
     Spacer(Modifier.height(8.dp))
     Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
      maxLines=4,overflow=TextOverflow.Ellipsis)
-    Spacer(Modifier.height(8.dp))
-    Text("DEIN PERSÖNLICHES ARCHIV",color=fog,fontSize=10.sp)
+    ReleaseYears.label(title)?.let { years -> Spacer(Modifier.height(5.dp)); Text(years,color=fog,fontSize=12.sp,fontStyle=FontStyle.Italic) }
+    Spacer(Modifier.height(10.dp))
+    ScoriumScoreRing(score,90.dp)
    }
   }
  }
