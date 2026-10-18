@@ -89,7 +89,6 @@ private fun seasonScore(prefs: android.content.SharedPreferences, seriesName: St
 }
 private val legacyFilms = listOf("Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers","Iron Man 3","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy","Avengers: Age of Ultron","Ant-Man","Captain America: Civil War","Doctor Strange","Guardians of the Galaxy Vol. 2","Spider-Man: Homecoming","Thor: Ragnarok","Black Panther","Avengers: Infinity War","Ant-Man and the Wasp","Captain Marvel","Avengers: Endgame","Spider-Man: Far From Home")
 private val legacySeries = listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","She-Hulk","Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again")
-private fun grade(p: Int) = when { p>=95->"A+";p>=90->"A";p>=85->"A-";p>=80->"B+";p>=75->"B";p>=70->"B-";p>=65->"C+";p>=60->"C";p>=55->"C-";p>=50->"D+";p>=45->"D";p>=40->"D-";else->"F" }
 private val releaseOrder = listOf(
 "Iron Man","Der unglaubliche Hulk","Iron Man 2","Thor","Captain America: The First Avenger","Marvel's The Avengers",
 "Iron Man 3","MARVEL's Agents of Shield","Thor: The Dark Kingdom","Captain America: The Winter Soldier","Guardians of the Galaxy",
@@ -167,14 +166,14 @@ class MainActivity: ComponentActivity() {
    val pngLauncher=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("image/png")) { uri ->
     if(uri!=null) runCatching {
      contentResolver.openOutputStream(uri)?.use { stream ->
-      RatingExport.png(requireNotNull(exportReport),stream)
+      RatingExport.png(this@MainActivity,requireNotNull(exportReport),stream)
      } ?: error("Ausgabedatei nicht geöffnet")
     }.onFailure { exportError=it.localizedMessage }
    }
    val pdfLauncher=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri ->
     if(uri!=null) runCatching {
      contentResolver.openOutputStream(uri)?.use { stream ->
-      RatingExport.pdf(requireNotNull(exportReport),stream)
+      RatingExport.pdf(this@MainActivity,requireNotNull(exportReport),stream)
      } ?: error("Ausgabedatei nicht geöffnet")
     }.onFailure { exportError=it.localizedMessage }
    }
@@ -301,12 +300,12 @@ class MainActivity: ComponentActivity() {
        LazyColumn(verticalArrangement=Arrangement.spacedBy(12.dp)) {
         items(rated) { (name,score) ->
          Column {
-          ScoriumTitleCard(name,"${score / 10}.${score % 10} · ${grade(score)}",score,grade(score),onClick={
+          ScoriumTitleCard(name,"${score / 10}.${score % 10}",score,null,onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           })
           if(section=="Download" && name !in series && name !in customSeries) {
            val json=runCatching { JSONObject(prefs.getString(name,"{}") ?: "{}") }.getOrDefault(JSONObject())
-           val report=RatingExport.Report(name,"Film","${score / 10}.${score % 10} · ${grade(score)}",categories.map { it to "${json.optInt(it)}/10" })
+           val report=RatingExport.Report(name,"Film","${score / 10}.${score % 10}",categories.map { it to "${json.optInt(it)}/10" })
            Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={exportReport=report;pngLauncher.launch("Scorium-$name.png")}) { Text("PNG") }
             OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-$name.pdf")}) { Text("PDF") }
@@ -365,7 +364,7 @@ class MainActivity: ComponentActivity() {
         } else savedPercent(prefs,name,categories)
         Row(verticalAlignment=Alignment.CenterVertically) {
          Box(Modifier.weight(1f)) {
-          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,value?.let { grade(it) },onClick={
+          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,null,onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           },revision=refresh)
          }
@@ -433,7 +432,7 @@ class MainActivity: ComponentActivity() {
         val value=savedPercent(prefs,selected!!,categories)
         if(value!=null) {
          val data=runCatching { JSONObject(prefs.getString(selected!!,"{}") ?: "{}") }.getOrDefault(JSONObject())
-         val report=RatingExport.Report(selected!!,"Film","${value / 10}.${value % 10} · ${grade(value)}",categories.map { it to "${data.optInt(it)}/10" })
+         val report=RatingExport.Report(selected!!,"Film","${value / 10}.${value % 10}",categories.map { it to "${data.optInt(it)}/10" })
          SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pendingAction="rating_png" }
          SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pendingAction="rating_pdf" }
         }
@@ -457,7 +456,7 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..seasonCount).forEach { number ->
          val score=seasonScore(prefs,seriesKey,number)
-         ScoriumTitleCard("Staffel $number","Staffel",score,score?.let { grade(it) },onClick={
+         ScoriumTitleCard("Staffel $number","Staffel",score,null,onClick={
           selectedSeason=number;selectedEpisode=0
          },imageKey="$seriesKey::season:$number",revision=refresh)
         }
@@ -487,7 +486,7 @@ class MainActivity: ComponentActivity() {
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         (1..episodeCount).forEach { number ->
          val score=savedPercent(prefs,"$seriesKey::season:$selectedSeason:episode:$number",episodeCategories)
-         ScoriumTitleCard(EpisodeTitles.title(seriesKey,selectedSeason,number)?.let { "$number · $it" } ?: "Episode $number","Episode",score,score?.let { grade(it) },onClick={
+         ScoriumTitleCard(EpisodeTitles.title(seriesKey,selectedSeason,number)?.let { "$number · $it" } ?: "Episode $number","Episode",score,null,onClick={
           selectedEpisode=number
          },imageKey="$seriesKey::season:$selectedSeason",revision=refresh)
         }
@@ -508,7 +507,7 @@ class MainActivity: ComponentActivity() {
         val report=RatingExport.Report(
          selected!!,
          if(!isSeries) "Film" else if(selectedEpisode == -1) "Staffel $selectedSeason" else "Staffel $selectedSeason · Episode $selectedEpisode",
-         "${percent / 10}.${percent % 10} · ${grade(percent)}",
+         "${percent / 10}.${percent % 10}",
          criteria.map { it to "${ratings[it] ?: 0}/10" }
         )
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
