@@ -271,10 +271,10 @@ class MainActivity: ComponentActivity() {
        Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
        Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-         OutlinedButton(onClick={backupExport.launch(null)}) { Text("Komplett sichern") }
-         OutlinedButton(onClick={updateExport.launch(null)}) { Text("Nur Änderungen") }
+         SmallIconAction(Icons.Default.FileDownload,"Komplettsicherung exportieren") { backupExport.launch(null) }
+         SmallIconAction(Icons.Default.FileDownload,"Änderungen exportieren") { updateExport.launch(null) }
         }
-        OutlinedButton(onClick={backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))}) { Text("Importieren") }
+        SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*")) }
         Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
        }
        Spacer(Modifier.height(28.dp))
@@ -484,8 +484,8 @@ class MainActivity: ComponentActivity() {
          criteria.map { it to "${ratings[it] ?: 0}/10" }
         )
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-         OutlinedButton(onClick={exportReport=report;pngLauncher.launch("Scorium-Bewertung.png")}) { Text("Als PNG speichern") }
-         OutlinedButton(onClick={exportReport=report;pdfLauncher.launch("Scorium-Bewertung.pdf")}) { Text("Als PDF speichern") }
+         SmallIconAction(Icons.Default.Image,"Bewertung als PNG exportieren") { exportReport=report;pngLauncher.launch("Scorium-Bewertung.png") }
+         SmallIconAction(Icons.Default.PictureAsPdf,"Bewertung als PDF exportieren") { exportReport=report;pdfLauncher.launch("Scorium-Bewertung.pdf") }
         }
        }
        Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
