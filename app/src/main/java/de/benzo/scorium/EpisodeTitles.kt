@@ -2,6 +2,13 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Das Buch von Boba Fett" to 1) to listOf("Chapter 1: Stranger in a Strange Land","Chapter 2: The Tribes of Tatooine","Chapter 3: The Streets of Mos Espa","Chapter 4: The Gathering Storm","Chapter 5: Return of the Mandalorian","Chapter 6: From the Desert Comes a Stranger","Chapter 7: In the Name of Honor"),
+  ("Obi-Wan Kenobi" to 1) to listOf("Part I","Part II","Part III","Part IV","Part V","Part VI"),
+  ("Ahsoka" to 1) to listOf("Part One: Master and Apprentice","Part Two: Toil and Trouble","Part Three: Time to Fly","Part Four: Fallen Jedi","Part Five: Shadow Warrior","Part Six: Far, Far Away","Part Seven: Dreams and Madness","Part Eight: The Jedi, the Witch, and the Warlord"),
+  ("The Acolyte" to 1) to listOf("Lost / Found","Revenge / Justice","Destiny","Day","Night","Teach / Corrupt","Choice","The Acolyte"),
+  ("Andor" to 1) to listOf("Kassa","That Would Be Me","Reckoning","Aldhani","The Axe Forgets","The Eye","Announcement","Narkina 5","Nobody's Listening!","One Way Out","Daughter of Ferrix","Rix Road"),
+  ("Andor" to 2) to listOf("One Year Later","Sagrona Teema","Harvest","Ever Been to Ghorman?","I Have Friends Everywhere","What a Festive Evening","Messenger","Who Are You?","Welcome to the Rebellion","Make It Stop","Who Else Knows?","Jedha, Kyber, Erso"),
+
   ("The Mandalorian" to 1) to listOf("Chapter 1: The Mandalorian","Chapter 2: The Child","Chapter 3: The Sin","Chapter 4: Sanctuary","Chapter 5: The Gunslinger","Chapter 6: The Prisoner","Chapter 7: The Reckoning","Chapter 8: Redemption"),
   ("The Mandalorian" to 2) to listOf("Chapter 9: The Marshal","Chapter 10: The Passenger","Chapter 11: The Heiress","Chapter 12: The Siege","Chapter 13: The Jedi","Chapter 14: The Tragedy","Chapter 15: The Believer","Chapter 16: The Rescue"),
   ("The Mandalorian" to 3) to listOf("Chapter 17: The Apostate","Chapter 18: The Mines of Mandalore","Chapter 19: The Convert","Chapter 20: The Foundling","Chapter 21: The Pirate","Chapter 22: Guns for Hire","Chapter 23: The Spies","Chapter 24: The Return"),
