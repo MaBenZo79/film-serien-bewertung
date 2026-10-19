@@ -12,6 +12,7 @@ android {
         applicationId = if (adminBuild) "de.benzo.scorium.admin" else "de.benzo.scorium"
         buildConfigField("boolean", "SCORIUM_ADMIN", adminBuild.toString())
         manifestPlaceholders["scoriumAppLabel"] = if (adminBuild) "SCORIUM DEV" else "SCORIUM"
+        manifestPlaceholders["scoriumAppIcon"] = if (adminBuild) "@drawable/scorium_dev_icon" else "@drawable/scorium_app_icon"
         minSdk = 26
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 75).coerceAtLeast(75)
