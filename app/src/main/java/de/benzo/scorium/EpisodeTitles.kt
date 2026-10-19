@@ -2,6 +2,11 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Smallville" to 6) to listOf("Zod","Sneeze","Wither","Arrow","Reunion","Fallout","Rage","Static","Subterranean","Hydro","Justice","Labyrinth","Crimson","Trespass","Freak","Promise","Combat","Progeny","Nemesis","Noir","Prototype","Phantom"),
+  ("Smallville" to 7) to listOf("Bizarro","Kara","Fierce","Cure","Action","Lara","Wrath","Blue","Gemini","Persona","Siren","Fracture","Hero","Traveler","Veritas","Descent","Sleeper","Apocalypse","Quest","Arctic"),
+  ("Smallville" to 8) to listOf("Odyssey","Plastique","Toxic","Instinct","Committed","Prey","Identity","Bloodline","Abyss","Bride","Legion","Bulletproof","Power","Requiem","Infamous","Turbulence","Hex","Eternal","Stiletto","Beast","Injustice","Doomsday"),
+  ("Smallville" to 9) to listOf("Savior","Metallo","Rabid","Echo","Roulette","Crossfire","Kandor","Idol","Pandora","Disciple","Absolute Justice","Warrior","Persuasion","Conspiracy","Escape","Checkmate","Upgrade","Charade","Sacrifice","Hostage","Salvation"),
+
   ("Smallville" to 1) to listOf("Pilot","Metamorphosis","Hothead","X-Ray","Cool","Hourglass","Craving","Jitters","Rogue","Shimmer","Hug","Leech","Kinetic","Zero","Nicodemus","Stray","Reaper","Drone","Crush","Obscura","Tempest"),
   ("Smallville" to 2) to listOf("Vortex","Heat","Duplicity","Red","Nocturne","Redux","Lineage","Ryan","Dichotic","Skinwalker","Visage","Insurgence","Suspect","Rush","Prodigal","Fever","Rosetta","Visitor","Precipice","Witness","Accelerate","Calling","Exodus"),
   ("Smallville" to 3) to listOf("Exile","Phoenix","Extinction","Slumber","Perry","Relic","Magnetic","Shattered","Asylum","Whisper","Delete","Hereafter","Velocity","Obsession","Resurrection","Crisis","Legacy","Truth","Memoria","Talisman","Forsaken","Covenant"),
