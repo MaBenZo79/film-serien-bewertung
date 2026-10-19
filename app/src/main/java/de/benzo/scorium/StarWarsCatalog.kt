@@ -15,7 +15,8 @@ object StarWarsCatalog {
   "Rogue One: A Star Wars Story",
   "Solo: A Star Wars Story",
   "Star Wars: The Clone Wars (Film)",
-  "The Mandalorian & Grogu"
+  "The Mandalorian & Grogu",
+  "Star Wars: Starfighter"
  )
  val shows = listOf(
   ShowInfo("Star Wars: The Clone Wars",listOf(22,22,22,22,20,13,12)),
@@ -32,7 +33,8 @@ object StarWarsCatalog {
   ShowInfo("The Bad Batch",listOf(16,16,15)),
   ShowInfo("Star Wars: Geschichten der Jedi",listOf(6)),
   ShowInfo("Star Wars: Geschichten des Imperiums",listOf(6)),
-  ShowInfo("Star Wars: Geschichten der Unterwelt",listOf(6))
+  ShowInfo("Star Wars: Geschichten der Unterwelt",listOf(6)),
+  ShowInfo("Star Wars: Maul – Shadow Lord",listOf(10))
  )
  val series=shows.map { it.title }
  fun find(title:String)=shows.firstOrNull { it.title==title }
