@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Arrow" to 7) to listOf("Inmate 4587","The Longbow Hunters","Crossing Lines","Level Two","The Demon","Due Process","The Slabside Redemption","Unmasked","Elseworlds, Part 2","My Name Is Emiko Queen","Past Sins","Emerald Archer","Star City Slayer","Brothers & Sisters","Training Day","Star City 2040","Inheritance","Lost Canary","Spartan","Confessions","Living Proof","You Have Saved This City"),
+  ("Arrow" to 8) to listOf("Starling City","Welcome to Hong Kong","Leap of Faith","Present Tense","Prochnost","Reset","Purgatory","Crisis on Infinite Earths: Part Four","Green Arrow & The Canaries","Fadeout"),
+  ("Peacemaker" to 2) to listOf("The Ties That Grind","A Man Is Only as Good as His Bird","Another Rick Up My Sleeve","Need I Say Door","Back to the Suture","Ignorance Is Chris","Like a Keith in the Night","Full Nelson"),
+
   ("Arrow" to 4) to listOf("Green Arrow","The Candidate","Restoration","Beyond Redemption","Haunted","Lost Souls","Brotherhood","Legends of Yesterday","Dark Waters","Blood Debts","A.W.O.L.","Unchained","Sins of the Father","Code of Silence","Taken","Broken Hearts","Beacon of Hope","Eleven-Fifty-Nine","Canary Cry","Genesis","Monument Point","Lost in the Flood","Schism"),
   ("Arrow" to 5) to listOf("Legacy","The Recruits","A Matter of Trust","Penance","Human Target","So It Begins","Vigilante","Invasion!","What We Leave Behind","Who Are You?","Second Chances","Bratva","Spectre of the Gun","The Sin-Eater","Fighting Fire with Fire","Checkmate","Kapiushon","Disbanded","Dangerous Liaisons","Underneath","Honor Thy Fathers","Missing","Lian Yu"),
   ("Arrow" to 6) to listOf("Fallout","Tribute","Next of Kin","Reversal","Deathstroke Returns","Promises Kept","Thanksgiving","Crisis on Earth-X, Part 2","Irreconcilable Differences","Divided","We Fall","All for Nothing","The Devil's Greatest Trick","Collision Course","Doppelganger","The Thanatos Guild","Brothers in Arms","Fundamentals","The Dragon","Shifting Allegiances","Docket No. 11-19-41-73","The Ties That Bind","Life Sentence"),
