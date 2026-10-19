@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Bad Batch" to 1) to listOf("Aftermath","Cut and Run","Replacements","Cornered","Rampage","Decommissioned","Battle Scars","Reunion","Bounty Lost","Common Ground","Devil's Deal","Rescue on Ryloth","Infested","War-Mantle","Return to Kamino","Kamino Lost"),
+  ("The Bad Batch" to 2) to listOf("Spoils of War","Ruins of War","The Solitary Clone","Faster","Entombed","Tribe","The Clone Conspiracy","Truth and Consequences","The Crossing","Retrieval","Metamorphosis","The Outpost","Pabu","Tipping Point","The Summit","Plan 99"),
+  ("The Bad Batch" to 3) to listOf("Confined","Paths Unknown","Shadows of Tantiss","A Different Approach","The Return","Infiltration","Extraction","Bad Territory","The Harbinger","Identity Crisis","Point of No Return","Juggernaut","Into the Breach","Flash Strike","The Cavalry Has Arrived"),
+
   ("The Flash" to 3) to listOf("Flashpoint","Paradox","Magenta","The New Rogues","Monster","Shade","Killer Frost","Invasion!","The Present","Borrowing Problems from the Future","Dead or Alive","Untouchable","Attack on Gorilla City","Attack on Central City","The Wrath of Savitar","Into the Speed Force","Duet","Abra Kadabra","The Once and Future Flash","I Know Who You Are","Cause and Effect","Infantino Street","Finish Line"),
   ("Supergirl" to 3) to listOf("Girl of Steel","Triggers","Far from the Tree","The Faithful","Damage","Midvale","Wake Up","Crisis on Earth-X, Part 1","Reign","Legion of Super-Heroes","Fort Rozz","For Good","Both Sides Now","Schott Through the Heart","In Search of Lost Time","Of Two Minds","Trinity","Shelter from the Storm","The Fanatical","Dark Side of the Moon","Not Kansas","Make It Reign","Battles Lost and Won"),
 
