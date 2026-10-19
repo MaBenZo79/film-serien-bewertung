@@ -18,7 +18,8 @@ class DcCoverVideoView(
     context: Context,
     private val onFinished: () -> Unit,
     private val onStarted: () -> Unit,
-    private val onFirstFrame: () -> Unit
+    private val onFirstFrame: () -> Unit,
+    private val videoResource: Int = R.raw.dc_collection_intro
 ) : FrameLayout(context), TextureView.SurfaceTextureListener {
     private val texture = TextureView(context)
     private var player: MediaPlayer? = null
@@ -41,7 +42,7 @@ class DcCoverVideoView(
         val media = MediaPlayer()
         player = media
         try {
-            media.setDataSource(context, Uri.parse("android.resource://${context.packageName}/${R.raw.dc_collection_intro}"))
+            media.setDataSource(context, Uri.parse("android.resource://${context.packageName}/${$videoResource}"))
             val renderSurface = Surface(surfaceTexture)
             playbackSurface = renderSurface
             media.setSurface(renderSurface)
