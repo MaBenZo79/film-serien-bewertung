@@ -2,7 +2,7 @@ name: Android APK
 
 on:
   push:
-    branches: [main, feature/mcu-card-opening]
+    branches: [main, admin, feature/mcu-card-opening]
   pull_request:
     branches: [main]
   workflow_dispatch:
