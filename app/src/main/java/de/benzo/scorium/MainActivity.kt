@@ -297,9 +297,7 @@ class MainActivity: ComponentActivity() {
          customCollections.forEach { collection ->
           ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
          }
-         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";createCollection=true},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
+         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";home=false;section="Franchises";createCollection=true},onImageSaved={refresh++},revision=refresh)
        }
        Spacer(Modifier.height(26.dp))
        Text("Zuletzt angesehen",modifier=Modifier.padding(horizontal=18.dp),fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -374,8 +372,8 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
-       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
+       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it !in (series+customSeries+DcCatalog.series+StarWarsCatalog.series) } else films+extras
+       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in (series+customSeries+DcCatalog.series+StarWarsCatalog.series) } else (series+customSeries).distinct()
        val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) && (!starWarsCollectionRoute || StarWarsCatalog.inSection(it,starWarsSection)) }.sortedWith(compareBy<String> {
         if(starWarsCollectionRoute) StarWarsCatalog.releaseRank(it) else if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
@@ -404,7 +402,7 @@ class MainActivity: ComponentActivity() {
          editingOrder=true
         }
         Spacer(Modifier.width(8.dp))
-        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true;newTitle="" }
        }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
