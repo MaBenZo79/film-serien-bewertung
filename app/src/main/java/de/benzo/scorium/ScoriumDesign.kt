@@ -3,6 +3,10 @@ package de.benzo.scorium
 import androidx.compose.animation.core.*
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.util.LruCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
@@ -108,13 +112,38 @@ fun ScoriumHero(onExplore:()->Unit) {
  }
 }
 
+/** Bounded thumbnail cache shared across rows, avoiding full-resolution decoding on the UI thread. */
+private val posterThumbnailCache = object : LruCache<String, Bitmap>(24 * 1024) {
+ override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount / 1024
+}
+private fun loadPosterThumbnail(path: String): Bitmap? {
+ val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+ BitmapFactory.decodeFile(path, bounds)
+ if(bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+ var sample = 1
+ while(bounds.outWidth / sample > 640 || bounds.outHeight / sample > 960) sample *= 2
+ return BitmapFactory.decodeFile(path, BitmapFactory.Options().apply {
+  inSampleSize = sample
+  inPreferredConfig = Bitmap.Config.RGB_565
+ })
+}
+
 @Composable
 fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false,borderColor:Color=Color(0xFFB46AFF)) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
- val bitmap=remember(title,stamp,revision) {
-  if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
+ val cacheKey = remember(file.absolutePath,stamp) { "${file.absolutePath}:$stamp" }
+ var bitmap by remember(cacheKey,revision) { mutableStateOf(posterThumbnailCache.get(cacheKey)) }
+ LaunchedEffect(cacheKey,revision) {
+  if(bitmap == null && file.exists()) {
+   val decoded = withContext(Dispatchers.IO) {
+    posterThumbnailCache.get(cacheKey) ?: runCatching { loadPosterThumbnail(file.absolutePath) }.getOrNull()?.also {
+     posterThumbnailCache.put(cacheKey,it)
+    }
+   }
+   bitmap = decoded
+  }
  }
  val shape=RoundedCornerShape(9.dp)
  val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else borderColor
