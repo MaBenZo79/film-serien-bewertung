@@ -2,6 +2,13 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Penguin" to 1) to listOf("After Hours","Inside Man","Bliss","Cent'Anni","Homecoming","Gold Summit","Top Hat","A Great or Little Thing"),
+  ("Watchmen" to 1) to listOf("It's Summer and We're Running Out of Ice","Martial Feats of Comanche Horsemanship","She Was Killed by Space Junk","If You Don't Like My Story, Write Your Own","Little Fear of Lightning","This Extraordinary Being","An Almost Religious Awe","A God Walks into Abar","See How They Fly"),
+  ("Swamp Thing" to 1) to listOf("Pilot","Worlds Apart","He Speaks","Darkness on the Edge of Town","Drive All Night","The Price You Pay","Brilliant Disguise","Long Walk Home","The Anatomy Lesson","Loose Ends"),
+  ("Gotham Knights" to 1) to listOf("Pilot","Scene of the Crime","Under Pressure","Of Butchers and Betrayals","More Money, More Problems","A Chill in Gotham","Bad to Be Good","Belly of the Beast","Dark Knight of the Soul","Poison Pill","Daddy Issues","City of Owls","Night of the Owls"),
+  ("Krypton" to 1) to listOf("Pilot","House of El","The Rankless Initiative","The Word of Rao","House of Zod","Civil Wars","Transformation","Savage Night","Hope","The Phantom Zone"),
+  ("Krypton" to 2) to listOf("Light-Years from Home","Ghost in the Fire","Will to Power","Danger Close","A Better Yesterday","In Zod We Trust","Zods and Monsters","Mercy","Blood Moon","The Alpha and the Omega"),
+
   ("Skeleton Crew" to 1) to listOf("This Could Be a Real Adventure","Way, Way Out Past the Barrier","Very Interesting, as an Astrogation Problem","Can't Say I Remember No At Attin","You Have a Lot to Learn About Pirates","Zero Friends Again","We're Gonna Be in So Much Trouble","The Real Good Guys"),
   ("Star Wars: Geschichten der Jedi" to 1) to listOf("Life and Death","Justice","Choices","The Sith Lord","Practice Makes Perfect","Resolve"),
   ("Star Wars: Geschichten des Imperiums" to 1) to listOf("The Path of Fear","The Path of Anger","The Path of Hate","Devoted","Realization","The Way Out"),
