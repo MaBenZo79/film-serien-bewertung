@@ -148,6 +148,10 @@ class MainActivity: ComponentActivity() {
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
    var openingDc by remember { mutableStateOf(false) }
+   var openingStarWars by remember { mutableStateOf(false) }
+   var starWarsHub by remember { mutableStateOf(false) }
+   var starWarsCollectionRoute by remember { mutableStateOf(false) }
+   var starWarsSection by remember { mutableStateOf("Komplett") }
    var dcHub by remember { mutableStateOf(false) }
    var dcCollectionRoute by remember { mutableStateOf(false) }
    var dcSection by remember { mutableStateOf("Komplett") }
@@ -245,9 +249,10 @@ class MainActivity: ComponentActivity() {
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
      selected!=null -> selected=null
+     starWarsHub -> { starWarsHub=false; starWarsCollectionRoute=false; home=true }
      dcHub -> { dcHub=false; dcCollectionRoute=false; home=true }
       mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
-     !home -> { if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else {home=true;activeCustomCollection=null} }
+     !home -> { if(starWarsCollectionRoute) { starWarsHub=true; starWarsSection="Komplett" } else if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else {home=true;activeCustomCollection=null} }
      else -> showExitDialog=true
     }
    }
@@ -598,6 +603,10 @@ class MainActivity: ComponentActivity() {
     // The existing home UI is composed underneath for a seamless fade-out.
     // Crossfade the MCU phase hub in and out over the destination content.
     // Keep the hub as a separate layer so the selected phase list is visible underneath.
+    Crossfade(targetState=starWarsHub,animationSpec=tween(durationMillis=450),label="starWarsCollectionHubCrossfade") { visible ->
+      if(visible) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
+     }
+     if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingStarWars=false},onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
     Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
       if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
      }
