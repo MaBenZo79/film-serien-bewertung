@@ -2,6 +2,8 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Smallville" to 10) to listOf("Lazarus","Shield","Supergirl","Homecoming","Isis","Harvest","Ambush","Abandoned","Patriot","Luthor","Icarus","Collateral","Beacon","Masquerade","Fortune","Scion","Kent","Booster","Dominion","Prophecy","Finale (1)","Finale (2)"),
+
   ("Smallville" to 6) to listOf("Zod","Sneeze","Wither","Arrow","Reunion","Fallout","Rage","Static","Subterranean","Hydro","Justice","Labyrinth","Crimson","Trespass","Freak","Promise","Combat","Progeny","Nemesis","Noir","Prototype","Phantom"),
   ("Smallville" to 7) to listOf("Bizarro","Kara","Fierce","Cure","Action","Lara","Wrath","Blue","Gemini","Persona","Siren","Fracture","Hero","Traveler","Veritas","Descent","Sleeper","Apocalypse","Quest","Arctic"),
   ("Smallville" to 8) to listOf("Odyssey","Plastique","Toxic","Instinct","Committed","Prey","Identity","Bloodline","Abyss","Bride","Legion","Bulletproof","Power","Requiem","Infamous","Turbulence","Hex","Eternal","Stiletto","Beast","Injustice","Doomsday"),
