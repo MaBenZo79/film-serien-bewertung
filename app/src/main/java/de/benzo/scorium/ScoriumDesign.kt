@@ -346,7 +346,7 @@ fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:(
    Spacer(Modifier.height(10.dp))
    Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,maxLines=2,modifier=Modifier.clickable(onClick=onClick))
    Text(subtitle,color=Color(0xFFB5B7CD),fontSize=12.sp,maxLines=1)
-   PosterPicker(imageKey,onImageSaved)
+   if(BuildConfig.SCORIUM_ADMIN || !imageKey.startsWith("collection::mcu") && !imageKey.startsWith("collection::dc")) PosterPicker(imageKey,onImageSaved)
   }
  }
 }
