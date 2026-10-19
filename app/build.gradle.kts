@@ -6,8 +6,12 @@ plugins {
 android {
     namespace = "de.benzo.scorium"
     compileSdk = 35
+    buildFeatures { buildConfig = true; compose = true }
+    val adminBuild = (providers.gradleProperty("scoriumAdmin").orNull?.toBooleanStrictOrNull() ?: (System.getenv("GITHUB_HEAD_REF") == "admin" || System.getenv("GITHUB_REF_NAME") == "admin"))
     defaultConfig {
-        applicationId = "de.benzo.scorium"
+        applicationId = if (adminBuild) "de.benzo.scorium.admin" else "de.benzo.scorium"
+        buildConfigField("boolean", "SCORIUM_ADMIN", adminBuild.toString())
+        manifestPlaceholders["scoriumAppLabel"] = if (adminBuild) "SCORIUM DEV" else "SCORIUM"
         minSdk = 26
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 75).coerceAtLeast(75)
@@ -31,7 +35,6 @@ android {
             }
         }
     }
-    buildFeatures { compose = true }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     kotlinOptions { jvmTarget = "17" }
 }

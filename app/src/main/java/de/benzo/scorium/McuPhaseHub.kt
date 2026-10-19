@@ -77,7 +77,7 @@ fun McuPhaseHub(
                             }
                         }
                         // Each phase retains its own editable poster key.
-                        PosterPicker("collection::mcu::${phase}", onImageSaved)
+                        if(BuildConfig.SCORIUM_ADMIN) PosterPicker("collection::mcu::${phase}", onImageSaved)
                     }
                 }
                 if(pair.size == 1) Spacer(Modifier.weight(1f))

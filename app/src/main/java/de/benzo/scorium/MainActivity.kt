@@ -79,11 +79,11 @@ private fun savedPercent(prefs: android.content.SharedPreferences, key: String, 
  return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
 }
 private fun episodeTotal(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
- val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.getOrNull(season-1)
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.getOrNull(season-1)
  return official ?: prefs.getInt("episodes::$name::$season",6).coerceAtLeast(1)
 }
 private fun seasonCountFor(prefs:android.content.SharedPreferences,name:String):Int {
- val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size
  return official ?: prefs.getInt("seasons::$name",1).coerceAtLeast(1)
 }
 private fun episodeProgress(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
@@ -148,6 +148,10 @@ class MainActivity: ComponentActivity() {
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
    var openingDc by remember { mutableStateOf(false) }
+   var openingStarWars by remember { mutableStateOf(false) }
+   var starWarsHub by remember { mutableStateOf(false) }
+   var starWarsCollectionRoute by remember { mutableStateOf(false) }
+   var starWarsSection by remember { mutableStateOf("Komplett") }
    var dcHub by remember { mutableStateOf(false) }
    var dcCollectionRoute by remember { mutableStateOf(false) }
    var dcSection by remember { mutableStateOf("Komplett") }
@@ -173,6 +177,23 @@ class MainActivity: ComponentActivity() {
     }
    }
    var add by remember { mutableStateOf(false) }
+   var createCollection by remember { mutableStateOf(false) }
+   var newCollectionName by remember { mutableStateOf("") }
+   var activeCustomCollection by remember { mutableStateOf<String?>(null) }
+   val customCollections=remember(refresh) {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    data.keys().asSequence().toList().sorted()
+   }
+   fun collectionItems(name:String):List<String> {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    val items=data.optJSONArray(name) ?: JSONArray()
+    return (0 until items.length()).map { items.optString(it) }.filter { it.isNotBlank() }
+   }
+   fun saveCollection(name:String,items:List<String>) {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    val array=JSONArray();items.distinct().forEach { array.put(it) }
+    data.put(name,array);prefs.edit().putString("user_collections",data.toString()).apply();refresh++
+   }
    var pendingDelete by remember { mutableStateOf<String?>(null) }
    var pendingAction by remember { mutableStateOf<String?>(null) }
    var pendingReset by remember { mutableStateOf<String?>(null) }
@@ -198,19 +219,18 @@ class MainActivity: ComponentActivity() {
     }.onFailure { exportError=it.localizedMessage }
    }
    var backupMessage by remember { mutableStateOf<String?>(null) }
-   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-    if(uri!=null) runCatching { ScoriumTransfer.full(this@MainActivity,uri) }
-     .onSuccess { parts -> backupMessage="$parts ZIP-Datei(en) mit maximal 24 MB erstellt. Hinweis: Mehrteilige Exporte sind für den GitHub-Upload gedacht; der bisherige Import kann sie noch nicht zusammenführen." }
+   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+    if(uri!=null) runCatching {
+     contentResolver.openOutputStream(uri)?.use { ScoriumBackup.exportRatings(this@MainActivity,it) }
+      ?: error("Datei konnte nicht erstellt werden")
+    }.onSuccess { count -> backupMessage="Bewertungssicherung erstellt: $count Einträge. Keine Poster oder Katalogdaten." }
      .onFailure { backupMessage=it.localizedMessage ?: "Export fehlgeschlagen" }
    }
-   val updateExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-    if(uri!=null) runCatching { ScoriumTransfer.delta(this@MainActivity,uri) }
-     .onSuccess { backupMessage=it+". Hinweis: Der bisherige Import kann Update-Dateien noch nicht zusammenführen." }
-     .onFailure { backupMessage=it.localizedMessage ?: "Update-Export fehlgeschlagen" }
-   }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-    if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
-     .onSuccess { posterCount -> backupMessage="Sicherung importiert: $posterCount Poster wiederhergestellt. Filme und Serien wurden aktualisiert.";refresh++ }
+    if(uri!=null) runCatching {
+     contentResolver.openInputStream(uri)?.use { ScoriumBackup.importRatings(this@MainActivity,it) }
+      ?: error("Datei konnte nicht gelesen werden")
+    }.onSuccess { count -> backupMessage="$count Bewertungseinträge importiert. Filme, Sammlungen und Poster unverändert.";refresh++ }
      .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
    }
    val customSeries=remember(refresh) {
@@ -228,17 +248,19 @@ class MainActivity: ComponentActivity() {
      selected!=null && selectedEpisode!=0 -> selectedEpisode=0
      selected!=null && selectedSeason>0 -> selectedSeason=0
      selected!=null -> selected=null
+     starWarsHub -> { starWarsHub=false; starWarsCollectionRoute=false; home=true }
      dcHub -> { dcHub=false; dcCollectionRoute=false; home=true }
       mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
-     !home -> { if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else home=true }
+     !home -> { if(starWarsCollectionRoute) { starWarsHub=true; starWarsSection="Komplett" } else if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else {home=true;activeCustomCollection=null} }
      else -> showExitDialog=true
     }
    }
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
    val activeDcTheme = dcCollectionRoute && !home && !openingDc
-   val scopedAccent = if(activeDcTheme) Color(0xFF438FEA) else gold
-    val scopedPalette = if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
-   CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme) {
+    val activeStarWarsTheme = starWarsCollectionRoute && !home && !openingStarWars
+   val scopedAccent = if(activeStarWarsTheme) Color(0xFFD7AB48) else if(activeDcTheme) Color(0xFF438FEA) else gold
+    val scopedPalette = if(activeStarWarsTheme) darkColorScheme(primary=Color(0xFFD7AB48),background=Color(0xFF04060D),surface=Color(0xFF182033),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.Black) else if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+   CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme, LocalStarWarsCollectionTheme provides activeStarWarsTheme) {
    MaterialTheme(colorScheme=scopedPalette) {
     if(showExitDialog) AlertDialog(
      onDismissRequest={showExitDialog=false},
@@ -271,7 +293,11 @@ class MainActivity: ComponentActivity() {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
         ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
-         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
+         customCollections.forEach { collection ->
+          ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
+         }
+         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";createCollection=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
        }
@@ -300,15 +326,14 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(18.dp))
        Text("Datensicherung",modifier=Modifier.padding(horizontal=18.dp),color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
        Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
-        SmallIconAction(Icons.Default.Save,"Komplettsicherung exportieren") { pendingAction="export_full" }
-        SmallIconAction(Icons.Default.CloudDownload,"Änderungen exportieren") { pendingAction="export_delta" }
-        SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { pendingAction="import" }
+        SmallIconAction(Icons.Default.Save,"Bewertungen sichern") { pendingAction="export_full" }
+        SmallIconAction(Icons.Default.FileUpload,"Bewertungen importieren") { pendingAction="import" }
        }
-       Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",modifier=Modifier.padding(horizontal=18.dp),color=Color.LightGray,fontSize=12.sp)
+       Text("Gesichert und importiert werden ausschließlich persönliche Bewertungen. Filme, Sammlungen und Poster sind bereits in der App.",modifier=Modifier.padding(horizontal=18.dp),color=Color.LightGray,fontSize=12.sp)
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
-      TextButton(onClick={if(dcCollectionRoute) { dcHub=true;dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(dcCollectionRoute) "← DC-Sammlung" else if(mcuCollectionRoute) "← MCU-Phasen" else "← Startseite") }
+      TextButton(onClick={if(dcCollectionRoute) { dcHub=true;dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(dcCollectionRoute) "← DC-Sammlung" else if(mcuCollectionRoute) "← MCU-Phasen" else if(activeCustomCollection!=null) "← Meine Sammlungen" else "← Startseite") }
       if(section=="Ranking" || section=="Download") {
        val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
@@ -349,18 +374,19 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-       val sourceFilms=if(dcCollectionRoute) DcCatalog.films else films+extras
-       val sourceSeries=if(dcCollectionRoute) DcCatalog.series else (series+customSeries).distinct()
-       val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) }.sortedWith(compareBy<String> {
-        if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
+       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
+       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
+       val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) && (!starWarsCollectionRoute || StarWarsCatalog.inSection(it,starWarsSection)) }.sortedWith(compareBy<String> {
+        if(starWarsCollectionRoute) StarWarsCatalog.releaseRank(it) else if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
         val pos=saved.indexOf(it)
         if(pos>=0) pos else 100000+releaseRank(it)
        }
       }.thenBy { it })
-      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
+      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute && !starWarsCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
       val revision=refresh
-      if(!mcuCollectionRoute && !dcCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
+      if(activeCustomCollection!=null) Text(activeCustomCollection!!,color=Color.White,fontSize=23.sp,fontWeight=FontWeight.Bold)
+      if(!mcuCollectionRoute && !dcCollectionRoute && !starWarsCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
        horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
        if(editingOrder) {
         SmallIconAction(Icons.Default.Close,"Änderungen verwerfen") { editingOrder=false;pendingOrder.clear() }
@@ -378,7 +404,7 @@ class MainActivity: ComponentActivity() {
          editingOrder=true
         }
         Spacer(Modifier.width(8.dp))
-        SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
        }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
@@ -386,7 +412,7 @@ class MainActivity: ComponentActivity() {
         val isShow=name in series || name in customSeries || name in DcCatalog.series
         val value=remember(name,refresh,isShow) {
          if(isShow) {
-          val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
+          val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size ?: 1)
           val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
           if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
          } else savedPercent(prefs,name,categories)
@@ -411,6 +437,16 @@ class MainActivity: ComponentActivity() {
        }
       }
 
+      if(createCollection) AlertDialog(onDismissRequest={createCollection=false},title={Text("Eigene Sammlung erstellen")},
+       text={OutlinedTextField(newCollectionName,{newCollectionName=it},label={Text("Sammlungsname")})},
+       confirmButton={TextButton(onClick={
+        val name=newCollectionName.trim()
+        if(name.isNotBlank() && name !in customCollections && name.lowercase() !in listOf("marvel","mcu","dc","dc studios")) {
+         saveCollection(name,emptyList());activeCustomCollection=name;home=false;section="Franchises";tab="Alle";search=""
+        }
+        createCollection=false
+       }){Text("Erstellen")}},
+       dismissButton={TextButton(onClick={createCollection=false}){Text("Abbrechen")}})
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
         OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
@@ -419,8 +455,9 @@ class MainActivity: ComponentActivity() {
          Spacer(Modifier.width(8.dp))
         } }
        }
-      },confirmButton={TextButton(onClick={if(newTitle.isNotBlank()){
+      },confirmButton={TextButton(onClick={if(newTitle.isNotBlank() && (activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN)){
        val name=newTitle.trim()
+       if(name !in films && name !in series && name !in DcCatalog.films && name !in DcCatalog.series && name !in StarWarsCatalog.films && name !in StarWarsCatalog.series) {
        if(newKind=="Serie"){
         if(name !in customSeries && name !in series) customSeries.add(name)
         val data=JSONArray();customSeries.forEach { data.put(it) }
@@ -430,12 +467,14 @@ class MainActivity: ComponentActivity() {
         val data=JSONArray();extras.forEach { data.put(it) }
         prefs.edit().putString("custom_titles",data.toString()).apply()
        }
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       }
        newTitle=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
       }
      } else {
-      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series
+      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series || selected!! in StarWarsCatalog.series
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
        seasonCount=seasonCountFor(prefs,seriesKey)
@@ -454,9 +493,9 @@ class MainActivity: ComponentActivity() {
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-       PosterPicker(selected!!) { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series && selected!! !in StarWarsCatalog.films && selected!! !in StarWarsCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
-       if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if((selected!! in extras || selected!! in customSeries) && (BuildConfig.SCORIUM_ADMIN || activeCustomCollection!=null)) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
        if(!isSeries) {
         val value=savedPercent(prefs,selected!!,categories)
         if(value!=null) {
@@ -471,11 +510,11 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(8.dp))
        Text("Staffel $selectedSeason · Eigenes Bild",color=scopedAccent)
        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
-       PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series && seriesKey !in StarWarsCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
        if(selectedEpisode>0) {
         Text("Episode $selectedEpisode · Staffelposter",color=scopedAccent)
         ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
-        PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
+        if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
        }
       }
       Spacer(Modifier.height(8.dp))
@@ -563,6 +602,10 @@ class MainActivity: ComponentActivity() {
     // The existing home UI is composed underneath for a seamless fade-out.
     // Crossfade the MCU phase hub in and out over the destination content.
     // Keep the hub as a separate layer so the selected phase list is visible underneath.
+    Crossfade(targetState=starWarsHub,animationSpec=tween(durationMillis=450),label="starWarsCollectionHubCrossfade") { visible ->
+      if(visible) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
+     }
+     if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingStarWars=false},onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
     Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
       if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
      }
@@ -573,21 +616,20 @@ class MainActivity: ComponentActivity() {
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     pendingAction?.let { action ->
      val title=when(action) {
-      "import" -> "Sicherung importieren?"
-      "export_full" -> "Komplettsicherung exportieren?"
+      "import" -> "Bewertungen importieren?"
+      "export_full" -> "Bewertungen sichern?"
       "export_delta" -> "Änderungen exportieren?"
       "rating_png" -> "Bewertung als PNG exportieren?"
       else -> "Bewertung als PDF exportieren?"
      }
-     val description=if(action=="import") "Möchtest du eine Sicherungsdatei auswählen und importieren? Vorhandene Daten können dabei überschrieben werden."
+     val description=if(action=="import") "Möchtest du eine Bewertungssicherung importieren? Nur enthaltene Bewertungen werden aktualisiert; Katalog und Poster bleiben unverändert."
       else "Möchtest du den Export starten und den Speicherort auswählen?"
      AlertDialog(onDismissRequest={pendingAction=null},title={Text(title)},text={Text(description)},
       confirmButton={TextButton(onClick={
        pendingAction=null
        when(action) {
         "import" -> backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))
-        "export_full" -> backupExport.launch(null)
-        "export_delta" -> updateExport.launch(null)
+        "export_full" -> backupExport.launch("SCORIUM-Bewertungen.zip")
         "rating_png" -> pngLauncher.launch("Scorium-Bewertung.png")
         "rating_pdf" -> pdfLauncher.launch("Scorium-Bewertung.pdf")
        }
@@ -612,6 +654,7 @@ class MainActivity: ComponentActivity() {
        val current=runCatching { JSONArray(prefs.getString(key,"[]")) }.getOrDefault(JSONArray())
        val result=JSONArray()
        for(i in 0 until current.length()) if(current.optString(i)!=target) result.put(current.optString(i))
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!).filter { it!=target })
        val editor=prefs.edit().putString(key,result.toString())
        prefs.all.keys.filter { it==target || it.startsWith("$target::") || it.startsWith("seasons::$target") || it.startsWith("episodes::$target") }.forEach { editor.remove(it) }
        editor.apply();selected=null;pendingDelete=null;refresh++

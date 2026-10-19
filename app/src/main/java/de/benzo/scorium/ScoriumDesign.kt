@@ -49,6 +49,7 @@ private val fog=Color(0xFFB5B7CD)
 
 val LocalMcuCollectionTheme = compositionLocalOf { false }
 val LocalDcCollectionTheme = compositionLocalOf { false }
+val LocalStarWarsCollectionTheme = compositionLocalOf { false }
 private val dcAccent = Color(0xFF438FEA)
 private val mcuAccent = Color(0xFFEF3945)
 private val mcuSurface = Color(0xFF30090F)
@@ -57,6 +58,10 @@ private val mcuSurface = Color(0xFF30090F)
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
  val mcu=LocalMcuCollectionTheme.current
  val dc=LocalDcCollectionTheme.current
+ if(LocalStarWarsCollectionTheme.current) {
+  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF04060D),Color(0xFF182033),Color(0xFF04060D))))) { content() }
+  return
+ }
  if(dc) {
   Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF06152D),Color(0xFF102E58),Color(0xFF06152D))))) { content() }
   return
@@ -146,12 +151,14 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
   }
  }
  val shape=RoundedCornerShape(9.dp)
- val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else borderColor
+ val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else if(LocalStarWarsCollectionTheme.current) Color(0xFFD7AB48) else borderColor
  Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop)
+  } else if(title=="collection::starwars" || title.startsWith("collection::starwars::")) {
+   Image(painter=painterResource(R.drawable.scorium_star_wars_collection),contentDescription="STAR WARS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
   } else if(title=="collection::dc" || title.startsWith("collection::dc::")) {
    Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
   } else if(title.startsWith("collection::mcu::")) {
@@ -346,7 +353,7 @@ fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:(
    Spacer(Modifier.height(10.dp))
    Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,maxLines=2,modifier=Modifier.clickable(onClick=onClick))
    Text(subtitle,color=Color(0xFFB5B7CD),fontSize=12.sp,maxLines=1)
-   PosterPicker(imageKey,onImageSaved)
+   if(BuildConfig.SCORIUM_ADMIN || !imageKey.startsWith("collection::mcu") && !imageKey.startsWith("collection::dc") && !imageKey.startsWith("collection::starwars")) PosterPicker(imageKey,onImageSaved)
   }
  }
 }

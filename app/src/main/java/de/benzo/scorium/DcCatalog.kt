@@ -8,7 +8,7 @@ object DcCatalog {
   "Man of Steel","Batman v Superman: Dawn of Justice","Suicide Squad","Wonder Woman",
   "Justice League","Aquaman","Shazam!","Birds of Prey","Wonder Woman 1984",
   "Zack Snyder's Justice League","The Suicide Squad","Black Adam","Shazam! Fury of the Gods",
-  "The Flash","Blue Beetle","Aquaman and the Lost Kingdom"
+  "The Flash (2023)","Blue Beetle","Aquaman and the Lost Kingdom"
  )
  // Season one connects to the DCEU; season two transitions into the DCU.
  val dceuShows = listOf(ShowInfo("Peacemaker",listOf(8,8)))
