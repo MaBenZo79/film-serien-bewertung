@@ -30,7 +30,7 @@ object DcCatalog {
   ShowInfo("Arrow",listOf(23,23,23,23,23,23,22,10)),
   ShowInfo("Superman & Lois",listOf(15,15,13,10)),
   ShowInfo("The Sandman",listOf(11,12)),
-  ShowInfo("Supergirl",listOf(20,22,23,22,19,20)),
+  ShowInfo("Supergirl (2015)",listOf(20,22,23,22,19,20)),
   ShowInfo("Stargirl",listOf(13,13,13)),
   ShowInfo("Black Lightning",listOf(13,16,16,13)),
   ShowInfo("DC’s Legends of Tomorrow",listOf(16,17,18,16,15,15,13)),
