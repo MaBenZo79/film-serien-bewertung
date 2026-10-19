@@ -219,19 +219,18 @@ class MainActivity: ComponentActivity() {
     }.onFailure { exportError=it.localizedMessage }
    }
    var backupMessage by remember { mutableStateOf<String?>(null) }
-   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-    if(uri!=null) runCatching { ScoriumTransfer.full(this@MainActivity,uri) }
-     .onSuccess { parts -> backupMessage="$parts ZIP-Datei(en) mit maximal 24 MB erstellt. Hinweis: Mehrteilige Exporte sind für den GitHub-Upload gedacht; der bisherige Import kann sie noch nicht zusammenführen." }
+   val backupExport=rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/zip")) { uri ->
+    if(uri!=null) runCatching {
+     contentResolver.openOutputStream(uri)?.use { ScoriumBackup.exportRatings(this@MainActivity,it) }
+      ?: error("Datei konnte nicht erstellt werden")
+    }.onSuccess { count -> backupMessage="Bewertungssicherung erstellt: $count Einträge. Keine Poster oder Katalogdaten." }
      .onFailure { backupMessage=it.localizedMessage ?: "Export fehlgeschlagen" }
    }
-   val updateExport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
-    if(uri!=null) runCatching { ScoriumTransfer.delta(this@MainActivity,uri) }
-     .onSuccess { backupMessage=it+". Hinweis: Der bisherige Import kann Update-Dateien noch nicht zusammenführen." }
-     .onFailure { backupMessage=it.localizedMessage ?: "Update-Export fehlgeschlagen" }
-   }
    val backupImport=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-    if(uri!=null) runCatching { contentResolver.openInputStream(uri)?.use { ScoriumBackup.restore(this@MainActivity,it) } ?: error("Datei konnte nicht gelesen werden") }
-     .onSuccess { posterCount -> backupMessage="Sicherung importiert: $posterCount Poster wiederhergestellt. Filme und Serien wurden aktualisiert.";refresh++ }
+    if(uri!=null) runCatching {
+     contentResolver.openInputStream(uri)?.use { ScoriumBackup.importRatings(this@MainActivity,it) }
+      ?: error("Datei konnte nicht gelesen werden")
+    }.onSuccess { count -> backupMessage="$count Bewertungseinträge importiert. Filme, Sammlungen und Poster unverändert.";refresh++ }
      .onFailure { backupMessage=it.localizedMessage ?: "Import fehlgeschlagen" }
    }
    val customSeries=remember(refresh) {
@@ -327,11 +326,10 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(18.dp))
        Text("Datensicherung",modifier=Modifier.padding(horizontal=18.dp),color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
        Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
-        SmallIconAction(Icons.Default.Save,"Komplettsicherung exportieren") { pendingAction="export_full" }
-        SmallIconAction(Icons.Default.CloudDownload,"Änderungen exportieren") { pendingAction="export_delta" }
-        SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { pendingAction="import" }
+        SmallIconAction(Icons.Default.Save,"Bewertungen sichern") { pendingAction="export_full" }
+        SmallIconAction(Icons.Default.FileUpload,"Bewertungen importieren") { pendingAction="import" }
        }
-       Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",modifier=Modifier.padding(horizontal=18.dp),color=Color.LightGray,fontSize=12.sp)
+       Text("Gesichert und importiert werden ausschließlich persönliche Bewertungen. Filme, Sammlungen und Poster sind bereits in der App.",modifier=Modifier.padding(horizontal=18.dp),color=Color.LightGray,fontSize=12.sp)
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
@@ -618,21 +616,20 @@ class MainActivity: ComponentActivity() {
     if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     pendingAction?.let { action ->
      val title=when(action) {
-      "import" -> "Sicherung importieren?"
-      "export_full" -> "Komplettsicherung exportieren?"
+      "import" -> "Bewertungen importieren?"
+      "export_full" -> "Bewertungen sichern?"
       "export_delta" -> "Änderungen exportieren?"
       "rating_png" -> "Bewertung als PNG exportieren?"
       else -> "Bewertung als PDF exportieren?"
      }
-     val description=if(action=="import") "Möchtest du eine Sicherungsdatei auswählen und importieren? Vorhandene Daten können dabei überschrieben werden."
+     val description=if(action=="import") "Möchtest du eine Bewertungssicherung importieren? Nur enthaltene Bewertungen werden aktualisiert; Katalog und Poster bleiben unverändert."
       else "Möchtest du den Export starten und den Speicherort auswählen?"
      AlertDialog(onDismissRequest={pendingAction=null},title={Text(title)},text={Text(description)},
       confirmButton={TextButton(onClick={
        pendingAction=null
        when(action) {
         "import" -> backupImport.launch(arrayOf("application/zip","application/octet-stream","*/*"))
-        "export_full" -> backupExport.launch(null)
-        "export_delta" -> updateExport.launch(null)
+        "export_full" -> backupExport.launch("SCORIUM-Bewertungen.zip")
         "rating_png" -> pngLauncher.launch("Scorium-Bewertung.png")
         "rating_pdf" -> pdfLauncher.launch("Scorium-Bewertung.pdf")
        }
