@@ -2,6 +2,11 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Doom Patrol" to 1) to listOf("Pilot","Donkey Patrol","Puppet Patrol","Cult Patrol","Paw Patrol","Doom Patrol Patrol","Therapy Patrol","Danny Patrol","Jane Patrol","Hair Patrol","Frances Patrol","Cyborg Patrol","Flex Patrol","Penultimate Patrol","Ezekiel Patrol"),
+  ("Doom Patrol" to 2) to listOf("Fun Size Patrol","Tyme Patrol","Pain Patrol","Sex Patrol","Finger Patrol","Space Patrol","Dumb Patrol","Dad Patrol","Wax Patrol"),
+  ("Doom Patrol" to 3) to listOf("Possibilities Patrol","Vacay Patrol","Dead Patrol","Undead Patrol","Dada Patrol","1917 Patrol","Bird Patrol","Subconscious Patrol","Evil Patrol","Amends Patrol"),
+  ("Doom Patrol" to 4) to listOf("Doom Patrol","Butt Patrol","Nostalgia Patrol","Casey Patrol","Youth Patrol","Hope Patrol","Orqwith Patrol","Fame Patrol","Immortimas Patrol","Tomb Patrol","Portal Patrol","Done Patrol"),
+
   ("Superman & Lois" to 3) to listOf("Closer","Uncontrollable Forces","In Cold Blood","Too Close to Home","Head On","Of Sound Mind","Forever and Always","Guess Who's Coming to Dinner","The Dress","Collision Course","Complications","Injustice","What Kills You Only Makes You Stronger"),
   ("Superman & Lois" to 4) to listOf("The End & the Beginning","A World Without","Always My Hero","A Perfectly Good Wedding","Break the Cycle","When the Lights Come On","A Regular Guy","Sharp Dressed Man","To Live and Die Again","It Went By So Fast"),
 
