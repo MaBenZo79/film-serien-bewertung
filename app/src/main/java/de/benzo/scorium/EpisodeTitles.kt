@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Mandalorian" to 1) to listOf("Chapter 1: The Mandalorian","Chapter 2: The Child","Chapter 3: The Sin","Chapter 4: Sanctuary","Chapter 5: The Gunslinger","Chapter 6: The Prisoner","Chapter 7: The Reckoning","Chapter 8: Redemption"),
+  ("The Mandalorian" to 2) to listOf("Chapter 9: The Marshal","Chapter 10: The Passenger","Chapter 11: The Heiress","Chapter 12: The Siege","Chapter 13: The Jedi","Chapter 14: The Tragedy","Chapter 15: The Believer","Chapter 16: The Rescue"),
+  ("The Mandalorian" to 3) to listOf("Chapter 17: The Apostate","Chapter 18: The Mines of Mandalore","Chapter 19: The Convert","Chapter 20: The Foundling","Chapter 21: The Pirate","Chapter 22: Guns for Hire","Chapter 23: The Spies","Chapter 24: The Return"),
+
   ("MARVEL's Daredevil" to 1) to listOf(
    "Into the Ring","Cut Man","Rabbit in a Snowstorm","In the Blood","World on Fire",
    "Condemned","Stick","Shadows in the Glass","Speak of the Devil","Nelson v. Murdock",
