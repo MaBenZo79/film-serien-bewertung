@@ -2,6 +2,8 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Flash" to 8) to listOf("Armageddon, Part 1","Armageddon, Part 2","Armageddon, Part 3","Armageddon, Part 4","Armageddon, Part 5","Impulsive Excessive Disorder","Lockdown","The Fire Next Time","Phantoms","Reckless","Resurrection","Death Rises","Death Falls","Funeral for a Friend","Into the Still Force","The Curious Case of Bartholomew Allen","Keep It Dark","The Man in the Yellow Tie","Negative, Part One","Negative, Part Two"),
+
   ("The Flash" to 7) to listOf("All's Wells That Ends Wells","The Speed of Thought","Mother","Central City Strong","Fear Me","The One with the Nineties","Growing Pains","The People v. Killer Frost","Timeless","Family Matters, Part 1","Family Matters, Part 2","Good-Bye Vibrations","Masquerade","Rayo de Luz","Enemy at the Gates","P.O.W.","Heart of the Matter, Part 1","Heart of the Matter, Part 2"),
 
   ("The Flash" to 4) to listOf("The Flash Reborn","Mixed Signals","Luck Be a Lady","Elongated Journey Into Night","Girls Night Out","When Harry Met Harry...","Therefore I Am","Crisis on Earth-X, Part 3","Don't Run","The Trial of The Flash","The Elongated Knight Rises","Honey, I Shrunk Team Flash","True Colors","Subject 9","Enter Flashtime","Run, Iris, Run","Null and Annoyed","Lose Yourself","Fury Rogue","Therefore She Is","Harry and the Harrisons","Think Fast","We Are The Flash"),
