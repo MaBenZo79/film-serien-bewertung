@@ -447,6 +447,62 @@ class MainActivity: ComponentActivity() {
         createCollection=false
        }){Text("Erstellen")}},
        dismissButton={TextButton(onClick={createCollection=false}){Text("Abbrechen")}})
+      if(editingCustomTitle!=null) AlertDialog(
+       onDismissRequest={editingCustomTitle=null},
+       title={Text("Eigenen Titel bearbeiten")},
+       text={Column {
+        OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
+        OutlinedTextField(newYear,{newYear=it.filter(Char::isDigit).take(4)},label={Text("Erscheinungsjahr")})
+       }},
+       confirmButton={TextButton(onClick={
+        val old=editingCustomTitle!!
+        val renamed=newTitle.trim()
+        val isCustomShow=old in customSeries
+        val occupied=(films+series+DcCatalog.films+DcCatalog.series+StarWarsCatalog.films+StarWarsCatalog.series+extras+customSeries).any { it==renamed && it!=old }
+        if(renamed.isNotBlank() && !occupied) {
+         val listKey=if(isCustomShow) "custom_series" else "custom_titles"
+         val current=runCatching { JSONArray(prefs.getString(listKey,"[]")) }.getOrDefault(JSONArray())
+         val updated=JSONArray()
+         for(i in 0 until current.length()) updated.put(if(current.optString(i)==old) renamed else current.optString(i))
+         val collections=runCatching { JSONObject(prefs.getString("user_collections","{}")) }.getOrDefault(JSONObject())
+         for(key in collections.keys().asSequence().toList()) {
+          val arr=collections.optJSONArray(key) ?: continue
+          val result=JSONArray()
+          for(i in 0 until arr.length()) result.put(if(arr.optString(i)==old) renamed else arr.optString(i))
+          collections.put(key,result)
+         }
+         val editor=prefs.edit().putString(listKey,updated.toString()).putString("user_collections",collections.toString())
+         if(newYear.length==4) editor.putString("custom_year::$renamed",newYear) else editor.remove("custom_year::$renamed")
+         if(renamed!=old) {
+          prefs.all.forEach { (key,value) ->
+           val dest=when {
+            key==old -> renamed
+            key.startsWith("$old::") -> renamed+key.removePrefix(old)
+            key=="seasons::$old" -> "seasons::$renamed"
+            key.startsWith("episodes::$old::") -> "episodes::$renamed::"+key.removePrefix("episodes::$old::")
+            key.startsWith("mode::$old::") -> "mode::$renamed::"+key.removePrefix("mode::$old::")
+            else -> null
+           }
+           if(dest!=null) {
+            when(value) {
+             is String -> editor.putString(dest,value)
+             is Int -> editor.putInt(dest,value)
+             is Boolean -> editor.putBoolean(dest,value)
+             is Long -> editor.putLong(dest,value)
+             is Float -> editor.putFloat(dest,value)
+            }
+            editor.remove(key)
+           }
+          }
+          editor.remove("custom_year::$old")
+         }
+         editor.apply()
+         selected=renamed;refresh++
+        }
+        editingCustomTitle=null
+       }) { Text("Speichern") }},
+       dismissButton={TextButton(onClick={editingCustomTitle=null}) { Text("Abbrechen") }}
+      )
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
         OutlinedTextField(newTitle,{newTitle=it},label={Text("Film oder Serie suchen / neu anlegen")})
