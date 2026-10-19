@@ -7,9 +7,10 @@ android {
     namespace = "de.benzo.scorium"
     compileSdk = 35
     buildFeatures { buildConfig = true; compose = true }
+    val adminBuild = (providers.gradleProperty("scoriumAdmin").orNull?.toBooleanStrictOrNull() ?: (System.getenv("GITHUB_HEAD_REF") == "admin" || System.getenv("GITHUB_REF_NAME") == "admin"))
     defaultConfig {
-        applicationId = if (System.getenv("GITHUB_REF_NAME") == "admin") "de.benzo.scorium.admin" else "de.benzo.scorium"
-        buildConfigField("boolean", "SCORIUM_ADMIN", if (System.getenv("GITHUB_REF_NAME") == "admin") "true" else "false")
+        applicationId = if (adminBuild) "de.benzo.scorium.admin" else "de.benzo.scorium"
+        buildConfigField("boolean", "SCORIUM_ADMIN", adminBuild.toString())
         minSdk = 26
         targetSdk = 35
         versionCode = (System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull() ?: 75).coerceAtLeast(75)
