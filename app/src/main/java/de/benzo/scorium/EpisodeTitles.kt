@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("DC’s Legends of Tomorrow" to 5) to listOf("Crisis on Infinite Earths: Part Five","Meet the Legends","Miss Me, Kiss Me, Love Me","Slay Anything","A Head of Her Time","Mortal Khanbat","Mr. Parker's Cul-De-Sac","Romeo v Juliet: Dawn of Justness","Zari, Not Zari","The Great British Fake Off","Ship Broken","Freaks and Greeks","I Am Legends","The One Where We're Trapped on TV","Swan Thong"),
+  ("DC’s Legends of Tomorrow" to 6) to listOf("Ground Control to Sara Lance","Meat: The Legends","The Ex-Factor","Bay of Squids","The Satanist's Apprentice","Bishop's Gambit","Back to the Finale: Part II","Stressed Western","This Is Gus","Bad Blood","The Final Frame","Bored on Board Onboard","Silence of the Sonograms","There Will Be Brood","The Fungus Amongus"),
+  ("DC’s Legends of Tomorrow" to 7) to listOf("The Bullet Blondes","The Need for Speed","wvrdr_error_100 not found","Speakeasy Does It","It's a Mad, Mad, Mad, Mad Scientist","Deus Ex Latrina","A Woman's Place Is in the War Effort!","Paranoid Android","Lowest Common Demoninator","The Fixed Point","Rage Against the Machines","Too Legit to Quit","Knocked Down, Knocked Up"),
+
   ("DC’s Legends of Tomorrow" to 4) to listOf("The Virgin Gary","Witch Hunt","Dancing Queen","Wet Hot American Bummer","Tagumo Attacks!!!","Tender Is the Nate","Hell No, Dolly!","Legends of To-Meow-Meow","Lucha de Apuestas","The Getaway","Séance and Sensibility","The Eggplant, the Witch & the Wardrobe","Egg MacGuffin","Nip/Stuck","Terms of Service","Hey, World!"),
 
   ("Gotham" to 4) to listOf("Pax Penguina","The Fear Reaper","They Who Hide Behind Masks","The Demon's Head","The Blade's Path","Hog Day Afternoon","A Day in the Narrows","Stop Hitting Yourself","Let Them Eat Pie","Things That Go Boom","Queen Takes Knight","Pieces of a Broken Mirror","A Beautiful Darkness","Reunion","The Sinking Ship, the Grand Applause","One of My Three Soups","Mandatory Brunch Meeting","That's Entertainment","To Our Deaths and Beyond","That Old Corpse","One Bad Day","No Man's Land"),
