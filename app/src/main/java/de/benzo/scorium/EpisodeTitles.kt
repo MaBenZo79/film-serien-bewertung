@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Star Wars Resistance" to 1) to listOf("The Recruit: Part 1","The Recruit: Part 2","The Triple Dark","Fuel for the Fire","The High Tower","The Children from Tehar","Signal from Sector Six","Synara's Score","The Platform Classic","Secrets and Holograms","Station Theta Black","Bibo","Dangerous Business","The Doza Dilemma","The First Order Occupation","The New Trooper","The Core Problem","The Disappeared","Descent","No Escape: Part 1","No Escape: Part 2"),
+  ("Star Wars Resistance" to 2) to listOf("Into the Unknown","A Quick Salvage Run","Live Fire","Hunt on Celsor 3","The Engineer","From Beneath","The Relic Raiders","Rendezvous Point","The Voxx Vortex 5000","Kaz's Curse","Station to Station","The Missing Agent","Breakout","The Mutiny","The New World","No Place Safe","Rebuilding the Resistance","The Escape: Part 1","The Escape: Part 2"),
+
   ("Marvel Zombies" to 1) to listOf("Wonderful","The New World","The Dead","The Living"),
   ("Creature Commandos" to 1) to listOf("The Collywobbles","The Tourmaline Necklace","Cheers to the Tin Man","Chasing Squirrels","The Iron Pot","Priyatel Skelet","A Very Funny Monster"),
   ("Peacemaker" to 1) to listOf("A Whole New Whirled","Best Friends, For Never","Better Goff Dead","The Choad Less Traveled","Monkey Dory","Murn After Reading","Stop Dragon My Heart Around","It's Cow or Never"),
