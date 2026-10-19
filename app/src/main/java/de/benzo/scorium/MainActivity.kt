@@ -447,7 +447,17 @@ class MainActivity: ComponentActivity() {
        dismissButton={TextButton(onClick={createCollection=false}){Text("Abbrechen")}})
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
-        OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
+        OutlinedTextField(newTitle,{newTitle=it},label={Text("Film oder Serie suchen / neu anlegen")})
+        if(activeCustomCollection!=null && newTitle.isNotBlank()) {
+         val options=(films+series+DcCatalog.films+DcCatalog.series+StarWarsCatalog.films+StarWarsCatalog.series+extras+customSeries).distinct()
+          .filter { it.startsWith(newTitle.trim(),ignoreCase=true) && it !in collectionItems(activeCustomCollection!!) }.take(8)
+         options.forEach { match ->
+          TextButton(onClick={
+           saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+match)
+           newTitle="";add=false
+          }) { Text("+ "+match) }
+         }
+        }
         Row { listOf("Film","Serie").forEach { type ->
          FilterChip(selected=newKind==type,onClick={newKind=type},label={Text(type)})
          Spacer(Modifier.width(8.dp))
