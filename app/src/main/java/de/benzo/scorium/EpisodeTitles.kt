@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Pennyworth" to 1) to listOf("Pilot","The Landlord's Daughter","Martha Kane","Lady Penelope","Shirley Bassey","Cilla Black","Julie Christie","Sandie Shaw","Alma Cogan","Marianne Faithfull"),
+  ("Pennyworth" to 2) to listOf("The Heavy Crown","The Burning Bridge","The Belt and Welt","The Hunted Fox","The Bleeding Heart","The Rose and Thorn","The Bloody Mary","The Hangman's Noose","Paradise Lost","The Lion and Lamb"),
+  ("Pennyworth" to 3) to listOf("Well to Do","Many Clouds","Comply or Die","Rag Trade","Rhyme 'n' Reason","Hedgehunter","Don't Push It","Red Marauder","Rag and Bone","Highland Wedding"),
+
   ("Titans" to 1) to listOf("Titans","Hawk and Dove","Origins","Doom Patrol","Together","Jason Todd","Asylum","Donna Troy","Hank and Dawn","Koriand'r","Dick Grayson"),
   ("Titans" to 2) to listOf("Trigon","Rose","Ghosts","Aqualad","Deathstroke","Conner","Bruce Wayne","Jericho","Atonement","Fallen","E.L._.O.","Faux-Hawk","Nightwing"),
   ("Titans" to 3) to listOf("Barbara Gordon","Red Hood","Hank & Dove","Blackfire","Lazarus","Lady Vic","51%","Home","Souls","Troubled Water","The Call Is Coming from Inside the House","Prodigal","Purple Rain"),
