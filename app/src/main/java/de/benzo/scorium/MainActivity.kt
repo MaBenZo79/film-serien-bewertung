@@ -173,6 +173,23 @@ class MainActivity: ComponentActivity() {
     }
    }
    var add by remember { mutableStateOf(false) }
+   var createCollection by remember { mutableStateOf(false) }
+   var newCollectionName by remember { mutableStateOf("") }
+   var activeCustomCollection by remember { mutableStateOf<String?>(null) }
+   val customCollections=remember(refresh) {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    data.keys().asSequence().toList().sorted()
+   }
+   fun collectionItems(name:String):List<String> {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    val items=data.optJSONArray(name) ?: JSONArray()
+    return (0 until items.length()).map { items.optString(it) }.filter { it.isNotBlank() }
+   }
+   fun saveCollection(name:String,items:List<String>) {
+    val data=runCatching { JSONObject(prefs.getString("user_collections","{}") ?: "{}") }.getOrDefault(JSONObject())
+    val array=JSONArray();items.distinct().forEach { array.put(it) }
+    data.put(name,array);prefs.edit().putString("user_collections",data.toString()).apply();refresh++
+   }
    var pendingDelete by remember { mutableStateOf<String?>(null) }
    var pendingAction by remember { mutableStateOf<String?>(null) }
    var pendingReset by remember { mutableStateOf<String?>(null) }
@@ -230,7 +247,7 @@ class MainActivity: ComponentActivity() {
      selected!=null -> selected=null
      dcHub -> { dcHub=false; dcCollectionRoute=false; home=true }
       mcuHub -> { mcuHub=false; mcuCollectionRoute=false; home=true }
-     !home -> { if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else home=true }
+     !home -> { if(dcCollectionRoute) { dcHub=true; dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true; mcuPhase="Komplett" } else {home=true;activeCustomCollection=null} }
      else -> showExitDialog=true
     }
    }
@@ -271,7 +288,10 @@ class MainActivity: ComponentActivity() {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
         ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
-         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={home=false;section="Franchises";tab="Alle";add=true},onImageSaved={refresh++},revision=refresh)
+         customCollections.forEach { collection ->
+          ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
+         }
+         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";createCollection=true},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
        }
@@ -308,7 +328,7 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
-      TextButton(onClick={if(dcCollectionRoute) { dcHub=true;dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(dcCollectionRoute) "← DC-Sammlung" else if(mcuCollectionRoute) "← MCU-Phasen" else "← Startseite") }
+      TextButton(onClick={if(dcCollectionRoute) { dcHub=true;dcSection="Komplett" } else if(mcuCollectionRoute) { mcuHub=true;mcuPhase="Komplett" } else home=true}) { Text(if(dcCollectionRoute) "← DC-Sammlung" else if(mcuCollectionRoute) "← MCU-Phasen" else if(activeCustomCollection!=null) "← Meine Sammlungen" else "← Startseite") }
       if(section=="Ranking" || section=="Download") {
        val rated=(films+extras+series+customSeries).distinct().mapNotNull { name ->
         val value=if(name in series || name in customSeries) {
@@ -349,8 +369,8 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-       val sourceFilms=if(dcCollectionRoute) DcCatalog.films else films+extras
-       val sourceSeries=if(dcCollectionRoute) DcCatalog.series else (series+customSeries).distinct()
+       val sourceFilms=if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
+       val sourceSeries=if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
        val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) }.sortedWith(compareBy<String> {
         if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
@@ -360,6 +380,7 @@ class MainActivity: ComponentActivity() {
       }.thenBy { it })
       val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
       val revision=refresh
+      if(activeCustomCollection!=null) Text(activeCustomCollection!!,color=Color.White,fontSize=23.sp,fontWeight=FontWeight.Bold)
       if(!mcuCollectionRoute && !dcCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
        horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
        if(editingOrder) {
@@ -378,7 +399,7 @@ class MainActivity: ComponentActivity() {
          editingOrder=true
         }
         Spacer(Modifier.width(8.dp))
-        SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
        }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
@@ -411,6 +432,16 @@ class MainActivity: ComponentActivity() {
        }
       }
 
+      if(createCollection) AlertDialog(onDismissRequest={createCollection=false},title={Text("Eigene Sammlung erstellen")},
+       text={OutlinedTextField(newCollectionName,{newCollectionName=it},label={Text("Sammlungsname")})},
+       confirmButton={TextButton(onClick={
+        val name=newCollectionName.trim()
+        if(name.isNotBlank() && name !in customCollections && name.lowercase() !in listOf("marvel","mcu","dc","dc studios")) {
+         saveCollection(name,emptyList());activeCustomCollection=name;home=false;section="Franchises";tab="Alle";search=""
+        }
+        createCollection=false
+       }){Text("Erstellen")}},
+       dismissButton={TextButton(onClick={createCollection=false}){Text("Abbrechen")}})
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
         OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
@@ -430,6 +461,7 @@ class MainActivity: ComponentActivity() {
         val data=JSONArray();extras.forEach { data.put(it) }
         prefs.edit().putString("custom_titles",data.toString()).apply()
        }
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
        newTitle=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
