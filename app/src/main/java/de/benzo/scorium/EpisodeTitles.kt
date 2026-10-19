@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Flash" to 3) to listOf("Flashpoint","Paradox","Magenta","The New Rogues","Monster","Shade","Killer Frost","Invasion!","The Present","Borrowing Problems from the Future","Dead or Alive","Untouchable","Attack on Gorilla City","Attack on Central City","The Wrath of Savitar","Into the Speed Force","Duet","Abra Kadabra","The Once and Future Flash","I Know Who You Are","Cause and Effect","Infantino Street","Finish Line"),
+  ("Supergirl" to 3) to listOf("Girl of Steel","Triggers","Far from the Tree","The Faithful","Damage","Midvale","Wake Up","Crisis on Earth-X, Part 1","Reign","Legion of Super-Heroes","Fort Rozz","For Good","Both Sides Now","Schott Through the Heart","In Search of Lost Time","Of Two Minds","Trinity","Shelter from the Storm","The Fanatical","Dark Side of the Moon","Not Kansas","Make It Reign","Battles Lost and Won"),
+
   ("DC’s Legends of Tomorrow" to 2) to listOf("Out of Time","The Justice Society of America","Shogun","Abominations","Compromised","Outlaw Country","Invasion!","The Chicago Way","Raiders of the Lost Art","The Legion of Doom","Turncoat","Camelot/3000","Land of the Lost","Moonshot","Fellowship of the Spear","Doomworld","Aruba"),
   ("Arrow" to 3) to listOf("The Calm","Sara","Corto Maltese","The Magician","The Secret Origin of Felicity Smoak","Guilty","Draw Back Your Bow","The Brave and the Bold","The Climb","Left Behind","Midnight City","Uprising","Canaries","The Return","Nanda Parbat","The Offer","Suicidal Tendencies","Public Enemy","Broken Arrow","The Fallen","Al Sah-him","This Is Your Sword","My Name Is Oliver Queen"),
 
