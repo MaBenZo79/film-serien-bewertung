@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Supergirl" to 4) to listOf("American Alien","Fallout","Man of Steel","Ahimsa","Parasite Lost","Call to Action","Rather the Fallen Angel","Bunker Hill","Elseworlds, Part 3","Suspicious Minds","Blood Memory","Menagerie","What's So Funny About Truth, Justice, and the American Way?","Stand and Deliver","O Brother, Where Art Thou?","The House of L","All About Eve","Crime and Punishment","American Dreamer","Will the Real Miss Tessmacher Please Stand Up?","Red Dawn","The Quest for Peace"),
+  ("Supergirl" to 5) to listOf("Event Horizon","Stranger Beside Me","Blurred Lines","In Plain Sight","Dangerous Liaisons","Confidence Women","Tremors","The Wrath of Rama Khan","Crisis on Infinite Earths: Part One","The Bottle Episode","Back from the Future – Part One","Back from the Future – Part Two","It's a Super Life","The Bodyguard","Reality Bytes","Alex in Wonderland","Deus Lex Machina","The Missing Link","Immortal Kombat"),
+
   ("The Flash" to 9) to listOf("Wednesday Ever After","Hear No Evil","Rogues of War","The Mask of the Red Death, Part 1","The Mask of the Red Death, Part 2","The Good, the Bad and the Lucky","Wildest Dreams","Partners in Time","It's My Party and I'll Die If I Want To","A New World, Part One: Reunions","A New World, Part Two: The Blues","A New World, Part Three: Changes","A New World, Part Four: Finale"),
 
   ("The Flash" to 8) to listOf("Armageddon, Part 1","Armageddon, Part 2","Armageddon, Part 3","Armageddon, Part 4","Armageddon, Part 5","Impulsive Excessive Disorder","Lockdown","The Fire Next Time","Phantoms","Reckless","Resurrection","Death Rises","Death Falls","Funeral for a Friend","Into the Still Force","The Curious Case of Bartholomew Allen","Keep It Dark","The Man in the Yellow Tie","Negative, Part One","Negative, Part Two"),
