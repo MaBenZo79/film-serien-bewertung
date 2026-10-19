@@ -202,6 +202,7 @@ class MainActivity: ComponentActivity() {
    var orderRevision by remember { mutableIntStateOf(0) }
    var newTitle by remember { mutableStateOf("") }
    var newYear by remember { mutableStateOf("") }
+   var editingCustomTitle by remember { mutableStateOf<String?>(null) }
    var newKind by remember { mutableStateOf("Film") }
    var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
    var exportError by remember { mutableStateOf<String?>(null) }
@@ -508,7 +509,10 @@ class MainActivity: ComponentActivity() {
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
        if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series && selected!! !in StarWarsCatalog.films && selected!! !in StarWarsCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
-       if((selected!! in extras || selected!! in customSeries) && (BuildConfig.SCORIUM_ADMIN || activeCustomCollection!=null)) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if(selected!! in extras || selected!! in customSeries) {
+        SmallIconAction(Icons.Default.Edit,"Eigenen Titel bearbeiten") { editingCustomTitle=selected;newTitle=selected!!;newYear=prefs.getString("custom_year::${selected!!}","") ?: "" }
+        SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       }
        if(!isSeries) {
         val value=savedPercent(prefs,selected!!,categories)
         if(value!=null) {
