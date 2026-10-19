@@ -409,7 +409,7 @@ class MainActivity: ComponentActivity() {
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(visibleEntries,key={ it }) { name ->
-        val isShow=name in series || name in customSeries || name in DcCatalog.series
+        val isShow=name in series || name in customSeries || name in DcCatalog.series || name in StarWarsCatalog.series
         val value=remember(name,refresh,isShow) {
          if(isShow) {
           val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size ?: 1)
