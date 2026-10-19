@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Sandman" to 2) to listOf("Season of Mists","The Ruler of Hell","More Devils Than Vast Hell Can Hold","Brief Lives","The Song of Orpheus","Family Blood","Time and Night","Fuel for the Fire","The Kindly Ones","Long Live the King","A Tale of Graceful Ends","Death: The High Cost of Living"),
+  ("Star Wars: Maul – Shadow Lord" to 1) to listOf("Chapter 1: The Dark Revenge","Chapter 2: Sinister Schemes","Chapter 3: Whispers in the Unknown","Chapter 4: Pride and Vengeance","Chapter 5: Inquisition","Chapter 6: Night of the Hunted","Chapter 7: Call to Oblivion","Chapter 8: The Creeping Fear","Chapter 9: Strange Allies","Chapter 10: The Dark Lord"),
+
   ("The Sandman" to 1) to listOf("Sleep of the Just","Imperfect Hosts","Dream a Little Dream of Me","A Hope in Hell","24/7","The Sound of Her Wings","The Doll's House","Playing House","Collectors","Lost Hearts","Dream of a Thousand Cats / Calliope"),
 
   ("DC’s Legends of Tomorrow" to 5) to listOf("Crisis on Infinite Earths: Part Five","Meet the Legends","Miss Me, Kiss Me, Love Me","Slay Anything","A Head of Her Time","Mortal Khanbat","Mr. Parker's Cul-De-Sac","Romeo v Juliet: Dawn of Justness","Zari, Not Zari","The Great British Fake Off","Ship Broken","Freaks and Greeks","I Am Legends","The One Where We're Trapped on TV","Swan Thong"),
