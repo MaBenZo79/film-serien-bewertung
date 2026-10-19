@@ -2,6 +2,12 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Smallville" to 1) to listOf("Pilot","Metamorphosis","Hothead","X-Ray","Cool","Hourglass","Craving","Jitters","Rogue","Shimmer","Hug","Leech","Kinetic","Zero","Nicodemus","Stray","Reaper","Drone","Crush","Obscura","Tempest"),
+  ("Smallville" to 2) to listOf("Vortex","Heat","Duplicity","Red","Nocturne","Redux","Lineage","Ryan","Dichotic","Skinwalker","Visage","Insurgence","Suspect","Rush","Prodigal","Fever","Rosetta","Visitor","Precipice","Witness","Accelerate","Calling","Exodus"),
+  ("Smallville" to 3) to listOf("Exile","Phoenix","Extinction","Slumber","Perry","Relic","Magnetic","Shattered","Asylum","Whisper","Delete","Hereafter","Velocity","Obsession","Resurrection","Crisis","Legacy","Truth","Memoria","Talisman","Forsaken","Covenant"),
+  ("Smallville" to 4) to listOf("Crusade","Gone","Facade","Devoted","Run","Transference","Jinx","Spell","Bound","Scare","Unsafe","Pariah","Recruit","Krypto","Sacred","Lucy","Onyx","Spirit","Blank","Ageless","Forever","Commencement"),
+  ("Smallville" to 5) to listOf("Arrival","Mortal","Hidden","Aqua","Thirst","Exposed","Splinter","Solitude","Lexmas","Fanatic","Lockdown","Reckoning","Vengeance","Tomb","Cyborg","Hypnotic","Void","Fragile","Mercy","Fade","Oracle","Vessel"),
+
   ("Doom Patrol" to 1) to listOf("Pilot","Donkey Patrol","Puppet Patrol","Cult Patrol","Paw Patrol","Doom Patrol Patrol","Therapy Patrol","Danny Patrol","Jane Patrol","Hair Patrol","Frances Patrol","Cyborg Patrol","Flex Patrol","Penultimate Patrol","Ezekiel Patrol"),
   ("Doom Patrol" to 2) to listOf("Fun Size Patrol","Tyme Patrol","Pain Patrol","Sex Patrol","Finger Patrol","Space Patrol","Dumb Patrol","Dad Patrol","Wax Patrol"),
   ("Doom Patrol" to 3) to listOf("Possibilities Patrol","Vacay Patrol","Dead Patrol","Undead Patrol","Dada Patrol","1917 Patrol","Bird Patrol","Subconscious Patrol","Evil Patrol","Amends Patrol"),
