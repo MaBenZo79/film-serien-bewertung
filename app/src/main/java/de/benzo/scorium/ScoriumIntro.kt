@@ -71,7 +71,8 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
  val kernel = remember { Animatable(0f) }
  val menu = remember { Animatable(0f) }
  val exit = remember { Animatable(0f) }
- val videoResource = remember { androidx.compose.ui.platform.LocalContext.current.resources.getIdentifier("scorium_start_intro","raw", "de.benzo.scorium") }
+ val context = androidx.compose.ui.platform.LocalContext.current
+ val videoResource = remember(context) { context.resources.getIdentifier("scorium_start_intro", "raw", context.packageName) }
  var leaving by remember { mutableStateOf(false) }
  val touchBarrier = remember { MutableInteractionSource() }
  LaunchedEffect(videoResource) {
