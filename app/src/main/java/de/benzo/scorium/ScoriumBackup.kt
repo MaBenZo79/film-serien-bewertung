@@ -141,4 +141,87 @@ object ScoriumBackup {
   check(editor.commit()) { "Wiederherstellung fehlgeschlagen" }
   return posters.size
  }
+ /**
+  * Portable PERSONAL ratings only. No posters, catalog, collection layout,
+  * recently viewed titles or starter flags.
+  */
+ private fun isRatingKey(key:String):Boolean =
+  key.startsWith("mode::") ||
+  (key.isNotBlank() && !isCatalogKey(key) &&
+   !key.startsWith("starter_") &&
+   !key.startsWith("poster") &&
+   !key.startsWith("collection") &&
+   !key.startsWith("order::") &&
+   key !in setOf("recent_titles","user_collections"))
+
+ fun exportRatings(context:Context,out:OutputStream):Int {
+  val ratings=JSONObject()
+  context.getSharedPreferences("ratings",Context.MODE_PRIVATE).all.forEach { (key,value) ->
+   if (!isRatingKey(key) || value !is String) return@forEach
+   if (key.startsWith("mode::")) {
+    if (value in setOf("auto","manual","episodes")) ratings.put(key,value)
+   } else {
+    val parsed=runCatching { JSONObject(value) }.getOrNull() ?: return@forEach
+    if (parsed.length()>0 && parsed.keys().asSequence().all {
+      parsed.optInt(it,-1) in 1..10
+     }) ratings.put(key,parsed)
+   }
+  }
+  val count=ratings.length()
+  val envelope=JSONObject().put("format","scorium-ratings-v1").put("ratings",ratings)
+  ZipOutputStream(out).use { zip ->
+   zip.putNextEntry(ZipEntry("scorium-ratings.json"))
+   zip.write(envelope.toString().toByteArray(Charsets.UTF_8))
+   zip.closeEntry()
+  }
+  return count
+ }
+
+ fun importRatings(context:Context,input:InputStream):Int {
+  var content:String?=null
+  var total=0
+  ZipInputStream(input).use { zip ->
+   while (true) {
+    val entry=zip.nextEntry ?: break
+    if (!entry.isDirectory && entry.name=="scorium-ratings.json") {
+     require(content==null) { "Doppelte Bewertungsdatei" }
+     val output=java.io.ByteArrayOutputStream()
+     val buffer=ByteArray(8192)
+     while (true) {
+      val n=zip.read(buffer)
+      if (n<0) break
+      total+=n
+      require(total<=5*1024*1024) { "Bewertungssicherung zu groß" }
+      output.write(buffer,0,n)
+     }
+     content=output.toString("UTF-8")
+    }
+    zip.closeEntry()
+   }
+  }
+  val root=JSONObject(content ?: error("Keine Bewertungssicherung. Bitte eine neue SCORIUM-Bewertungssicherung auswählen."))
+  require(root.optString("format")=="scorium-ratings-v1") { "Unbekanntes Sicherungsformat" }
+  val ratings=root.getJSONObject("ratings")
+  require(ratings.length()<=20000) { "Zu viele Bewertungen" }
+  val values=mutableMapOf<String,String>()
+  ratings.keys().forEach { key ->
+   require(isRatingKey(key)) { "Ungültiger Bewertungsschlüssel" }
+   if (key.startsWith("mode::")) {
+    val mode=ratings.getString(key)
+    require(mode in setOf("auto","manual","episodes")) { "Ungültiger Staffelmodus" }
+    values[key]=mode
+   } else {
+    val item=ratings.getJSONObject(key)
+    require(item.length() in 1..30 && item.keys().asSequence().all {
+      item.optInt(it,-1) in 1..10
+    }) { "Ungültige Bewertung" }
+    values[key]=item.toString()
+   }
+  }
+  val editor=context.getSharedPreferences("ratings",Context.MODE_PRIVATE).edit()
+  values.forEach { (key,value) -> editor.putString(key,value) }
+  check(editor.commit()) { "Bewertungen konnten nicht gespeichert werden" }
+  return values.size
+ }
+
 }
