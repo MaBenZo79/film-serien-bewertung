@@ -258,9 +258,9 @@ class MainActivity: ComponentActivity() {
    }
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
    val activeDcTheme = dcCollectionRoute && !home && !openingDc
-   val scopedAccent = if(activeDcTheme) Color(0xFF438FEA) else gold
-    val scopedPalette = if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
-   CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme) {
+   val scopedAccent = if(activeStarWarsTheme) Color(0xFFD7AB48) else if(activeDcTheme) Color(0xFF438FEA) else gold
+    val scopedPalette = if(activeStarWarsTheme) darkColorScheme(primary=Color(0xFFD7AB48),background=Color(0xFF04060D),surface=Color(0xFF182033),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.Black) else if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+   CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme, LocalStarWarsCollectionTheme provides activeStarWarsTheme) {
    MaterialTheme(colorScheme=scopedPalette) {
     if(showExitDialog) AlertDialog(
      onDismissRequest={showExitDialog=false},
@@ -458,7 +458,7 @@ class MainActivity: ComponentActivity() {
        }
       },confirmButton={TextButton(onClick={if(newTitle.isNotBlank() && (activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN)){
        val name=newTitle.trim()
-       if(name !in films && name !in series && name !in DcCatalog.films && name !in DcCatalog.series) {
+       if(name !in films && name !in series && name !in DcCatalog.films && name !in DcCatalog.series && name !in StarWarsCatalog.films && name !in StarWarsCatalog.series) {
        if(newKind=="Serie"){
         if(name !in customSeries && name !in series) customSeries.add(name)
         val data=JSONArray();customSeries.forEach { data.put(it) }
@@ -494,7 +494,7 @@ class MainActivity: ComponentActivity() {
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-       if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series)) PosterPicker(selected!!) { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series && selected!! !in StarWarsCatalog.films && selected!! !in StarWarsCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
        if((selected!! in extras || selected!! in customSeries) && (BuildConfig.SCORIUM_ADMIN || activeCustomCollection!=null)) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
        if(!isSeries) {
@@ -511,7 +511,7 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(8.dp))
        Text("Staffel $selectedSeason · Eigenes Bild",color=scopedAccent)
        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
-       if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series && seriesKey !in StarWarsCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
        if(selectedEpisode>0) {
         Text("Episode $selectedEpisode · Staffelposter",color=scopedAccent)
         ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
