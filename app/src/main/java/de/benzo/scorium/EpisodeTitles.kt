@@ -2,6 +2,8 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("DC’s Legends of Tomorrow" to 4) to listOf("The Virgin Gary","Witch Hunt","Dancing Queen","Wet Hot American Bummer","Tagumo Attacks!!!","Tender Is the Nate","Hell No, Dolly!","Legends of To-Meow-Meow","Lucha de Apuestas","The Getaway","Séance and Sensibility","The Eggplant, the Witch & the Wardrobe","Egg MacGuffin","Nip/Stuck","Terms of Service","Hey, World!"),
+
   ("Gotham" to 4) to listOf("Pax Penguina","The Fear Reaper","They Who Hide Behind Masks","The Demon's Head","The Blade's Path","Hog Day Afternoon","A Day in the Narrows","Stop Hitting Yourself","Let Them Eat Pie","Things That Go Boom","Queen Takes Knight","Pieces of a Broken Mirror","A Beautiful Darkness","Reunion","The Sinking Ship, the Grand Applause","One of My Three Soups","Mandatory Brunch Meeting","That's Entertainment","To Our Deaths and Beyond","That Old Corpse","One Bad Day","No Man's Land"),
   ("Gotham" to 5) to listOf("Year Zero","Trespassers","Penguin, Our Hero","Ruin","Pena Dura","13 Stitches","Ace Chemicals","Nothing's Shocking","The Trial of Jim Gordon","I Am Bane","They Did What?","The Beginning..."),
 
