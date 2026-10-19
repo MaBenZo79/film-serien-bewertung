@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Superman & Lois" to 1) to listOf("Pilot","Heritage","The Perks of Not Being a Wallflower","Haywire","The Best of Smallville","Broken Trust","Man of Steel","Holding the Wrench","Loyal Subjekts","O Mother, Where Art Thou?","A Brief Reminiscence In-Between Cataclysmic Events","Through the Valley of Death","Fail Safe","The Eradicator","Last Sons of Krypton"),
+  ("Superman & Lois" to 2) to listOf("What Lies Beneath","The Ties That Bind","The Thing in the Mines","The Inverse Method","Girl... You'll Be a Woman, Soon","Tried and True","Anti-Hero","Into Oblivion","30 Days and 30 Nights","Bizarros in a Bizarro World","Truth and Consequences","Lies That Bind","All Is Lost","Worlds War Bizarre","Waiting for Superman"),
+
   ("Pennyworth" to 1) to listOf("Pilot","The Landlord's Daughter","Martha Kane","Lady Penelope","Shirley Bassey","Cilla Black","Julie Christie","Sandie Shaw","Alma Cogan","Marianne Faithfull"),
   ("Pennyworth" to 2) to listOf("The Heavy Crown","The Burning Bridge","The Belt and Welt","The Hunted Fox","The Bleeding Heart","The Rose and Thorn","The Bloody Mary","The Hangman's Noose","Paradise Lost","The Lion and Lamb"),
   ("Pennyworth" to 3) to listOf("Well to Do","Many Clouds","Comply or Die","Rag Trade","Rhyme 'n' Reason","Hedgehunter","Don't Push It","Red Marauder","Rag and Bone","Highland Wedding"),
