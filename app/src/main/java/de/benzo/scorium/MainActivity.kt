@@ -384,11 +384,13 @@ class MainActivity: ComponentActivity() {
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(visibleEntries,key={ it }) { name ->
         val isShow=name in series || name in customSeries || name in DcCatalog.series
-        val value=if(isShow) {
-         val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
-         val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
-         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
-        } else savedPercent(prefs,name,categories)
+        val value=remember(name,refresh,isShow) {
+         if(isShow) {
+          val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
+          val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
+          if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
+         } else savedPercent(prefs,name,categories)
+        }
         Row(verticalAlignment=Alignment.CenterVertically) {
          Box(Modifier.weight(1f)) {
           ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,null,onClick={
