@@ -2,6 +2,14 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Skeleton Crew" to 1) to listOf("This Could Be a Real Adventure","Way, Way Out Past the Barrier","Very Interesting, as an Astrogation Problem","Can't Say I Remember No At Attin","You Have a Lot to Learn About Pirates","Zero Friends Again","We're Gonna Be in So Much Trouble","The Real Good Guys"),
+  ("Star Wars: Geschichten der Jedi" to 1) to listOf("Life and Death","Justice","Choices","The Sith Lord","Practice Makes Perfect","Resolve"),
+  ("Star Wars: Geschichten des Imperiums" to 1) to listOf("The Path of Fear","The Path of Anger","The Path of Hate","Devoted","Realization","The Way Out"),
+  ("Star Wars: Geschichten der Unterwelt" to 1) to listOf("A Way Forward","Friends","One Good Deed","The Good Life","A Good Turn","One Last Fight"),
+  ("Star Wars: Clone Wars (2003)" to 1) to (1..10).map { "Chapter $it" },
+  ("Star Wars: Clone Wars (2003)" to 2) to (11..20).map { "Chapter $it" },
+  ("Star Wars: Clone Wars (2003)" to 3) to (21..25).map { "Chapter $it" },
+
   ("Das Buch von Boba Fett" to 1) to listOf("Chapter 1: Stranger in a Strange Land","Chapter 2: The Tribes of Tatooine","Chapter 3: The Streets of Mos Espa","Chapter 4: The Gathering Storm","Chapter 5: Return of the Mandalorian","Chapter 6: From the Desert Comes a Stranger","Chapter 7: In the Name of Honor"),
   ("Obi-Wan Kenobi" to 1) to listOf("Part I","Part II","Part III","Part IV","Part V","Part VI"),
   ("Ahsoka" to 1) to listOf("Part One: Master and Apprentice","Part Two: Toil and Trouble","Part Three: Time to Fly","Part Four: Fallen Jedi","Part Five: Shadow Warrior","Part Six: Far, Far Away","Part Seven: Dreams and Madness","Part Eight: The Jedi, the Witch, and the Warlord"),
