@@ -266,7 +266,7 @@ class MainActivity: ComponentActivity() {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
-       Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       Row(Modifier.fillMaxWidth().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
@@ -283,7 +283,7 @@ class MainActivity: ComponentActivity() {
         (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }
        }
        if(recent.isEmpty()) Text("Hier erscheinen die Filme und Serien, die du öffnest.",modifier=Modifier.padding(horizontal=18.dp),color=Color(0xFFB5B7CD))
-       Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       Row(Modifier.fillMaxWidth().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
          Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++;home=false }) {
           ScoriumPoster(name,Modifier.width(128.dp).height(175.dp),refresh)
