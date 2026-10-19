@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Superman & Lois" to 3) to listOf("Closer","Uncontrollable Forces","In Cold Blood","Too Close to Home","Head On","Of Sound Mind","Forever and Always","Guess Who's Coming to Dinner","The Dress","Collision Course","Complications","Injustice","What Kills You Only Makes You Stronger"),
+  ("Superman & Lois" to 4) to listOf("The End & the Beginning","A World Without","Always My Hero","A Perfectly Good Wedding","Break the Cycle","When the Lights Come On","A Regular Guy","Sharp Dressed Man","To Live and Die Again","It Went By So Fast"),
+
   ("Superman & Lois" to 1) to listOf("Pilot","Heritage","The Perks of Not Being a Wallflower","Haywire","The Best of Smallville","Broken Trust","Man of Steel","Holding the Wrench","Loyal Subjekts","O Mother, Where Art Thou?","A Brief Reminiscence In-Between Cataclysmic Events","Through the Valley of Death","Fail Safe","The Eradicator","Last Sons of Krypton"),
   ("Superman & Lois" to 2) to listOf("What Lies Beneath","The Ties That Bind","The Thing in the Mines","The Inverse Method","Girl... You'll Be a Woman, Soon","Tried and True","Anti-Hero","Into Oblivion","30 Days and 30 Nights","Bizarros in a Bizarro World","Truth and Consequences","Lies That Bind","All Is Lost","Worlds War Bizarre","Waiting for Superman"),
 
