@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Arrow" to 4) to listOf("Green Arrow","The Candidate","Restoration","Beyond Redemption","Haunted","Lost Souls","Brotherhood","Legends of Yesterday","Dark Waters","Blood Debts","A.W.O.L.","Unchained","Sins of the Father","Code of Silence","Taken","Broken Hearts","Beacon of Hope","Eleven-Fifty-Nine","Canary Cry","Genesis","Monument Point","Lost in the Flood","Schism"),
+  ("Arrow" to 5) to listOf("Legacy","The Recruits","A Matter of Trust","Penance","Human Target","So It Begins","Vigilante","Invasion!","What We Leave Behind","Who Are You?","Second Chances","Bratva","Spectre of the Gun","The Sin-Eater","Fighting Fire with Fire","Checkmate","Kapiushon","Disbanded","Dangerous Liaisons","Underneath","Honor Thy Fathers","Missing","Lian Yu"),
+  ("Arrow" to 6) to listOf("Fallout","Tribute","Next of Kin","Reversal","Deathstroke Returns","Promises Kept","Thanksgiving","Crisis on Earth-X, Part 2","Irreconcilable Differences","Divided","We Fall","All for Nothing","The Devil's Greatest Trick","Collision Course","Doppelganger","The Thanatos Guild","Brothers in Arms","Fundamentals","The Dragon","Shifting Allegiances","Docket No. 11-19-41-73","The Ties That Bind","Life Sentence"),
+
   ("Star Wars Resistance" to 1) to listOf("The Recruit: Part 1","The Recruit: Part 2","The Triple Dark","Fuel for the Fire","The High Tower","The Children from Tehar","Signal from Sector Six","Synara's Score","The Platform Classic","Secrets and Holograms","Station Theta Black","Bibo","Dangerous Business","The Doza Dilemma","The First Order Occupation","The New Trooper","The Core Problem","The Disappeared","Descent","No Escape: Part 1","No Escape: Part 2"),
   ("Star Wars Resistance" to 2) to listOf("Into the Unknown","A Quick Salvage Run","Live Fire","Hunt on Celsor 3","The Engineer","From Beneath","The Relic Raiders","Rendezvous Point","The Voxx Vortex 5000","Kaz's Curse","Station to Station","The Missing Agent","Breakout","The Mutiny","The New World","No Place Safe","Rebuilding the Resistance","The Escape: Part 1","The Escape: Part 2"),
 
