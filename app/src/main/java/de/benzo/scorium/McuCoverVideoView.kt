@@ -9,6 +9,8 @@ import android.view.Surface
 import android.view.TextureView
 import android.widget.FrameLayout
 import android.graphics.Color
+import android.os.Handler
+import android.os.Looper
 
 /**
  * A fullscreen center-cropped video layer with no added side bars.
@@ -28,6 +30,21 @@ class McuCoverVideoView(
     private var videoHeight = 1408
     private var playbackStarted = false
     private var firstFrameDelivered = false
+    private val volumeHandler = Handler(Looper.getMainLooper())
+    private val fadeDurationMs = 1800L
+    private val fadeStepMs = 50L
+    private val maxVolume = 0.60f
+    private var fadeStartMs = 0L
+    private val fadeVolume = object : Runnable {
+        override fun run() {
+            val media = player ?: return
+            val elapsed = android.os.SystemClock.uptimeMillis() - fadeStartMs
+            val fraction = (elapsed.toFloat() / fadeDurationMs).coerceIn(0f, 1f)
+            val eased = fraction * fraction * (3f - 2f * fraction)
+            runCatching { media.setVolume(maxVolume * eased, maxVolume * eased) }
+            if (fraction < 1f) volumeHandler.postDelayed(this, fadeStepMs)
+        }
+    }
 
     init {
         setBackgroundColor(Color.rgb(57, 7, 12))
@@ -46,6 +63,7 @@ class McuCoverVideoView(
             playbackSurface = renderSurface
             media.setSurface(renderSurface)
             media.isLooping = false
+            media.setVolume(0f, 0f)
             media.setOnVideoSizeChangedListener { _, w, h ->
                 if (w > 0 && h > 0) {
                     videoWidth = w
@@ -55,6 +73,8 @@ class McuCoverVideoView(
             }
             media.setOnPreparedListener {
                 it.start()
+                fadeStartMs = android.os.SystemClock.uptimeMillis()
+                volumeHandler.post(fadeVolume)
                 playbackStarted = true
                 onStarted()
             }
@@ -63,7 +83,10 @@ class McuCoverVideoView(
                 onFinished()
                 true
             }
-            media.setOnCompletionListener { onFinished() }
+            media.setOnCompletionListener {
+                volumeHandler.removeCallbacks(fadeVolume)
+                onFinished()
+            }
             media.prepareAsync()
         } catch (_: Exception) {
             releasePlayer()
@@ -102,6 +125,7 @@ class McuCoverVideoView(
     }
 
     private fun releasePlayer() {
+        volumeHandler.removeCallbacks(fadeVolume)
         player?.runCatching { stop() }
         player?.release()
         player = null
