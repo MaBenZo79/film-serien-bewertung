@@ -39,7 +39,7 @@ fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection
         Text(section,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)
        }
       }
-      PosterPicker("collection::dc::$section",onImageSaved)
+      if(BuildConfig.SCORIUM_ADMIN) PosterPicker("collection::dc::$section",onImageSaved)
      }
     }
     if(pair.size==1) Spacer(Modifier.weight(1f))
