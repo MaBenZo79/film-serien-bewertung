@@ -71,18 +71,25 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
  val kernel = remember { Animatable(0f) }
  val menu = remember { Animatable(0f) }
  val exit = remember { Animatable(0f) }
+ val context = androidx.compose.ui.platform.LocalContext.current
+ val videoResource = remember(context) { context.resources.getIdentifier("scorium_start_intro", "raw", context.packageName) }
  var leaving by remember { mutableStateOf(false) }
- val scope = rememberCoroutineScope()
  val touchBarrier = remember { MutableInteractionSource() }
-
- LaunchedEffect(Unit) {
-  launch { clouds.animateTo(1f, tween(2700, easing = LinearOutSlowInEasing)) }
-  delay(550)
-  letters.animateTo(1f, tween(2350, easing = LinearEasing))
-  delay(220)
-  kernel.animateTo(1f, tween(950, easing = FastOutSlowInEasing))
-  delay(110)
-  menu.animateTo(1f, tween(620, easing = LinearOutSlowInEasing))
+ LaunchedEffect(videoResource) {
+  if(videoResource == 0) {
+   launch { clouds.animateTo(1f, tween(2700, easing = LinearOutSlowInEasing)) }
+   delay(550)
+   letters.animateTo(1f, tween(2350, easing = LinearEasing))
+   delay(220)
+   kernel.animateTo(1f, tween(950, easing = FastOutSlowInEasing))
+   delay(450)
+   exit.animateTo(1f, tween(650, easing = FastOutSlowInEasing))
+   onEnter()
+  }
+ }
+ if(videoResource != 0) {
+  ScoriumStartupVideo(videoResource, onEnter)
+  return
  }
 
  // Independent, gentle movement continues once the user can enter the app.
@@ -218,30 +225,7 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
     }
    }
 
-   Spacer(Modifier.height(38.dp))
-   Button(
-    onClick = {
-     if(!leaving) {
-      leaving = true
-      scope.launch {
-       exit.animateTo(1f, tween(700, easing = FastOutSlowInEasing))
-       onEnter()
-      }
-     }
-    },
-    enabled = menu.value >= .99f && !leaving,
-    shape = RoundedCornerShape(16.dp),
-    colors = ButtonDefaults.buttonColors(
-     containerColor = Color(0xFF56188E),
-     contentColor = Color.White
-    ),
-    modifier = Modifier.width(220.dp).height(54.dp)
-     .alpha(menu.value)
-     .offset(y = (16f * (1f - menu.value)).dp)
-     .border(1.dp, Color(0xFFAD64E9), RoundedCornerShape(16.dp))
-   ) {
-    Text("Zum Hauptmenü", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-   }
+
   }
  }
 }

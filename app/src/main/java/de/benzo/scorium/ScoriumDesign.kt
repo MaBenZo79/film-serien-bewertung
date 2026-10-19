@@ -3,6 +3,10 @@ package de.benzo.scorium
 import androidx.compose.animation.core.*
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.graphics.Bitmap
+import android.util.LruCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
@@ -22,19 +26,45 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 
 private val ink=Color(0xFF090C1B)
 private val slate=Color(0xFF1A203A)
 private val gold=Color(0xFFAC88F6)
 private val fog=Color(0xFFB5B7CD)
 
+val LocalMcuCollectionTheme = compositionLocalOf { false }
+val LocalDcCollectionTheme = compositionLocalOf { false }
+private val dcAccent = Color(0xFF438FEA)
+private val mcuAccent = Color(0xFFEF3945)
+private val mcuSurface = Color(0xFF30090F)
+
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
+ val mcu=LocalMcuCollectionTheme.current
+ val dc=LocalDcCollectionTheme.current
+ if(dc) {
+  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF06152D),Color(0xFF102E58),Color(0xFF06152D))))) { content() }
+  return
+ }
+ if(mcu) {
+  Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF150306),Color(0xFF39070C),Color(0xFF110306))))) { content() }
+  return
+ }
  // Unified background for the home screen and all nested pages.
  // Keep the existing poster tiles, cards, controls and their colors intact.
  Box(Modifier.fillMaxSize().background(Color(0xFF010007))) {
@@ -82,20 +112,56 @@ fun ScoriumHero(onExplore:()->Unit) {
  }
 }
 
+/** Bounded thumbnail cache shared across rows, avoiding full-resolution decoding on the UI thread. */
+private val posterThumbnailCache = object : LruCache<String, Bitmap>(24 * 1024) {
+ override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount / 1024
+}
+private fun loadPosterThumbnail(path: String): Bitmap? {
+ val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+ BitmapFactory.decodeFile(path, bounds)
+ if(bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+ var sample = 1
+ while(bounds.outWidth / sample > 640 || bounds.outHeight / sample > 960) sample *= 2
+ return BitmapFactory.decodeFile(path, BitmapFactory.Options().apply {
+  inSampleSize = sample
+  inPreferredConfig = Bitmap.Config.RGB_565
+ })
+}
+
 @Composable
-fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false) {
+fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false,borderColor:Color=Color(0xFFB46AFF)) {
  val context=LocalContext.current
  val file=posterFile(context,title)
  val stamp=file.lastModified()
- val bitmap=remember(title,stamp,revision) {
-  if(file.exists()) runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() else null
+ val cacheKey = remember(file.absolutePath,stamp) { "${file.absolutePath}:$stamp" }
+ var bitmap by remember(cacheKey,revision) { mutableStateOf(posterThumbnailCache.get(cacheKey)) }
+ LaunchedEffect(cacheKey,revision) {
+  if(bitmap == null && file.exists()) {
+   val decoded = withContext(Dispatchers.IO) {
+    posterThumbnailCache.get(cacheKey) ?: runCatching { loadPosterThumbnail(file.absolutePath) }.getOrNull()?.also {
+     posterThumbnailCache.put(cacheKey,it)
+    }
+   }
+   bitmap = decoded
+  }
  }
  val shape=RoundedCornerShape(9.dp)
- Box(modifier.shadow(6.dp,shape).clip(shape).border(1.5.dp,Color(0xFFB46AFF),shape)) {
+ val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else borderColor
+ Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop)
+  } else if(title=="collection::dc" || title.startsWith("collection::dc::")) {
+   Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
+  } else if(title.startsWith("collection::mcu::")) {
+   // Original uploaded 4:3 MCU cover, used only for the seven MCU phase tiles.
+   Image(
+    painter=painterResource(R.drawable.mcu_phase_cover),
+    contentDescription="Marvel Studios MCU",
+    modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
+    contentScale=ContentScale.Crop
+   )
   } else {
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
     .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
@@ -109,80 +175,140 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
 
 @Composable
 fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit,imageKey:String=title,revision:Int=0) {
+ val mcu=LocalMcuCollectionTheme.current
+ val dc=LocalDcCollectionTheme.current
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
  Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
-  colors=CardDefaults.cardColors(containerColor=Color(0xFF182235)),
-  modifier=Modifier.fillMaxWidth()) {
-  Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(imageKey,Modifier.size(width=75.dp,height=100.dp),revision)
-   Spacer(Modifier.width(15.dp))
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF182235)),
+  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else Modifier)) {
+  Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(imageKey,Modifier.size(width=68.dp,height=92.dp),revision)
+   Spacer(Modifier.width(12.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=gold)
+    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=accent)
     Spacer(Modifier.height(6.dp))
-    Text(title,fontSize=17.sp,fontWeight=FontWeight.Bold,color=Color.White,
+    Text(title,fontSize=16.sp,fontWeight=FontWeight.Bold,color=Color.White,
      maxLines=3,overflow=TextOverflow.Ellipsis)
-    Spacer(Modifier.height(9.dp))
-    Text(if(score==null) "NOCH NICHT BEWERTET" else "${score / 10}.${score % 10}  ·  $grade",
-     color=if(score==null) fog else gold,fontSize=12.sp,fontWeight=FontWeight.Bold)
+    ReleaseYears.label(title)?.let { years ->
+     Spacer(Modifier.height(3.dp))
+     Text(years,color=Color(0xFFAEB0BA),fontSize=12.sp,fontWeight=FontWeight.Normal,fontStyle=FontStyle.Italic)
+    }
+    if(score==null) { Spacer(Modifier.height(9.dp)); Text("NOCH NICHT BEWERTET",color=fog,fontSize=11.sp) }
    }
-   Text("›",fontSize=28.sp,color=fog)
+   ScoriumScoreRing(score,70.dp)
   }
  }
 }
 
 @Composable
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
- val animated by animateFloatAsState(targetValue=(value ?: 5).toFloat(),animationSpec=tween(230),label="score")
- Card(shape=RoundedCornerShape(22.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF171C32)),
-  modifier=Modifier.fillMaxWidth()) {
-  Column(Modifier.padding(horizontal=18.dp,vertical=20.dp)) {
-   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=18.sp)
-   Spacer(Modifier.height(13.dp))
-   Box(Modifier.fillMaxWidth().background(Color(0xFF252A3F),RoundedCornerShape(18.dp)).padding(18.dp),
-    contentAlignment=Alignment.Center) {
-    Column(horizontalAlignment=Alignment.CenterHorizontally) {
-     Text(if(value==null) "– / 10" else "${animated.toInt()}/10",
-      color=Color.White,fontSize=34.sp,fontWeight=FontWeight.Black)
-     Spacer(Modifier.height(10.dp))
-     Text(if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
-       else criterionDescription(label,value),
-      color=Color(0xFFE1DDED),fontSize=14.sp,lineHeight=21.sp,textAlign=TextAlign.Center)
+ val mcu=LocalMcuCollectionTheme.current
+ val dc=LocalDcCollectionTheme.current
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
+ // Read the latest callback during an ongoing gesture; do not restart the
+ // pointer input handler every time a rating changes.
+ val currentOnChange by rememberUpdatedState(onChange)
+ Card(shape=RoundedCornerShape(18.dp),
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else if(dc) Color(0xFF102E58) else Color(0xFF171C32)),
+  modifier=Modifier.fillMaxWidth().then(
+   if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(18.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent.copy(alpha=0.8f),RoundedCornerShape(18.dp))
+   else Modifier
+  )) {
+  Column(Modifier.padding(horizontal=12.dp,vertical=12.dp)) {
+   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)
+   Spacer(Modifier.height(6.dp))
+   Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top,
+    horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+     ScoriumScoreRing(value?.times(10),60.dp,wholeNumber=true)
+     Text(
+      if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
+      else criterionDescription(label,value),
+      color=Color(0xFFE1DDED),fontSize=12.5.sp,lineHeight=17.sp,
+      fontStyle=FontStyle.Italic,textAlign=TextAlign.Start,
+      modifier=Modifier.fillMaxWidth()
+     )
     }
-   }
-   Spacer(Modifier.height(13.dp))
-   var dragging by remember { mutableStateOf<Float?>(null) }
-   Slider(value=dragging ?: (value ?: 5).toFloat(),onValueChange={ next ->
-     dragging=next
-     onChange(kotlin.math.round(next).toInt().coerceIn(1,10))
-    },onValueChangeFinished={ dragging=null },
-    valueRange=1f..10f,steps=0,
-    colors=SliderDefaults.colors(thumbColor=gold,activeTrackColor=gold,
-     inactiveTrackColor=Color(0xFF42445A)))
-   Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween) {
-    Text("1",color=fog,fontSize=12.sp)
-    Text("5",color=fog,fontSize=12.sp)
-    Text("10",color=fog,fontSize=12.sp)
+    Column(horizontalAlignment=Alignment.CenterHorizontally) {
+     Text("10",color=fog,fontSize=10.sp)
+     val height=206.dp
+     val gap=3.dp
+     Box(
+      Modifier.width(64.dp).height(height).pointerInput(label) {
+       // Claim gestures beginning on the scale so the page never scrolls
+       // instead of changing the score. Taps and sliding both work.
+       awaitEachGesture {
+        val down=awaitFirstDown(requireUnconsumed=false)
+        var lastScore:Int?=null
+        val segmentStep=(size.height.toFloat()+gap.toPx())/10f
+        fun choose(y:Float) {
+         val index=(y.coerceIn(0f,size.height.toFloat())/segmentStep).toInt().coerceIn(0,9)
+         val score=10-index
+         if(score!=lastScore) {
+          lastScore=score
+          currentOnChange(score)
+         }
+        }
+        down.consume()
+        choose(down.position.y)
+        while(true) {
+         val event=awaitPointerEvent()
+         val change=event.changes.firstOrNull { it.id==down.id }
+         if(change==null || !change.pressed) {
+          change?.consume()
+          break
+         }
+         change.consume()
+         choose(change.position.y)
+        }
+       }
+      },
+      contentAlignment=Alignment.Center
+     ) {
+      Column(Modifier.fillMaxHeight().width(44.dp),
+       verticalArrangement=Arrangement.spacedBy(gap)) {
+       (10 downTo 1).forEach { n ->
+        val segmentColor=when(n) {
+         in 1..4 -> Color(0xFFED173B)
+         5 -> Color(0xFFFF6538)
+         6 -> Color(0xFFFF9828)
+         7 -> Color(0xFFFFD633)
+         8 -> Color(0xFF5DE348)
+         9 -> Color(0xFF13C74D)
+         else -> Color(0xFF007E32)
+        }
+        Box(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(5.dp))
+         .background(segmentColor.copy(alpha=if(value!=null && n<=value) 1f else 0.25f))
+         .border(if(value==n) 2.dp else 0.dp,Color.White,RoundedCornerShape(5.dp)))
+       }
+      }
+     }
+     Text("1",color=fog,fontSize=10.sp)
+    }
    }
   }
  }
-
 }
 
 @Composable
-fun ScoriumDetailHero(title:String,kind:String,revision:Int=0) {
+fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
+ val mcu=LocalMcuCollectionTheme.current
+ val dc=LocalDcCollectionTheme.current
+ val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
  Card(shape=RoundedCornerShape(24.dp),
-  colors=CardDefaults.cardColors(containerColor=Color(0xFF19243A)),
-  modifier=Modifier.fillMaxWidth()) {
-  Row(Modifier.fillMaxWidth().padding(16.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(title,Modifier.size(width=112.dp,height=154.dp),revision)
-   Spacer(Modifier.width(17.dp))
+  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else if(dc) Color(0xFF102E58) else Color(0xFF19243A)),
+  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent, RoundedCornerShape(24.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent,RoundedCornerShape(24.dp)) else Modifier)) {
+  Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(title,Modifier.size(width=98.dp,height=134.dp),revision)
+   Spacer(Modifier.width(12.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),color=gold,fontSize=11.sp,letterSpacing=1.5.sp)
+    Text(kind.uppercase(),color=accent,fontSize=11.sp,letterSpacing=1.5.sp)
     Spacer(Modifier.height(8.dp))
-    Text(title,color=Color.White,fontSize=22.sp,fontWeight=FontWeight.Black,
+    Text(title,color=Color.White,fontSize=21.sp,fontWeight=FontWeight.Black,
      maxLines=4,overflow=TextOverflow.Ellipsis)
-    Spacer(Modifier.height(8.dp))
-    Text("DEIN PERSÖNLICHES ARCHIV",color=fog,fontSize=10.sp)
+    ReleaseYears.label(title)?.let { years -> Spacer(Modifier.height(5.dp)); Text(years,color=fog,fontSize=12.sp,fontStyle=FontStyle.Italic) }
    }
+   ScoriumScoreRing(score,76.dp)
   }
  }
 }
@@ -210,11 +336,11 @@ fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
 }
 
 @Composable
-fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0) {
+fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0,onPosterBounds:((androidx.compose.ui.geometry.Rect)->Unit)?=null) {
  Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
   Column(Modifier.padding(10.dp)) {
    Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).clickable(onClick=onClick),revision,isCollection=true)
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),revision,isCollection=true)
     Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
    }
    Spacer(Modifier.height(10.dp))

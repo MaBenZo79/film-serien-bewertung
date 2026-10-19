@@ -45,5 +45,25 @@ object McuCatalog {
   ShowInfo("MARVEL's Punisher",listOf(13,13)),
   ShowInfo("X-MEN 97",listOf(10,9))
  )
+
+ // Phase membership is defined locally; no external API or poster downloads.
+ private val phaseFilms = mapOf(
+  1 to films.subList(0,6),
+  2 to films.subList(6,12),
+  3 to films.subList(12,23),
+  4 to listOf("Black Widow","Shang-Chi and the Legend of the Ten Rings","Eternals","Spider-Man: No Way Home","Doctor Strange in the Multiverse of Madness","Thor: Love and Thunder","Black Panther: Wakanda Forever"),
+  5 to listOf("Ant-Man and the Wasp: Quantumania","Guardians of the Galaxy Vol. 3","The Marvels","Deadpool & Wolverine","Captain America: Brave New World","Thunderbolts*"),
+  6 to listOf("The Fantastic Four: First Steps","Spider-Man: Brand New Day")
+ )
+ private val phaseShows = mapOf(
+  4 to listOf("WandaVision","The Falcon and the Winter Soldier","Loki","What If...?","Hawkeye","Moon Knight","Ms. Marvel","I Am Groot","She-Hulk"),
+  5 to listOf("Secret Invasion","Echo","Agatha All Along","Daredevil: Born Again","Ironheart"),
+  6 to listOf("Wonder Man","VisionQuest")
+ )
+ fun inPhase(title:String, phase:String):Boolean {
+  if(phase=="Komplett") return title in films || title in (shows+importedShows).map { it.title }
+  val number=phase.removePrefix("Phase ").toIntOrNull() ?: return false
+  return title in phaseFilms[number].orEmpty() || title in phaseShows[number].orEmpty()
+ }
  fun find(title:String)=(shows+importedShows).firstOrNull { it.title==title }
 }
