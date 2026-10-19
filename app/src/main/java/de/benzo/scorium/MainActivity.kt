@@ -419,7 +419,7 @@ class MainActivity: ComponentActivity() {
         }
         Row(verticalAlignment=Alignment.CenterVertically) {
          Box(Modifier.weight(1f)) {
-          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,null,onClick={
+          ScoriumTitleCard(name,(if(isShow) "Serie" else "Film") + (ReleaseYears.label(name)?.let { " · $it" } ?: ""),value,null,onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           },revision=refresh)
          }
@@ -492,6 +492,8 @@ class MainActivity: ComponentActivity() {
         val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
+      ReleaseYears.label(selected!!)?.let { Text((if(isSeries) "Laufzeit " else "Erscheinung ") + it.removePrefix("(").removeSuffix(")"),color=scopedAccent,fontSize=15.sp) }
+      if(isSeries && selectedSeason>0) ReleaseYears.seasonLabel(selected!!,selectedSeason)?.let { Text("Staffel $selectedSeason · $it",color=scopedAccent,fontSize=15.sp) }
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
        if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series && selected!! !in StarWarsCatalog.films && selected!! !in StarWarsCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
