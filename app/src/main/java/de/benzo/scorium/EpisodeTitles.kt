@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Star Wars: The Clone Wars" to 1) to listOf("Ambush","Rising Malevolence","Shadow of Malevolence","Destroy Malevolence","Rookies","Downfall of a Droid","Duel of the Droids","Bombad Jedi","Cloak of Darkness","Lair of Grievous","Dooku Captured","The Gungan General","Jedi Crash","Defenders of Peace","Trespass","The Hidden Enemy","Blue Shadow Virus","Mystery of a Thousand Moons","Storm Over Ryloth","Innocents of Ryloth","Liberty on Ryloth","Hostage Crisis"),
+  ("Star Wars: The Clone Wars" to 2) to listOf("Holocron Heist","Cargo of Doom","Children of the Force","Senate Spy","Landing at Point Rain","Weapons Factory","Legacy of Terror","Brain Invaders","Grievous Intrigue","The Deserter","Lightsaber Lost","The Mandalore Plot","Voyage of Temptation","Duchess of Mandalore","Senate Murders","Cat and Mouse","Bounty Hunters","The Zillo Beast","The Zillo Beast Strikes Back","Death Trap","R2 Come Home","Lethal Trackdown"),
+
   ("The Bad Batch" to 1) to listOf("Aftermath","Cut and Run","Replacements","Cornered","Rampage","Decommissioned","Battle Scars","Reunion","Bounty Lost","Common Ground","Devil's Deal","Rescue on Ryloth","Infested","War-Mantle","Return to Kamino","Kamino Lost"),
   ("The Bad Batch" to 2) to listOf("Spoils of War","Ruins of War","The Solitary Clone","Faster","Entombed","Tribe","The Clone Conspiracy","Truth and Consequences","The Crossing","Retrieval","Metamorphosis","The Outpost","Pabu","Tipping Point","The Summit","Plan 99"),
   ("The Bad Batch" to 3) to listOf("Confined","Paths Unknown","Shadows of Tantiss","A Different Approach","The Return","Infiltration","Extraction","Bad Territory","The Harbinger","Identity Crisis","Point of No Return","Juggernaut","Into the Breach","Flash Strike","The Cavalry Has Arrived"),
