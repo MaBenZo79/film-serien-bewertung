@@ -29,7 +29,7 @@ fun StarWarsCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onS
   Spacer(Modifier.height(22.dp))
   Image(painter=painterResource(R.drawable.scorium_star_wars_logo),contentDescription="STAR WARS",contentScale=ContentScale.Fit,modifier=Modifier.fillMaxWidth().height(120.dp))
   Spacer(Modifier.height(26.dp))
-  listOf("Komplett","Filme","Serien").chunked(2).forEach { pair ->
+  listOf("Komplett","Original Trilogie","Prequel Trilogie","Sequel Trilogie","Zusatz Filme").chunked(2).forEach { pair ->
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
     pair.forEach { section ->
      Column(Modifier.weight(1f)) {
