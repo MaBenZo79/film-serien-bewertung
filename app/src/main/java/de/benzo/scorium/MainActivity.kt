@@ -450,8 +450,9 @@ class MainActivity: ComponentActivity() {
          Spacer(Modifier.width(8.dp))
         } }
        }
-      },confirmButton={TextButton(onClick={if(newTitle.isNotBlank()){
+      },confirmButton={TextButton(onClick={if(newTitle.isNotBlank() && (activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN)){
        val name=newTitle.trim()
+       if(name !in films && name !in series && name !in DcCatalog.films && name !in DcCatalog.series) {
        if(newKind=="Serie"){
         if(name !in customSeries && name !in series) customSeries.add(name)
         val data=JSONArray();customSeries.forEach { data.put(it) }
@@ -462,6 +463,7 @@ class MainActivity: ComponentActivity() {
         prefs.edit().putString("custom_titles",data.toString()).apply()
        }
        if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       }
        newTitle=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
@@ -486,9 +488,9 @@ class MainActivity: ComponentActivity() {
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-       PosterPicker(selected!!) { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
-       if(selected!! in extras || selected!! in customSeries) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if((selected!! in extras || selected!! in customSeries) && (BuildConfig.SCORIUM_ADMIN || activeCustomCollection!=null)) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
        if(!isSeries) {
         val value=savedPercent(prefs,selected!!,categories)
         if(value!=null) {
@@ -503,11 +505,11 @@ class MainActivity: ComponentActivity() {
        Spacer(Modifier.height(8.dp))
        Text("Staffel $selectedSeason · Eigenes Bild",color=scopedAccent)
        ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
-       PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
+       if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason") { refresh++ }
        if(selectedEpisode>0) {
         Text("Episode $selectedEpisode · Staffelposter",color=scopedAccent)
         ScoriumPoster("$seriesKey::season:$selectedSeason",Modifier.width(112.dp).height(154.dp),refresh)
-        PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
+        if(BuildConfig.SCORIUM_ADMIN || (seriesKey !in series && seriesKey !in DcCatalog.series)) PosterPicker("$seriesKey::season:$selectedSeason:episode:$selectedEpisode") { refresh++ }
        }
       }
       Spacer(Modifier.height(8.dp))
@@ -644,6 +646,7 @@ class MainActivity: ComponentActivity() {
        val current=runCatching { JSONArray(prefs.getString(key,"[]")) }.getOrDefault(JSONArray())
        val result=JSONArray()
        for(i in 0 until current.length()) if(current.optString(i)!=target) result.put(current.optString(i))
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!).filter { it!=target })
        val editor=prefs.edit().putString(key,result.toString())
        prefs.all.keys.filter { it==target || it.startsWith("$target::") || it.startsWith("seasons::$target") || it.startsWith("episodes::$target") }.forEach { editor.remove(it) }
        editor.apply();selected=null;pendingDelete=null;refresh++
