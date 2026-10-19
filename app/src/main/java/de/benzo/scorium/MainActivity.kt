@@ -258,6 +258,7 @@ class MainActivity: ComponentActivity() {
    }
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
    val activeDcTheme = dcCollectionRoute && !home && !openingDc
+    val activeStarWarsTheme = starWarsCollectionRoute && !home && !openingStarWars
    val scopedAccent = if(activeStarWarsTheme) Color(0xFFD7AB48) else if(activeDcTheme) Color(0xFF438FEA) else gold
     val scopedPalette = if(activeStarWarsTheme) darkColorScheme(primary=Color(0xFFD7AB48),background=Color(0xFF04060D),surface=Color(0xFF182033),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.Black) else if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
    CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme, LocalStarWarsCollectionTheme provides activeStarWarsTheme) {
