@@ -249,24 +249,24 @@ class MainActivity: ComponentActivity() {
     )
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).padding(horizontal=18.dp)) {
+    ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
      if(mcuHub || dcHub) {
       Spacer(Modifier.fillMaxSize())
      } else if(home) {
-      ScoriumHeader()
+      Box(Modifier.padding(horizontal=18.dp)) { ScoriumHeader() }
       Spacer(Modifier.height(12.dp))
       val imageRevision=refresh
       val homeScroll=rememberScrollState()
       Column(Modifier.weight(1f).graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.verticalScroll(homeScroll)) {
-       Text("Dein Universum",fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
+       Text("Dein Universum",modifier=Modifier.padding(horizontal=18.dp),fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
+       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
        Spacer(Modifier.height(22.dp))
-       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
+       Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
-       Row(Modifier.offset(x=(-18).dp).width(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
@@ -276,14 +276,14 @@ class MainActivity: ComponentActivity() {
         ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
        }
        Spacer(Modifier.height(26.dp))
-       Text("Zuletzt angesehen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
+       Text("Zuletzt angesehen",modifier=Modifier.padding(horizontal=18.dp),fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(12.dp))
        val recent=remember(refresh) {
         val stored=runCatching { JSONArray(prefs.getString("recent_titles","[]")) }.getOrDefault(JSONArray())
         (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }
        }
-       if(recent.isEmpty()) Text("Hier erscheinen die Filme und Serien, die du öffnest.",color=Color(0xFFB5B7CD))
-       Row(Modifier.offset(x=(-18).dp).width(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       if(recent.isEmpty()) Text("Hier erscheinen die Filme und Serien, die du öffnest.",modifier=Modifier.padding(horizontal=18.dp),color=Color(0xFFB5B7CD))
+       Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
          Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++;home=false }) {
           ScoriumPoster(name,Modifier.width(128.dp).height(175.dp),refresh)
@@ -293,18 +293,18 @@ class MainActivity: ComponentActivity() {
         }
        }
        Spacer(Modifier.height(24.dp))
-       Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       Row(Modifier.padding(horizontal=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         OutlinedButton(onClick={home=false;section="Ranking"}) { Text("Ranking") }
         OutlinedButton(onClick={home=false;section="Download"}) { Text("Downloads") }
        }
        Spacer(Modifier.height(18.dp))
-       Text("Datensicherung",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
-       Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
+       Text("Datensicherung",modifier=Modifier.padding(horizontal=18.dp),color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
+       Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
         SmallIconAction(Icons.Default.Save,"Komplettsicherung exportieren") { pendingAction="export_full" }
         SmallIconAction(Icons.Default.CloudDownload,"Änderungen exportieren") { pendingAction="export_delta" }
         SmallIconAction(Icons.Default.FileUpload,"Sicherung importieren") { pendingAction="import" }
        }
-       Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",color=Color.LightGray,fontSize=12.sp)
+       Text("Exportiert werden Katalog und Poster, keine persönlichen Bewertungen.",modifier=Modifier.padding(horizontal=18.dp),color=Color.LightGray,fontSize=12.sp)
        Spacer(Modifier.height(28.dp))
       }
      } else if(selected==null) {
