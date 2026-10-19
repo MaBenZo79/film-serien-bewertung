@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Stargirl" to 1) to listOf("Pilot","S.T.R.I.P.E.","Icicle","Wildcat","Hourman and Dr. Mid-Nite","The Justice Society","Shiv Part One","Shiv Part Two","Brainwave","Brainwave Jr.","Shining Knight","Stars & S.T.R.I.P.E. Part One","Stars & S.T.R.I.P.E. Part Two"),
+  ("Stargirl" to 2) to listOf("Summer School: Chapter One","Summer School: Chapter Two","Summer School: Chapter Three","Summer School: Chapter Four","Summer School: Chapter Five","Summer School: Chapter Six","Summer School: Chapter Seven","Summer School: Chapter Eight","Summer School: Chapter Nine","Summer School: Chapter Ten","Summer School: Chapter Eleven","Summer School: Chapter Twelve","Summer School: Chapter Thirteen"),
+  ("Stargirl" to 3) to listOf("Frenemies: Chapter One – The Murder","Frenemies: Chapter Two – The Suspects","Frenemies: Chapter Three – The Blackmail","Frenemies: Chapter Four – The Evidence","Frenemies: Chapter Five – The Thief","Frenemies: Chapter Six – The Betrayal","Frenemies: Chapter Seven – Infinity Inc. Part One","Frenemies: Chapter Eight – Infinity Inc. Part Two","Frenemies: Chapter Nine – The Monsters","Frenemies: Chapter Ten – The Killer","Frenemies: Chapter Eleven – The Haunting","Frenemies: Chapter Twelve – The Last Will and Testament of Sylvester Pemberton","Frenemies: Chapter Thirteen – The Reckoning"),
+
   ("The Penguin" to 1) to listOf("After Hours","Inside Man","Bliss","Cent'Anni","Homecoming","Gold Summit","Top Hat","A Great or Little Thing"),
   ("Watchmen" to 1) to listOf("It's Summer and We're Running Out of Ice","Martial Feats of Comanche Horsemanship","She Was Killed by Space Junk","If You Don't Like My Story, Write Your Own","Little Fear of Lightning","This Extraordinary Being","An Almost Religious Awe","A God Walks into Abar","See How They Fly"),
   ("Swamp Thing" to 1) to listOf("Pilot","Worlds Apart","He Speaks","Darkness on the Edge of Town","Drive All Night","The Price You Pay","Brilliant Disguise","Long Walk Home","The Anatomy Lesson","Loose Ends"),
