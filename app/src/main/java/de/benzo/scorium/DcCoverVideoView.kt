@@ -42,7 +42,7 @@ class DcCoverVideoView(
         val media = MediaPlayer()
         player = media
         try {
-            media.setDataSource(context, Uri.parse("android.resource://${context.packageName}/${$videoResource}"))
+            media.setDataSource(context, Uri.parse("android.resource://${context.packageName}/${videoResource}"))
             val renderSurface = Surface(surfaceTexture)
             playbackSurface = renderSurface
             media.setSurface(renderSurface)
