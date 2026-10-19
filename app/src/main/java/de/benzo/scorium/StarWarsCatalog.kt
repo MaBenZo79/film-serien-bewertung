@@ -14,7 +14,8 @@ object StarWarsCatalog {
   "Star Wars: Episode IX – Der Aufstieg Skywalkers",
   "Rogue One: A Star Wars Story",
   "Solo: A Star Wars Story",
-  "Star Wars: The Clone Wars (Film)"
+  "Star Wars: The Clone Wars (Film)",
+  "The Mandalorian & Grogu"
  )
  val shows = listOf(
   ShowInfo("Star Wars: The Clone Wars",listOf(22,22,22,22,20,13,12)),
