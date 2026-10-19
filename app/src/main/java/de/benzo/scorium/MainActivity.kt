@@ -79,11 +79,11 @@ private fun savedPercent(prefs: android.content.SharedPreferences, key: String, 
  return kotlin.math.round(names.sumOf { json.optInt(it) }.toDouble() * 10 / names.size).toInt()
 }
 private fun episodeTotal(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
- val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.getOrNull(season-1)
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.getOrNull(season-1)
  return official ?: prefs.getInt("episodes::$name::$season",6).coerceAtLeast(1)
 }
 private fun seasonCountFor(prefs:android.content.SharedPreferences,name:String):Int {
- val official=(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size
+ val official=(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size
  return official ?: prefs.getInt("seasons::$name",1).coerceAtLeast(1)
 }
 private fun episodeProgress(prefs:android.content.SharedPreferences,name:String,season:Int):Int {
@@ -288,6 +288,7 @@ class MainActivity: ComponentActivity() {
          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
         }
         ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
+        ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
          customCollections.forEach { collection ->
           ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
          }
@@ -369,19 +370,19 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-       val sourceFilms=if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
-       val sourceSeries=if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
-       val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) }.sortedWith(compareBy<String> {
-        if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
+       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
+       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
+       val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) && (!starWarsCollectionRoute || StarWarsCatalog.inSection(it,starWarsSection)) }.sortedWith(compareBy<String> {
+        if(starWarsCollectionRoute) StarWarsCatalog.releaseRank(it) else if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
         val pos=saved.indexOf(it)
         if(pos>=0) pos else 100000+releaseRank(it)
        }
       }.thenBy { it })
-      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
+      val visibleEntries=if(editingOrder && !mcuCollectionRoute && !dcCollectionRoute && !starWarsCollectionRoute) pendingOrder.filter { it in entries }+entries.filter { it !in pendingOrder } else entries
       val revision=refresh
       if(activeCustomCollection!=null) Text(activeCustomCollection!!,color=Color.White,fontSize=23.sp,fontWeight=FontWeight.Bold)
-      if(!mcuCollectionRoute && !dcCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
+      if(!mcuCollectionRoute && !dcCollectionRoute && !starWarsCollectionRoute) Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=12.dp,end=8.dp),
        horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically) {
        if(editingOrder) {
         SmallIconAction(Icons.Default.Close,"Änderungen verwerfen") { editingOrder=false;pendingOrder.clear() }
@@ -407,7 +408,7 @@ class MainActivity: ComponentActivity() {
         val isShow=name in series || name in customSeries || name in DcCatalog.series
         val value=remember(name,refresh,isShow) {
          if(isShow) {
-          val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name))?.seasons?.size ?: 1)
+          val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size ?: 1)
           val scores=(1..count).mapNotNull { seasonScore(prefs,name,it) }
           if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
          } else savedPercent(prefs,name,categories)
@@ -469,7 +470,7 @@ class MainActivity: ComponentActivity() {
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
       }
      } else {
-      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series
+      val isSeries=selected!! in series || selected!! in customSeries || selected!! in DcCatalog.series || selected!! in StarWarsCatalog.series
       val seriesKey=selected!!
       LaunchedEffect(seriesKey) {
        seasonCount=seasonCountFor(prefs,seriesKey)
