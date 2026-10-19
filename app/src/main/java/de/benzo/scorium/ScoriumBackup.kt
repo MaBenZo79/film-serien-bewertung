@@ -116,8 +116,11 @@ object ScoriumBackup {
     (bytes[2].toInt() and 255) == 0xFF
    ) { "Ungültige Posterdatei: $name" }
   }
-  val editor=context.getSharedPreferences("ratings",Context.MODE_PRIVATE).edit().clear()
+  // Merge the portable catalog with existing local data. Never clear ratings,
+  // collection preferences, or the starter-catalog initialization marker.
+  val editor=context.getSharedPreferences("ratings",Context.MODE_PRIVATE).edit()
   data.keys().forEach { key ->
+   if (!isCatalogKey(key)) return@forEach
    when(val value=data.get(key)) {
     is String -> editor.putString(key,value)
     is Int -> editor.putInt(key,value)
