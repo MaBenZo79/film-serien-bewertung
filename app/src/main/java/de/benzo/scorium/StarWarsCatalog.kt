@@ -34,9 +34,11 @@ object StarWarsCatalog {
  )
  val series=shows.map { it.title }
  fun find(title:String)=shows.firstOrNull { it.title==title }
- fun inSection(title:String,section:String)=when(section) {
-  "Filme" -> title in films
-  "Serien" -> title in series
+ fun inSection(title:String,section:String):Boolean = when(section) {
+  "Original Trilogie" -> title in films.slice(3..5)
+  "Prequel Trilogie" -> title in films.slice(0..2)
+  "Sequel Trilogie" -> title in films.slice(6..8)
+  "Zusatz Filme" -> title in films.drop(9)
   else -> title in films || title in series
  }
  fun releaseRank(title:String)=(films+series).indexOf(title).let { if(it<0) Int.MAX_VALUE else it }
