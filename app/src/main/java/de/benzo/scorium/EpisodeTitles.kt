@@ -2,6 +2,9 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("DC’s Legends of Tomorrow" to 2) to listOf("Out of Time","The Justice Society of America","Shogun","Abominations","Compromised","Outlaw Country","Invasion!","The Chicago Way","Raiders of the Lost Art","The Legion of Doom","Turncoat","Camelot/3000","Land of the Lost","Moonshot","Fellowship of the Spear","Doomworld","Aruba"),
+  ("Arrow" to 3) to listOf("The Calm","Sara","Corto Maltese","The Magician","The Secret Origin of Felicity Smoak","Guilty","Draw Back Your Bow","The Brave and the Bold","The Climb","Left Behind","Midnight City","Uprising","Canaries","The Return","Nanda Parbat","The Offer","Suicidal Tendencies","Public Enemy","Broken Arrow","The Fallen","Al Sah-him","This Is Your Sword","My Name Is Oliver Queen"),
+
   ("Arrow" to 2) to listOf("City of Heroes","Identity","Broken Dolls","Crucible","League of Assassins","Keep Your Enemies Closer","State v. Queen","The Scientist","Three Ghosts","Blast Radius","Blind Spot","Tremors","Heir to the Demon","Time of Death","The Promise","Suicide Squad","Birds of Prey","Deathstroke","The Man Under the Hood","Seeing Red","City of Blood","Streets of Fire","Unthinkable"),
   ("Supergirl" to 2) to listOf("The Adventures of Supergirl","The Last Children of Krypton","Welcome to Earth","Survivors","Crossfire","Changing","The Darkest Place","Medusa","Supergirl Lives","We Can Be Heroes","The Martian Chronicles","Luthors","Mr. & Mrs. Mxyzptlk","Homecoming","Exodus","Star-Crossed","Distant Sun","Ace Reporter","Alex","City of Lost Children","Resist","Nevertheless, She Persisted"),
 
