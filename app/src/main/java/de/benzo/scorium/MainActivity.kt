@@ -283,7 +283,7 @@ class MainActivity: ComponentActivity() {
         (0 until stored.length()).map { stored.optString(it) }.filter { it.isNotBlank() }
        }
        if(recent.isEmpty()) Text("Hier erscheinen die Filme und Serien, die du öffnest.",color=Color(0xFFB5B7CD))
-       Row(Modifier.horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+       Row(Modifier.offset(x=(-18).dp).width(androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         recent.forEach { name ->
          Column(Modifier.width(128.dp).clickable { selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++;home=false }) {
           ScoriumPoster(name,Modifier.width(128.dp).height(175.dp),refresh)
