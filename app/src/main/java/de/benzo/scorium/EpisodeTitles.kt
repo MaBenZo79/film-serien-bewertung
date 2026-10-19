@@ -409,5 +409,5 @@ object EpisodeTitles {
   )
  )
  fun title(series: String, season: Int, episode: Int): String? =
-  known[series to season]?.getOrNull(episode - 1)
+  known[(if (series == "Supergirl (2015)") "Supergirl" else series) to season]?.getOrNull(episode - 1)
 }
