@@ -201,6 +201,7 @@ class MainActivity: ComponentActivity() {
    val pendingOrder=remember { mutableStateListOf<String>() }
    var orderRevision by remember { mutableIntStateOf(0) }
    var newTitle by remember { mutableStateOf("") }
+   var newYear by remember { mutableStateOf("") }
    var newKind by remember { mutableStateOf("Film") }
    var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
    var exportError by remember { mutableStateOf<String?>(null) }
@@ -402,7 +403,7 @@ class MainActivity: ComponentActivity() {
          editingOrder=true
         }
         Spacer(Modifier.width(8.dp))
-        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true;newTitle="" }
+        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true;newTitle="";newYear="" }
        }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
@@ -417,7 +418,7 @@ class MainActivity: ComponentActivity() {
         }
         Row(verticalAlignment=Alignment.CenterVertically) {
          Box(Modifier.weight(1f)) {
-          ScoriumTitleCard(name,(if(isShow) "Serie" else "Film") + (ReleaseYears.label(name)?.let { " · $it" } ?: ""),value,null,onClick={
+          ScoriumTitleCard(name,(if(isShow) "Serie" else "Film") + ((prefs.getString("custom_year::$name",null)?.let { "($it)" } ?: ReleaseYears.label(name))?.let { " · $it" } ?: ""),value,null,onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           },revision=refresh)
          }
@@ -458,6 +459,7 @@ class MainActivity: ComponentActivity() {
           }) { Text("+ "+match) }
          }
         }
+        OutlinedTextField(newYear,{newYear=it.filter(Char::isDigit).take(4)},label={Text("Erscheinungsjahr (bei neuen Titeln)")})
         Row { listOf("Film","Serie").forEach { type ->
          FilterChip(selected=newKind==type,onClick={newKind=type},label={Text(type)})
          Spacer(Modifier.width(8.dp))
@@ -475,9 +477,10 @@ class MainActivity: ComponentActivity() {
         val data=JSONArray();extras.forEach { data.put(it) }
         prefs.edit().putString("custom_titles",data.toString()).apply()
        }
-       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       if(newYear.length==4) prefs.edit().putString("custom_year::$name",newYear).apply()
        }
-       newTitle=""
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       newTitle="";newYear=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
       }
