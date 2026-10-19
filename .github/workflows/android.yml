@@ -43,22 +43,22 @@ jobs:
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_header.png app/src/main/res/drawable-nodpi/scorium_header.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_poster.png app/src/main/res/drawable-nodpi/scorium_poster.png
           cp /tmp/scorium-artwork/app/src/main/res/drawable-nodpi/scorium_collection.png app/src/main/res/drawable-nodpi/scorium_collection.png
-          for n in 1 2; do
-            test -s "Scorium-Poster-Teil-${n}.zip"
-            unzip -q -o "Scorium-Poster-Teil-${n}.zip" -d app/src/main/assets/starter
+          # The five full backup parts supersede the previous poster archives.
+          for n in 001 002 003 004 005; do
+            test -s "SCORIUM-Backup-Teil-${n}.zip"
+            unzip -q -o "SCORIUM-Backup-Teil-${n}.zip" -d app/src/main/assets/starter
           done
-          cp app/src/main/assets/starter/scorium-data.json /tmp/scorium-personal-data.json
-          rm app/src/main/assets/starter/scorium-data.json
-          test "$(find app/src/main/assets/starter/posters -name '*.jpg' | wc -l)" -eq 115
+          test "$(find app/src/main/assets/starter/posters -name '*.jpg' | wc -l)" -eq 273
           python3 - <<'PY'
           import json
-          with open('/tmp/scorium-personal-data.json',encoding='utf-8') as f:
-              source=json.load(f)
+          from pathlib import Path
+          source_path=Path('app/src/main/assets/starter/scorium-data.json')
+          source=json.loads(source_path.read_text(encoding='utf-8'))
           allowed=lambda k: k in ('custom_titles','custom_series') or k.startswith(('seasons::','episodes::'))
           public={k:v for k,v in source.items() if allowed(k)}
-          with open('app/src/main/assets/starter/catalog.json','w',encoding='utf-8') as f:
-              json.dump(public,f,ensure_ascii=False)
-          print('Bundled',len(public),'catalog keys and',__import__('glob').glob('app/src/main/assets/starter/posters/*.jpg').__len__(),'posters; ratings excluded')
+          Path('app/src/main/assets/starter/catalog.json').write_text(json.dumps(public,ensure_ascii=False),encoding='utf-8')
+          source_path.unlink()
+          print('Bundled',len(public),'catalog keys and 273 posters; no personal ratings')
           PY
           test -s app/src/main/res/drawable-nodpi/scorium_header.png
           test -s app/src/main/assets/starter/catalog.json
