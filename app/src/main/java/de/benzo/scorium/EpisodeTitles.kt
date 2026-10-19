@@ -2,6 +2,8 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Lanterns" to 1) to listOf("Pilot","Trust Fall","OutKast","The Weenie","Lights Out","Bad Optics","The Jordan Boys' Legacy","Dirt and Stars"),
+
   ("DC’s Legends of Tomorrow" to 3) to listOf("Aruba-Con","Freakshow","Zari","Phone Home","Return of the Mack","Helen Hunt","Welcome to the Jungle","Crisis on Earth-X, Part 4","Beebo the God of War","Daddy Darhkest","Here I Go Again","The Curse of the Earth Totem","No Country for Old Dads","Amazing Grace","Necromancing the Stone","I, Ava","Guest Starring John Noble","The Good, the Bad and the Cuddly"),
 
   ("The Sandman" to 2) to listOf("Season of Mists","The Ruler of Hell","More Devils Than Vast Hell Can Hold","Brief Lives","The Song of Orpheus","Family Blood","Time and Night","Fuel for the Fire","The Kindly Ones","Long Live the King","A Tale of Graceful Ends","Death: The High Cost of Living"),
