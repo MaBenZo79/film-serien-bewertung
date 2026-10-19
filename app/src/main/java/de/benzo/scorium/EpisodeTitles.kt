@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Gotham" to 1) to listOf("Pilot","Selina Kyle","The Balloonman","Arkham","Viper","Spirit of the Goat","Penguin's Umbrella","The Mask","Harvey Dent","Lovecraft","Rogues' Gallery","What the Little Bird Told Him","Welcome Back, Jim Gordon","The Fearsome Dr. Crane","The Scarecrow","The Blind Fortune Teller","Red Hood","Everyone Has a Cobblepot","Beasts of Prey","Under the Knife","The Anvil or the Hammer","All Happy Families Are Alike"),
+  ("Gotham" to 2) to listOf("Damned If You Do...","Knock, Knock","The Last Laugh","Strike Force","Scarification","By Fire","Mommy's Little Monster","Tonight's the Night","A Bitter Pill to Swallow","The Son of Gotham","Worse Than a Crime","Mr. Freeze","A Dead Man Feels No Cold","This Ball of Mud and Meanness","Mad Grey Dawn","Prisoners","Into the Woods","Pinewood","Azrael","Unleashed","A Legion of Horribles","Transference"),
+  ("Gotham" to 3) to listOf("Better to Reign in Hell...","Burn the Witch","Look Into My Eyes","New Day Rising","Anything for You","Follow the White Rabbit","Red Queen","Blood Rush","The Executioner","Time Bomb","Beware the Green-Eyed Monster","Ghosts","Smile Like You Mean It","The Gentle Art of Making Enemies","How the Riddler Got His Name","These Delicate and Dark Obsessions","The Primal Riddle","Light the Wick","All Will Be Judged","Pretty Hate Machine","Destiny Calling","Heavydirtysoul"),
+
   ("Smallville" to 10) to listOf("Lazarus","Shield","Supergirl","Homecoming","Isis","Harvest","Ambush","Abandoned","Patriot","Luthor","Icarus","Collateral","Beacon","Masquerade","Fortune","Scion","Kent","Booster","Dominion","Prophecy","Finale (1)","Finale (2)"),
 
   ("Smallville" to 6) to listOf("Zod","Sneeze","Wither","Arrow","Reunion","Fallout","Rage","Static","Subterranean","Hydro","Justice","Labyrinth","Crimson","Trespass","Freak","Promise","Combat","Progeny","Nemesis","Noir","Prototype","Phantom"),
