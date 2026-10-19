@@ -26,6 +26,8 @@ import kotlinx.coroutines.delay
 fun ScoriumStartupVideo(resourceId: Int, onEnter: () -> Unit) {
  val context = LocalContext.current
  val fade = remember { Animatable(1f) }
+ val entrance = remember { Animatable(0f) }
+ LaunchedEffect(Unit) { entrance.animateTo(1f, tween(900)) }
  val finished = remember { androidx.compose.runtime.mutableStateOf(false) }
  LaunchedEffect(finished.value) {
   if(finished.value) {
@@ -33,7 +35,7 @@ fun ScoriumStartupVideo(resourceId: Int, onEnter: () -> Unit) {
    onEnter()
   }
  }
- Box(Modifier.fillMaxSize().background(Color.Black).graphicsLayer { alpha = fade.value }) {
+ Box(Modifier.fillMaxSize().background(Color.Black).graphicsLayer { alpha = fade.value * entrance.value }) {
   AndroidView(factory = { ctx ->
    TextureView(ctx).apply {
     surfaceTextureListener = object : TextureView.SurfaceTextureListener {
