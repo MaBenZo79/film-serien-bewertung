@@ -2,6 +2,8 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("The Sandman" to 1) to listOf("Sleep of the Just","Imperfect Hosts","Dream a Little Dream of Me","A Hope in Hell","24/7","The Sound of Her Wings","The Doll's House","Playing House","Collectors","Lost Hearts","Dream of a Thousand Cats / Calliope"),
+
   ("DC’s Legends of Tomorrow" to 5) to listOf("Crisis on Infinite Earths: Part Five","Meet the Legends","Miss Me, Kiss Me, Love Me","Slay Anything","A Head of Her Time","Mortal Khanbat","Mr. Parker's Cul-De-Sac","Romeo v Juliet: Dawn of Justness","Zari, Not Zari","The Great British Fake Off","Ship Broken","Freaks and Greeks","I Am Legends","The One Where We're Trapped on TV","Swan Thong"),
   ("DC’s Legends of Tomorrow" to 6) to listOf("Ground Control to Sara Lance","Meat: The Legends","The Ex-Factor","Bay of Squids","The Satanist's Apprentice","Bishop's Gambit","Back to the Finale: Part II","Stressed Western","This Is Gus","Bad Blood","The Final Frame","Bored on Board Onboard","Silence of the Sonograms","There Will Be Brood","The Fungus Amongus"),
   ("DC’s Legends of Tomorrow" to 7) to listOf("The Bullet Blondes","The Need for Speed","wvrdr_error_100 not found","Speakeasy Does It","It's a Mad, Mad, Mad, Mad Scientist","Deus Ex Latrina","A Woman's Place Is in the War Effort!","Paranoid Android","Lowest Common Demoninator","The Fixed Point","Rage Against the Machines","Too Legit to Quit","Knocked Down, Knocked Up"),
