@@ -2,6 +2,11 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Titans" to 1) to listOf("Titans","Hawk and Dove","Origins","Doom Patrol","Together","Jason Todd","Asylum","Donna Troy","Hank and Dawn","Koriand'r","Dick Grayson"),
+  ("Titans" to 2) to listOf("Trigon","Rose","Ghosts","Aqualad","Deathstroke","Conner","Bruce Wayne","Jericho","Atonement","Fallen","E.L._.O.","Faux-Hawk","Nightwing"),
+  ("Titans" to 3) to listOf("Barbara Gordon","Red Hood","Hank & Dove","Blackfire","Lazarus","Lady Vic","51%","Home","Souls","Troubled Water","The Call Is Coming from Inside the House","Prodigal","Purple Rain"),
+  ("Titans" to 4) to listOf("Lex Luthor","Mother Mayhem","Jinx","Super Super Mart","Inside Man","Brother Blood","Caul's Folly","Dick & Carol & Ted & Kory","Dude, Where's My Gar?","Game Over","Project Starfire","Titans Forever"),
+
   ("Batwoman" to 2) to listOf("What Happened to Kate Kane?","Prior Criminal History","Bat Girl Magic!","Fair Skin, Blue Eyes","Gore on Canvas","Do Not Resuscitate","It's Best You Stop Digging","Survived Much Worse","Rule #1","Time Off for Good Behavior","Arrive Alive","Initiate Self-Destruct","I'll Give You a Clue","And Justice for All","Armed and Dangerous","Rebirth","Kane, Kate","Power"),
   ("Batwoman" to 3) to listOf("Mad as a Hatter","Loose Tooth","Freeze","Antifreeze","A Lesson from Professor Pyg","How Does Your Garden Grow?","Pick Your Poison","Trust Destiny","Meet Your Maker","Toxic","Broken Toys","We're All Mad Here","We Having Fun Yet?"),
 
