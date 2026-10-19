@@ -19,6 +19,7 @@ object StarWarsCatalog {
  )
  val shows = listOf(
   ShowInfo("Star Wars: The Clone Wars",listOf(22,22,22,22,20,13,12)),
+  ShowInfo("Star Wars: Clone Wars (2003)",listOf(10,10,5)),
   ShowInfo("Star Wars Rebels",listOf(15,22,22,16)),
   ShowInfo("Star Wars Resistance",listOf(21,19)),
   ShowInfo("The Mandalorian",listOf(8,8,8)),
