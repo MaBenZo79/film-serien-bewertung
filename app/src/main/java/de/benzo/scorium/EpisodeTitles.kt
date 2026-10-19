@@ -2,6 +2,10 @@ package de.benzo.scorium
 
 object EpisodeTitles {
  private val known = mapOf(
+  ("Marvel Zombies" to 1) to listOf("Wonderful","The New World","The Dead","The Living"),
+  ("Creature Commandos" to 1) to listOf("The Collywobbles","The Tourmaline Necklace","Cheers to the Tin Man","Chasing Squirrels","The Iron Pot","Priyatel Skelet","A Very Funny Monster"),
+  ("Peacemaker" to 1) to listOf("A Whole New Whirled","Best Friends, For Never","Better Goff Dead","The Choad Less Traveled","Monkey Dory","Murn After Reading","Stop Dragon My Heart Around","It's Cow or Never"),
+
   ("Star Wars Rebels" to 1) to listOf("Spark of Rebellion: Part 1","Spark of Rebellion: Part 2","Droids in Distress","Fighter Flight","Rise of the Old Masters","Breaking Ranks","Out of Darkness","Empire Day","Gathering Forces","Path of the Jedi","Idiot's Array","Vision of Hope","Call to Action","Rebel Resolve","Fire Across the Galaxy"),
   ("Star Wars Rebels" to 2) to listOf("The Siege of Lothal: Part 1","The Siege of Lothal: Part 2","The Lost Commanders","Relics of the Old Republic","Always Two There Are","Brothers of the Broken Horn","Wings of the Master","Blood Sisters","Stealth Strike","The Future of the Force","Legacy","A Princess on Lothal","The Protector of Concord Dawn","Legends of the Lasat","The Call","Homecoming","The Honorable Ones","Shroud of Darkness","The Forgotten Droid","The Mystery of Chopper Base","Twilight of the Apprentice: Part 1","Twilight of the Apprentice: Part 2"),
   ("Star Wars Rebels" to 3) to listOf("Steps Into Shadow: Part 1","Steps Into Shadow: Part 2","The Holocrons of Fate","The Antilles Extraction","Hera's Heroes","The Last Battle","Imperial Supercommandos","Iron Squadron","The Wynkahthu Job","An Inside Man","Visions and Voices","Ghosts of Geonosis: Part 1","Ghosts of Geonosis: Part 2","Warhead","Trials of the Darksaber","Legacy of Mandalore","Through Imperial Eyes","Secret Cargo","Double Agent Droid","Twin Suns","Zero Hour: Part 1","Zero Hour: Part 2"),
