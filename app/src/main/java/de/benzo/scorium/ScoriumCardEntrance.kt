@@ -26,13 +26,16 @@ fun ScoriumCardEntrance(
     index: Int,
     visible: Boolean = true,
     startDelayMillis: Long = 260,
+    skipAnimation: Boolean = false,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val progress = remember { Animatable(0f) }
-    LaunchedEffect(visible) {
+    val progress = remember { Animatable(if(visible && skipAnimation) 1f else 0f) }
+    LaunchedEffect(visible, skipAnimation) {
         if (!visible) {
             progress.snapTo(0f)
+        } else if (skipAnimation) {
+            progress.snapTo(1f)
         } else {
             delay(startDelayMillis + index.coerceAtLeast(0) * 74L)
             progress.animateTo(
