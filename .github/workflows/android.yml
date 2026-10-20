@@ -62,6 +62,36 @@ jobs:
           PY
           test -s app/src/main/res/drawable-nodpi/scorium_header.png
           test -s app/src/main/assets/starter/catalog.json
+      - name: Bundle fixed SCORIUM cover images
+        run: |
+          mkdir -p app/src/main/res/drawable-nodpi
+          # Upload SCORIUM_Neue_Cover_Originale.zip to the repository root.
+          # Its originals are embedded into each APK and work without internet.
+          if [ -s SCORIUM_Neue_Cover_Originale.zip ]; then
+            unzip -tq SCORIUM_Neue_Cover_Originale.zip
+            mkdir -p /tmp/scorium-new-covers
+            unzip -q -o SCORIUM_Neue_Cover_Originale.zip -d /tmp/scorium-new-covers
+            for name in mcu_phase_1 mcu_phase_2 mcu_phase_3 scorium_collection scorium_poster; do
+              test -s "/tmp/scorium-new-covers/images/${name}.jpg"
+            done
+            cp /tmp/scorium-new-covers/images/mcu_phase_1.jpg app/src/main/res/drawable-nodpi/mcu_phase_1.jpg
+            cp /tmp/scorium-new-covers/images/mcu_phase_2.jpg app/src/main/res/drawable-nodpi/mcu_phase_2.jpg
+            cp /tmp/scorium-new-covers/images/mcu_phase_3.jpg app/src/main/res/drawable-nodpi/mcu_phase_3.jpg
+            cp /tmp/scorium-new-covers/images/scorium_collection.jpg app/src/main/res/drawable-nodpi/scorium_collection_new.jpg
+            cp /tmp/scorium-new-covers/images/scorium_poster.jpg app/src/main/res/drawable-nodpi/scorium_poster_new.jpg
+            echo "Bundled five user-provided SCORIUM originals"
+          else
+            # Maintain APK buildability while the user uploads the image archive.
+            cp app/src/main/res/drawable/mcu_phase_cover.png app/src/main/res/drawable-nodpi/mcu_phase_1.png
+            cp app/src/main/res/drawable/mcu_phase_cover.png app/src/main/res/drawable-nodpi/mcu_phase_2.png
+            cp app/src/main/res/drawable/mcu_phase_cover.png app/src/main/res/drawable-nodpi/mcu_phase_3.png
+            cp app/src/main/res/drawable-nodpi/scorium_collection.png app/src/main/res/drawable-nodpi/scorium_collection_new.png
+            cp app/src/main/res/drawable-nodpi/scorium_poster.png app/src/main/res/drawable-nodpi/scorium_poster_new.png
+            echo "::warning::New SCORIUM artwork archive not yet uploaded; using existing images"
+          fi
+          for name in mcu_phase_1 mcu_phase_2 mcu_phase_3 scorium_collection_new scorium_poster_new; do
+            test -s "app/src/main/res/drawable-nodpi/${name}.jpg" || test -s "app/src/main/res/drawable-nodpi/${name}.png"
+          done
       - name: Prepare STAR WARS collection assets
         run: |
           mkdir -p app/src/main/res/raw app/src/main/res/drawable-nodpi
