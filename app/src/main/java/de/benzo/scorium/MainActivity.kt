@@ -147,6 +147,15 @@ class MainActivity: ComponentActivity() {
   setContent {
    var showIntro by rememberSaveable { mutableStateOf(true) }
    var homeSceneRevealed by rememberSaveable { mutableStateOf(false) }
+   var homeIntroFinished by rememberSaveable { mutableStateOf(false) }
+   LaunchedEffect(homeSceneRevealed) {
+    if(homeSceneRevealed) {
+     // Startup-only flourish. Returning from a franchise must never
+     // expose an empty purple home while its cards wait to animate.
+     delay(1900)
+     homeIntroFinished=true
+    }
+   }
    val homeBackgroundAlpha by animateFloatAsState(
     targetValue=if(homeSceneRevealed) 1f else 0f,
     animationSpec=tween(durationMillis=860),
@@ -308,23 +317,23 @@ class MainActivity: ComponentActivity() {
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.fillMaxWidth().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        ScoriumCardEntrance(index=0,visible=homeSceneRevealed,startDelayMillis=970) {
+        ScoriumCardEntrance(index=0,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
          Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
           ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
          }
         }
-        ScoriumCardEntrance(index=1,visible=homeSceneRevealed,startDelayMillis=970) {
+        ScoriumCardEntrance(index=1,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
          ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
         }
-        ScoriumCardEntrance(index=2,visible=homeSceneRevealed,startDelayMillis=970) {
+        ScoriumCardEntrance(index=2,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
          ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
         }
         customCollections.forEachIndexed { index,collection ->
-         ScoriumCardEntrance(index=index+3,visible=homeSceneRevealed,startDelayMillis=970) {
+         ScoriumCardEntrance(index=index+3,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
           ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
          }
         }
-        ScoriumCardEntrance(index=customCollections.size+3,visible=homeSceneRevealed,startDelayMillis=970) {
+        ScoriumCardEntrance(index=customCollections.size+3,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
          ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";home=false;section="Franchises";createCollection=true},onImageSaved={refresh++},revision=refresh)
         }
        }
