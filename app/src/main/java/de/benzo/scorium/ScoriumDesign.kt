@@ -357,16 +357,28 @@ fun ScoriumMenuTile(label:String,subtitle:String,index:Int,onClick:()->Unit) {
 
 @Composable
 fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:()->Unit,onImageSaved:()->Unit,revision:Int=0,onPosterBounds:((androidx.compose.ui.geometry.Rect)->Unit)?=null) {
- Card(shape=RoundedCornerShape(19.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D)),modifier=Modifier.width(190.dp)) {
-  Column(Modifier.padding(10.dp)) {
+ val v=scoriumVisuals()
+ val shape=RoundedCornerShape(20.dp)
+ Card(shape=shape,colors=CardDefaults.cardColors(containerColor=v.surface),
+  modifier=Modifier.width(190.dp).border(1.dp,v.border.copy(alpha=0.85f),shape)) {
+  Column(Modifier.background(Brush.verticalGradient(listOf(v.elevated,v.surface))).padding(9.dp)) {
    Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().height(128.dp).onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),revision,isCollection=true)
-    Text("Öffnen ›",color=Color.White,fontSize=11.sp,modifier=Modifier.align(Alignment.BottomEnd).background(Color(0xCC111827),RoundedCornerShape(8.dp)).clickable(onClick=onClick).padding(6.dp))
+    ScoriumPoster(imageKey,Modifier.fillMaxWidth().aspectRatio(4f/3f)
+     .onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),
+     revision,isCollection=true)
+    Text("ÖFFNEN  ›",color=Color.White,fontWeight=FontWeight.Bold,fontSize=10.sp,
+     letterSpacing=0.7.sp,modifier=Modifier.align(Alignment.BottomEnd)
+      .background(v.inset.copy(alpha=0.94f),RoundedCornerShape(topStart=9.dp,bottomEnd=9.dp))
+      .clickable(onClick=onClick).padding(horizontal=10.dp,vertical=8.dp))
    }
-   Spacer(Modifier.height(10.dp))
-   Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,maxLines=2,modifier=Modifier.clickable(onClick=onClick))
-   Text(subtitle,color=Color(0xFFB5B7CD),fontSize=12.sp,maxLines=1)
-   if(BuildConfig.SCORIUM_ADMIN || !imageKey.startsWith("collection::mcu") && !imageKey.startsWith("collection::dc") && !imageKey.startsWith("collection::starwars")) PosterPicker(imageKey,onImageSaved)
+   Spacer(Modifier.height(12.dp))
+   Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,
+    maxLines=2,modifier=Modifier.clickable(onClick=onClick))
+   Spacer(Modifier.height(3.dp))
+   Text(subtitle,color=v.mutedText,fontSize=12.sp,maxLines=1)
+   if(BuildConfig.SCORIUM_ADMIN || !imageKey.startsWith("collection::mcu") &&
+    !imageKey.startsWith("collection::dc") && !imageKey.startsWith("collection::starwars"))
+    PosterPicker(imageKey,onImageSaved)
   }
  }
 }
