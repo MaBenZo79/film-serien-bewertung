@@ -699,21 +699,30 @@ class MainActivity: ComponentActivity() {
       }
      }
     } }
-    // The existing home UI is composed underneath for a seamless fade-out.
-    // Crossfade the MCU phase hub in and out over the destination content.
-    // Keep the hub as a separate layer so the selected phase list is visible underneath.
-    Crossfade(targetState=starWarsHub,animationSpec=tween(durationMillis=450),label="starWarsCollectionHubCrossfade") { visible ->
-      if(visible) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
-     }
-     if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingStarWars=false},onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
-    Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
-      if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
-     }
-     if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingDc=false},onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
-     Crossfade(targetState=mcuHub,animationSpec=tween(durationMillis=450),label="mcuPhaseHubCrossfade") { visible ->
-     if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
-    }
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    // Only one collection hub is composed at a time. Crossfade used to
+    // layer a departing hub over the newly visible screen, which created
+    // the brief purple/ghost flash on back navigation.
+    if(starWarsHub) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},
+     onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},
+     onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,
+     onComplete={openingStarWars=false},
+     onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},
+     onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
+    if(dcHub) DcCollectionHub(revision=refresh,onImageSaved={refresh++},
+     onBack={dcHub=false;dcCollectionRoute=false;home=true},
+     onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,
+     onComplete={openingDc=false},
+     onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},
+     onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
+    if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},
+     onBack={mcuHub=false;mcuCollectionRoute=false;home=true},
+     onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,
+     onComplete={openingMcu=false},
+     onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},
+     onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     pendingAction?.let { action ->
      val title=when(action) {
       "import" -> "Bewertungen importieren?"
