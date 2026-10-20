@@ -308,23 +308,27 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
 
 @Composable
 fun ScoriumDetailHero(title:String,kind:String,revision:Int=0,score:Int?=null) {
- val mcu=LocalMcuCollectionTheme.current
- val dc=LocalDcCollectionTheme.current
- val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
- Card(shape=RoundedCornerShape(24.dp),
-  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else if(dc) Color(0xFF102E58) else Color(0xFF19243A)),
-  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent, RoundedCornerShape(24.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent,RoundedCornerShape(24.dp)) else Modifier)) {
-  Row(Modifier.fillMaxWidth().padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(title,Modifier.size(width=98.dp,height=134.dp),revision)
-   Spacer(Modifier.width(12.dp))
+ val v=scoriumVisuals()
+ val shape=RoundedCornerShape(24.dp)
+ Card(shape=shape,colors=CardDefaults.cardColors(containerColor=v.surface),
+  modifier=Modifier.fillMaxWidth().border(1.dp,v.border,shape)) {
+  Row(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(v.elevated,v.surface)))
+   .padding(horizontal=15.dp,vertical=17.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(title,Modifier.size(width=100.dp,height=140.dp),revision)
+   Spacer(Modifier.width(14.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),color=accent,fontSize=11.sp,letterSpacing=1.5.sp)
-    Spacer(Modifier.height(8.dp))
-    Text(title,color=Color.White,fontSize=21.sp,fontWeight=FontWeight.Black,
-     maxLines=4,overflow=TextOverflow.Ellipsis)
-    ReleaseYears.label(title)?.let { years -> Spacer(Modifier.height(5.dp)); Text(years,color=fog,fontSize=12.sp,fontStyle=FontStyle.Italic) }
+    Text(kind.uppercase(),color=v.accent,fontSize=11.sp,
+     fontWeight=FontWeight.SemiBold,letterSpacing=1.5.sp)
+    Spacer(Modifier.height(10.dp))
+    Text(title,color=Color.White,fontSize=20.sp,fontWeight=FontWeight.Bold,
+     maxLines=4,overflow=TextOverflow.Ellipsis,lineHeight=24.sp)
+    ReleaseYears.label(title)?.let { years ->
+     Spacer(Modifier.height(8.dp))
+     Text(years,color=v.mutedText,fontSize=12.sp,fontStyle=FontStyle.Italic)
+    }
    }
-   ScoriumScoreRing(score,76.dp)
+   Spacer(Modifier.width(5.dp))
+   ScoriumScoreRing(score,68.dp)
   }
  }
 }
