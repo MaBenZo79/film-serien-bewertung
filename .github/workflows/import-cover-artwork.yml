@@ -1,0 +1,46 @@
+name: One-time SCORIUM cover asset import
+on:
+  push:
+    paths:
+      - '.github/workflows/import-cover-artwork.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download user-supplied original JPG images
+        run: |
+          mkdir -p cover-import
+          curl --fail --location --silent --show-error --retry 3 --max-time 120 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/ba74cd0a-a381-447d-b1b2-b07b992f2ef3.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiMzc0MzU1NzdlY2U0MzQ5ZiIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYyODQ3MX0.pam73b98WPmj8vxe7bjl4gBRIGPYEG2pMNR8P68I17o' -o 'cover-import/mcu_phase_1.jpg'
+          curl --fail --location --silent --show-error --retry 3 --max-time 120 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/4bdec0e7-95b6-475e-b070-62c6f298eda8.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNWExZGVmNzZkNDNkMjFlNyIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjYyNDg4Nn0.0rN5c0EX0m4FVmDFNWcurCP1iP_GfOaBb--8x1w3124' -o 'cover-import/mcu_phase_2.jpg'
+          curl --fail --location --silent --show-error --retry 3 --max-time 120 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/daf465a0-2020-4bb1-8a9d-f0fe9f609d0f.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiNGUwZTI5NTZlZWEwMGIzMyIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjY5OTczNH0.YJZL13sVU7o2SPQGXlb0rcbygdS8LfleKFHhUEFNBb0' -o 'cover-import/mcu_phase_3.jpg'
+          curl --fail --location --silent --show-error --retry 3 --max-time 120 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/794d6fec-4348-4cee-9470-aff4e9c9c427.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTlkMDUwODM4NDAxMzc0YSIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjY4NDU0N30.CAUgt2w7buZPpGsuKvWZtFWZEc3jNge76X7xviMlwAE' -o 'cover-import/scorium_collection.jpg'
+          curl --fail --location --silent --show-error --retry 3 --max-time 120 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/7365cd19-a6c6-4642-aac1-5b40725f619a.jpg?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiOTc1MTJmZDE4ZDYyNTk3NCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MjcwMjY3M30.p2bTOhHTfsMkB_eocBB-rZleoxj7VwayzUmKSLlR1zE' -o 'cover-import/scorium_poster.jpg'
+          file cover-import/*.jpg
+      - name: Package exact artwork for offline app
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from zipfile import ZipFile, ZIP_STORED
+          files = ('mcu_phase_1.jpg','mcu_phase_2.jpg','mcu_phase_3.jpg','scorium_collection.jpg','scorium_poster.jpg')
+          with ZipFile('SCORIUM_Neue_Cover_Originale.zip','w',compression=ZIP_STORED) as output:
+              for name in files:
+                  path=Path('cover-import')/name
+                  data=path.read_bytes()
+                  assert len(data)>10000 and data[:2]==b'\xff\xd8',f'Invalid JPEG: {name}'
+                  output.write(path,arcname='images/'+name)
+              output.writestr('README.txt','SCORIUM: Marvel Phase 1, 2, 3; collection and poster placeholder. Original user-provided images.')
+          print('Packaged all 5 SCORIUM images.')
+          PY
+      - name: Commit image package to GitHub
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add SCORIUM_Neue_Cover_Originale.zip
+          git commit -m 'Add five original SCORIUM covers as offline Android assets'
+          git push origin HEAD:main
