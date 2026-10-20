@@ -48,7 +48,7 @@ fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
      pair.forEachIndexed { columnIndex,section ->
       Column(Modifier.weight(1f)) {
-       ScoriumCardEntrance(index=rowIndex*2+columnIndex,startDelayMillis=330) {
+       ScoriumCardEntrance(index=rowIndex*2+columnIndex,startDelayMillis=520) {
         Column {
          Box(
           Modifier.fillMaxWidth().aspectRatio(4f/3f)
