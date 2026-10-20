@@ -23,7 +23,7 @@ import kotlinx.coroutines.delay
 
 /** Plays the supplied SCORIUM MP4 and dissolves into the already composed home screen. */
 @Composable
-fun ScoriumStartupVideo(resourceId: Int, onEnter: () -> Unit) {
+fun ScoriumStartupVideo(resourceId: Int, onReveal: () -> Unit, onEnter: () -> Unit) {
  val context = LocalContext.current
  val fade = remember { Animatable(1f) }
  val entrance = remember { Animatable(0f) }
@@ -31,7 +31,11 @@ fun ScoriumStartupVideo(resourceId: Int, onEnter: () -> Unit) {
  val finished = remember { androidx.compose.runtime.mutableStateOf(false) }
  LaunchedEffect(finished.value) {
   if(finished.value) {
-   fade.animateTo(0f, tween(650))
+   // Start the home background and header while the last video frame is
+   // still covering them. Cross-dissolve both surfaces together instead of
+   // revealing a bare black frame or abruptly swapping the whole screen.
+   onReveal()
+   fade.animateTo(0f, tween(900))
    onEnter()
   }
  }
