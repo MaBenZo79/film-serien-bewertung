@@ -48,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.zIndex
@@ -145,6 +146,12 @@ class MainActivity: ComponentActivity() {
   val prefs=getSharedPreferences("ratings",Context.MODE_PRIVATE)
   setContent {
    var showIntro by rememberSaveable { mutableStateOf(true) }
+   var homeSceneRevealed by rememberSaveable { mutableStateOf(false) }
+   val homeBackgroundAlpha by animateFloatAsState(
+    targetValue=if(homeSceneRevealed) 1f else 0f,
+    animationSpec=tween(durationMillis=860),
+    label="homeBackgroundAndLetteringFade"
+   )
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
@@ -275,8 +282,8 @@ class MainActivity: ComponentActivity() {
     )
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
-     if(mcuHub || dcHub) {
+    ScoriumBackdrop(rootAlpha=if(showIntro) homeBackgroundAlpha else 1f) { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
+     if(mcuHub || dcHub || starWarsHub) {
       Spacer(Modifier.fillMaxSize())
      } else if(home) {
       Box(Modifier.padding(horizontal=18.dp)) { ScoriumHeader() }
@@ -301,15 +308,25 @@ class MainActivity: ComponentActivity() {
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.fillMaxWidth().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
-         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
+        ScoriumCardEntrance(index=0,visible=homeSceneRevealed,startDelayMillis=620) {
+         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
+          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
+         }
         }
-        ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
-         customCollections.forEach { collection ->
+        ScoriumCardEntrance(index=1,visible=homeSceneRevealed,startDelayMillis=620) {
+         ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
+        }
+        ScoriumCardEntrance(index=2,visible=homeSceneRevealed,startDelayMillis=620) {
+         ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
+        }
+        customCollections.forEachIndexed { index,collection ->
+         ScoriumCardEntrance(index=index+3,visible=homeSceneRevealed,startDelayMillis=620) {
           ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
          }
+        }
+        ScoriumCardEntrance(index=customCollections.size+3,visible=homeSceneRevealed,startDelayMillis=620) {
          ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";home=false;section="Franchises";createCollection=true},onImageSaved={refresh++},revision=refresh)
+        }
        }
        Spacer(Modifier.height(26.dp))
        Text("Zuletzt angesehen",modifier=Modifier.padding(horizontal=18.dp),fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -744,7 +761,7 @@ class MainActivity: ComponentActivity() {
       }) { Text("Löschen") }},
       dismissButton={TextButton(onClick={pendingDelete=null}) { Text("Abbrechen") }})
     }
-    if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
+    if(showIntro) ScoriumIntroScreen(onReveal={homeSceneRevealed=true},onEnter={showIntro=false})
    }
    }
   }
