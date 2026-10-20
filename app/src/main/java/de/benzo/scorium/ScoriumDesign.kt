@@ -58,18 +58,25 @@ private val mcuSurface = Color(0xFF30090F)
 fun ScoriumBackdrop(rootAlpha:Float=1f,content: @Composable BoxScope.()->Unit) {
  val visuals=scoriumVisuals()
  val branded=LocalMcuCollectionTheme.current || LocalDcCollectionTheme.current || LocalStarWarsCollectionTheme.current
- Box(Modifier.fillMaxSize().graphicsLayer { alpha=rootAlpha }.background(visuals.backdrop)) {
-  if(!branded) {
-   Image(painter=painterResource(R.drawable.scorium_menu_background),
-    contentDescription=null,modifier=Modifier.fillMaxSize(),
-    contentScale=ContentScale.FillBounds,alpha=0.85f)
-  } else {
+ Box(Modifier.fillMaxSize().background(Color.Black)) {
+  // Fade only the scenery. NEVER apply alpha to the parent that owns
+  // content(): the startup TextureView lives inside content() and must stay
+  // visible even while the home background is still at alpha zero.
+  Box(Modifier.fillMaxSize().graphicsLayer { alpha=rootAlpha }) {
+   Box(Modifier.fillMaxSize().background(visuals.backdrop))
+   if(!branded) {
+    Image(painter=painterResource(R.drawable.scorium_menu_background),
+     contentDescription=null,modifier=Modifier.fillMaxSize(),
+     contentScale=ContentScale.FillBounds,alpha=0.85f)
+   } else {
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+     visuals.backdrop,visuals.elevated.copy(alpha=0.96f),
+     visuals.surface,visuals.backdrop))))
+   }
    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-    visuals.backdrop,visuals.elevated.copy(alpha=0.96f),
-    visuals.surface,visuals.backdrop))))
+    Color.Black.copy(alpha=0.11f),Color.Transparent,Color.Black.copy(alpha=0.29f)))))
   }
-  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
-   Color.Black.copy(alpha=0.11f),Color.Transparent,Color.Black.copy(alpha=0.29f)))))
+  // Menus, overlays and especially the intro video remain independently visible.
   content()
  }
 }
@@ -158,29 +165,29 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
  }
  val shape=RoundedCornerShape(9.dp)
  val effectiveBorder=if(LocalMcuCollectionTheme.current) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else if(LocalStarWarsCollectionTheme.current) Color(0xFFD7AB48) else borderColor
- Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
+ Box(modifier.shadow(if(LocalMcuCollectionTheme.current) 10.dp else 6.dp,shape,ambientColor=effectiveBorder,spotColor=effectiveBorder).clip(shape).background(Color(0xFF080716)).border(if(LocalMcuCollectionTheme.current) 2.dp else 1.5.dp,effectiveBorder,shape)) {
   if(bitmap!=null) {
    Image(bitmap=bitmap.asImageBitmap(),contentDescription="Bild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
-    contentScale=ContentScale.Crop)
+    contentScale=if(isCollection) ContentScale.Fit else ContentScale.Crop)
   } else if(title=="collection::starwars" || title.startsWith("collection::starwars::")) {
-   Image(painter=painterResource(R.drawable.scorium_star_wars_collection),contentDescription="STAR WARS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
+   Image(painter=painterResource(R.drawable.scorium_star_wars_collection),contentDescription="STAR WARS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=if(isCollection) ContentScale.Fit else ContentScale.Crop)
   } else if(title=="collection::dc" || title.startsWith("collection::dc::")) {
-   Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
+   Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=if(isCollection) ContentScale.Fit else ContentScale.Crop)
   } else if(title.startsWith("collection::mcu::")) {
    // Original uploaded 4:3 MCU cover, used only for the seven MCU phase tiles.
    Image(
     painter=painterResource(R.drawable.mcu_phase_cover),
     contentDescription="Marvel Studios MCU",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
-    contentScale=ContentScale.Crop
+    contentScale=if(isCollection) ContentScale.Fit else ContentScale.Crop
    )
   } else {
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
     .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
     Image(painter=painterResource(if(isCollection) R.drawable.scorium_collection else R.drawable.scorium_poster),
      contentDescription="SCORIUM Platzhalter für $title",
-     modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
+     modifier=Modifier.fillMaxSize(),contentScale=if(isCollection) ContentScale.Fit else ContentScale.Crop)
    }
   }
  }
@@ -362,15 +369,9 @@ fun ScoriumCollectionTile(title:String,subtitle:String,imageKey:String,onClick:(
  Card(shape=shape,colors=CardDefaults.cardColors(containerColor=v.surface),
   modifier=Modifier.width(190.dp).border(1.dp,v.border.copy(alpha=0.85f),shape)) {
   Column(Modifier.background(Brush.verticalGradient(listOf(v.elevated,v.surface))).padding(9.dp)) {
-   Box {
-    ScoriumPoster(imageKey,Modifier.fillMaxWidth().aspectRatio(4f/3f)
-     .onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),
-     revision,isCollection=true)
-    Text("ÖFFNEN  ›",color=Color.White,fontWeight=FontWeight.Bold,fontSize=10.sp,
-     letterSpacing=0.7.sp,modifier=Modifier.align(Alignment.BottomEnd)
-      .background(v.inset.copy(alpha=0.94f),RoundedCornerShape(topStart=9.dp,bottomEnd=9.dp))
-      .clickable(onClick=onClick).padding(horizontal=10.dp,vertical=8.dp))
-   }
+   ScoriumPoster(imageKey,Modifier.fillMaxWidth().aspectRatio(4f/3f)
+    .onGloballyPositioned { onPosterBounds?.invoke(it.boundsInWindow()) }.clickable(onClick=onClick),
+    revision,isCollection=true)
    Spacer(Modifier.height(12.dp))
    Text(title,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold,
     maxLines=2,modifier=Modifier.clickable(onClick=onClick))
