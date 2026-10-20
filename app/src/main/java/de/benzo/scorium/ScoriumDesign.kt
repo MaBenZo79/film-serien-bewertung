@@ -188,27 +188,33 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
 
 @Composable
 fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:()->Unit,imageKey:String=title,revision:Int=0) {
- val mcu=LocalMcuCollectionTheme.current
- val dc=LocalDcCollectionTheme.current
- val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
- Card(onClick=onClick,shape=RoundedCornerShape(18.dp),
-  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else Color(0xFF182235)),
-  modifier=Modifier.fillMaxWidth().then(if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent.copy(alpha=0.85f),RoundedCornerShape(18.dp)) else Modifier)) {
-  Row(Modifier.fillMaxWidth().padding(10.dp),verticalAlignment=Alignment.CenterVertically) {
-   ScoriumPoster(imageKey,Modifier.size(width=68.dp,height=92.dp),revision)
-   Spacer(Modifier.width(12.dp))
+ val v=scoriumVisuals()
+ val shape=RoundedCornerShape(20.dp)
+ Card(onClick=onClick,shape=shape,
+  colors=CardDefaults.cardColors(containerColor=v.surface),
+  modifier=Modifier.fillMaxWidth().border(1.dp,v.border.copy(alpha=0.75f),shape)) {
+  Row(Modifier.fillMaxWidth()
+   .background(Brush.horizontalGradient(listOf(v.elevated,v.surface)))
+   .padding(horizontal=13.dp,vertical=12.dp),verticalAlignment=Alignment.CenterVertically) {
+   ScoriumPoster(imageKey,Modifier.size(width=72.dp,height=101.dp),revision)
+   Spacer(Modifier.width(13.dp))
    Column(Modifier.weight(1f)) {
-    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.5.sp,color=accent)
-    Spacer(Modifier.height(6.dp))
+    Text(kind.uppercase(),fontSize=10.sp,letterSpacing=1.6.sp,color=v.accent,fontWeight=FontWeight.SemiBold)
+    Spacer(Modifier.height(7.dp))
     Text(title,fontSize=16.sp,fontWeight=FontWeight.Bold,color=Color.White,
-     maxLines=3,overflow=TextOverflow.Ellipsis)
+     maxLines=3,overflow=TextOverflow.Ellipsis,lineHeight=20.sp)
     ReleaseYears.label(title)?.let { years ->
-     Spacer(Modifier.height(3.dp))
-     Text(years,color=Color(0xFFAEB0BA),fontSize=12.sp,fontWeight=FontWeight.Normal,fontStyle=FontStyle.Italic)
+     Spacer(Modifier.height(6.dp))
+     Text(years,color=v.mutedText,fontSize=12.sp,fontStyle=FontStyle.Italic)
     }
-    if(score==null) { Spacer(Modifier.height(9.dp)); Text("NOCH NICHT BEWERTET",color=fog,fontSize=11.sp) }
+    if(score==null) {
+     Spacer(Modifier.height(10.dp))
+     Text("NOCH NICHT BEWERTET",color=v.mutedText.copy(alpha=0.86f),
+      fontSize=10.sp,letterSpacing=0.4.sp)
+    }
    }
-   ScoriumScoreRing(score,70.dp)
+   Spacer(Modifier.width(6.dp))
+   ScoriumScoreRing(score,63.dp)
   }
  }
 }
