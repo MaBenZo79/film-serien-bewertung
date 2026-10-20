@@ -55,10 +55,10 @@ private val mcuAccent = Color(0xFFEF3945)
 private val mcuSurface = Color(0xFF30090F)
 
 @Composable
-fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
+fun ScoriumBackdrop(rootAlpha:Float=1f,content: @Composable BoxScope.()->Unit) {
  val visuals=scoriumVisuals()
  val branded=LocalMcuCollectionTheme.current || LocalDcCollectionTheme.current || LocalStarWarsCollectionTheme.current
- Box(Modifier.fillMaxSize().background(visuals.backdrop)) {
+ Box(Modifier.fillMaxSize().graphicsLayer { alpha=rootAlpha }.background(visuals.backdrop)) {
   if(!branded) {
    Image(painter=painterResource(R.drawable.scorium_menu_background),
     contentDescription=null,modifier=Modifier.fillMaxSize(),
