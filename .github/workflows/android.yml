@@ -82,6 +82,11 @@ jobs:
           test -s app/src/main/res/drawable-nodpi/scorium_intro_fog.png
           test -s app/src/main/res/drawable-nodpi/scorium_intro_wordmark.png
           test -s app/src/main/res/drawable-nodpi/scorium_intro_kernel.png
+      - name: Optimise bundled DEV posters without touching originals
+        if: github.ref_name == 'admin' || github.head_ref == 'admin'
+        run: |
+          python .github/scripts/optimize_posters.py app/src/main/assets/starter/posters
+          test "$(find app/src/main/assets/starter/posters -name '*.jpg' | wc -l)" -eq 273
       - name: Restore persistent signing key
         env:
           SCORIUM_KEYSTORE_BASE64: ${{ secrets.SCORIUM_KEYSTORE_BASE64 }}
