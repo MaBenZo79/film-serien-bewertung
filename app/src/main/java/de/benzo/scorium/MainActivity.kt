@@ -291,7 +291,7 @@ class MainActivity: ComponentActivity() {
     )
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop(rootAlpha=if(showIntro) homeBackgroundAlpha else 1f) { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
+    ScoriumBackdrop(rootAlpha=if(showIntro) homeBackgroundAlpha else 1f) { Column(Modifier.fillMaxSize().graphicsLayer { alpha=if(showIntro) homeBackgroundAlpha else 1f }.statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
      if(mcuHub || dcHub || starWarsHub) {
       Spacer(Modifier.fillMaxSize())
      } else if(home) {
