@@ -221,20 +221,17 @@ fun ScoriumTitleCard(title:String,kind:String,score:Int?,grade:String?,onClick:(
 
 @Composable
 fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
- val mcu=LocalMcuCollectionTheme.current
- val dc=LocalDcCollectionTheme.current
- val accent=if(mcu) mcuAccent else if(LocalDcCollectionTheme.current) dcAccent else gold
+ val v=scoriumVisuals()
+ val accent=v.accent
  // Read the latest callback during an ongoing gesture; do not restart the
  // pointer input handler every time a rating changes.
  val currentOnChange by rememberUpdatedState(onChange)
- Card(shape=RoundedCornerShape(18.dp),
-  colors=CardDefaults.cardColors(containerColor=if(mcu) mcuSurface else if(dc) Color(0xFF102E58) else Color(0xFF171C32)),
-  modifier=Modifier.fillMaxWidth().then(
-   if(mcu) Modifier.border(1.5.dp,mcuAccent.copy(alpha=0.8f),RoundedCornerShape(18.dp)) else if(dc) Modifier.border(1.5.dp,dcAccent.copy(alpha=0.8f),RoundedCornerShape(18.dp))
-   else Modifier
-  )) {
-  Column(Modifier.padding(horizontal=12.dp,vertical=12.dp)) {
-   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)
+ Card(shape=RoundedCornerShape(20.dp),
+  colors=CardDefaults.cardColors(containerColor=v.surface),
+  modifier=Modifier.fillMaxWidth().border(1.dp,v.border.copy(alpha=0.85f),RoundedCornerShape(20.dp))) {
+  Column(Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(v.elevated,v.surface)))
+   .padding(horizontal=15.dp,vertical=14.dp)) {
+   Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp,lineHeight=21.sp)
    Spacer(Modifier.height(6.dp))
    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Top,
     horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -243,7 +240,7 @@ fun ScoriumRatingCard(label:String,value:Int?,onChange:(Int)->Unit) {
      Text(
       if(value==null) "Wähle eine Bewertung, um eine passende Einschätzung zu sehen."
       else criterionDescription(label,value),
-      color=Color(0xFFE1DDED),fontSize=12.5.sp,lineHeight=17.sp,
+      color=v.mutedText,fontSize=13.sp,lineHeight=18.sp,
       fontStyle=FontStyle.Italic,textAlign=TextAlign.Start,
       modifier=Modifier.fillMaxWidth()
      )
