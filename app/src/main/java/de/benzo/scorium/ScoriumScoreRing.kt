@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
@@ -40,8 +41,9 @@ private fun glowColor(score:Int):Color = when {
 
 @Composable
 fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp,wholeNumber:Boolean=false) {
- val color=score?.let(::scoreColor) ?: Color(0xFF757587)
- val glow=score?.let(::glowColor) ?: Color(0xFFA0A0AF)
+ val v=scoriumVisuals()
+ val color=score?.let(::scoreColor) ?: v.border
+ val glow=score?.let(::glowColor) ?: v.accent
  val progress=score?.coerceIn(0,100)?.div(100f) ?: 0f
  val animated=animateFloatAsState(progress,tween(450),label="scoreRingProgress").value
  Box(Modifier.size(diameter),contentAlignment=Alignment.Center) {
@@ -56,8 +58,10 @@ fun ScoriumScoreRing(score:Int?, diameter:Dp=76.dp,wholeNumber:Boolean=false) {
     drawArc(glow,-90f,360f*animated,false,topLeft,arcSize,style=Stroke(stroke,cap=StrokeCap.Round))
    }
   }
-  Box(Modifier.size(diameter*0.73f).clip(CircleShape).background(color),contentAlignment=Alignment.Center) {
-   Text(if(score==null) "–" else if(wholeNumber) "${score/10}" else "${score/10}.${score%10}",color=if(score==null) Color.White else Color.White,
+  Box(Modifier.size(diameter*0.73f).clip(CircleShape)
+   .background(Brush.radialGradient(listOf(v.elevated,v.inset))),contentAlignment=Alignment.Center) {
+   Text(if(score==null) "–" else if(wholeNumber) "${score/10}" else "${score/10}.${score%10}",
+    color=if(score==null) v.mutedText else Color.White,
     fontSize=if(diameter>=90.dp) 28.sp else 21.sp,fontWeight=FontWeight.Black)
   }
  }
