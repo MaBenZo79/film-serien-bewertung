@@ -121,29 +121,44 @@ fun ScoriumHero(onExplore:()->Unit) {
 private val posterThumbnailCache = object : LruCache<String, Bitmap>(24 * 1024) {
  override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount / 1024
 }
-private fun loadPosterThumbnail(path: String): Bitmap? {
- val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
- BitmapFactory.decodeFile(path, bounds)
- if(bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
- var sample = 1
- while(bounds.outWidth / sample > 640 || bounds.outHeight / sample > 960) sample *= 2
- return BitmapFactory.decodeFile(path, BitmapFactory.Options().apply {
-  inSampleSize = sample
-  inPreferredConfig = Bitmap.Config.RGB_565
- })
+private fun loadPosterThumbnail(context:Context,file:java.io.File): Bitmap? {
+ // User edits and previously copied originals always take precedence.
+ // When no override exists, decode the bundled JPEG directly from APK assets.
+ // Only the visible thumbnail is decoded, not the 273 full images at once.
+ val local = file.isFile
+ fun decode(options:BitmapFactory.Options):Bitmap? =
+  if(local) BitmapFactory.decodeFile(file.absolutePath,options)
+  else context.assets.open("starter/posters/${file.name}").use {
+   BitmapFactory.decodeStream(it,null,options)
+  }
+ return runCatching {
+  val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+  decode(bounds)
+  if(bounds.outWidth<=0 || bounds.outHeight<=0) return@runCatching null
+  var sample=1
+  while(bounds.outWidth/sample>640 || bounds.outHeight/sample>960) sample*=2
+  decode(BitmapFactory.Options().apply {
+   inSampleSize=sample
+   inPreferredConfig=Bitmap.Config.RGB_565
+  })
+ }.getOrNull()
 }
 
 @Composable
 fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isCollection:Boolean=false,borderColor:Color=Color(0xFFB46AFF)) {
  val context=LocalContext.current
  val file=posterFile(context,title)
- val stamp=file.lastModified()
- val cacheKey = remember(file.absolutePath,stamp) { "${file.absolutePath}:$stamp" }
+ val isLocal=file.isFile
+ val stamp=if(isLocal) file.lastModified() else 0L
+ val length=if(isLocal) file.length() else 0L
+ val cacheKey = remember(file.absolutePath,isLocal,stamp,length) {
+  if(isLocal) "${file.absolutePath}:$stamp:$length" else "asset:starter/posters/${file.name}"
+ }
  var bitmap by remember(cacheKey,revision) { mutableStateOf(posterThumbnailCache.get(cacheKey)) }
  LaunchedEffect(cacheKey,revision) {
-  if(bitmap == null && file.exists()) {
+  if(bitmap == null) {
    val decoded = withContext(Dispatchers.IO) {
-    posterThumbnailCache.get(cacheKey) ?: runCatching { loadPosterThumbnail(file.absolutePath) }.getOrNull()?.also {
+    posterThumbnailCache.get(cacheKey) ?: loadPosterThumbnail(context,file)?.also {
      posterThumbnailCache.put(cacheKey,it)
     }
    }
