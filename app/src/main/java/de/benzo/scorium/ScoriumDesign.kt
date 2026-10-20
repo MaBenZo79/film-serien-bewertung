@@ -162,17 +162,25 @@ fun ScoriumPoster(title:String,modifier:Modifier=Modifier,revision:Int=0,isColle
   } else if(title=="collection::dc" || title.startsWith("collection::dc::")) {
    Image(painter=painterResource(R.drawable.scorium_dc_card),contentDescription="DC STUDIOS",modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),contentScale=ContentScale.Crop)
   } else if(title.startsWith("collection::mcu::")) {
-   // Original uploaded 4:3 MCU cover, used only for the seven MCU phase tiles.
+   // Bundled offline originals for Phase 1–3; keep Komplett artwork unchanged.
+   // Unassigned phases use the dedicated collection placeholder.
+   val cover=when(title) {
+    "collection::mcu::Phase 1" -> R.drawable.mcu_phase_1
+    "collection::mcu::Phase 2" -> R.drawable.mcu_phase_2
+    "collection::mcu::Phase 3" -> R.drawable.mcu_phase_3
+    "collection::mcu::Komplett" -> R.drawable.mcu_phase_cover
+    else -> R.drawable.scorium_collection_new
+   }
    Image(
-    painter=painterResource(R.drawable.mcu_phase_cover),
-    contentDescription="Marvel Studios MCU",
+    painter=painterResource(cover),
+    contentDescription="Sammlungsbild: $title",
     modifier=Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp)),
     contentScale=ContentScale.Crop
    )
   } else {
    Box(Modifier.fillMaxSize().padding(1.5.dp).clip(RoundedCornerShape(7.5.dp))
     .background(Color(0xFF080716)),contentAlignment=Alignment.Center) {
-    Image(painter=painterResource(if(isCollection) R.drawable.scorium_collection else R.drawable.scorium_poster),
+    Image(painter=painterResource(if(isCollection || title.startsWith("collection::")) R.drawable.scorium_collection_new else R.drawable.scorium_poster_new),
      contentDescription="SCORIUM Platzhalter für $title",
      modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Crop)
    }
