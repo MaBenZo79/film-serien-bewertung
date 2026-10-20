@@ -56,6 +56,7 @@ fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection
            .border(1.5.dp,v.accent,RoundedCornerShape(14.dp))
            .clickable { onSection(section) }
          ) {
+          // Full, uncropped collection poster. Label and editor are outside it.
           ScoriumPoster(
            "collection::dc::$section",
            Modifier.fillMaxSize(),
@@ -63,22 +64,19 @@ fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection
            isCollection=true,
            borderColor=v.accent
           )
-          Box(
-           Modifier.align(Alignment.BottomStart).fillMaxWidth()
-            .background(v.inset.copy(alpha=0.94f))
-            .padding(horizontal=10.dp,vertical=7.dp)
-          ) {
-           Text(section,color=Color.White,fontWeight=FontWeight.Bold,fontSize=15.sp)
-          }
          }
-         // Editing is a separate, sized row BELOW the thumbnail,
-         // never floating over another card or on top of the artwork.
-         if(BuildConfig.SCORIUM_ADMIN) {
-          Row(Modifier.fillMaxWidth().padding(top=6.dp,bottom=5.dp),
-           horizontalArrangement=Arrangement.End,
-           verticalAlignment=Alignment.CenterVertically) {
-           Text("Bild ändern",color=v.mutedText,fontSize=11.sp)
-           Spacer(Modifier.width(5.dp))
+         Row(
+          Modifier.fillMaxWidth().heightIn(min=41.dp).padding(top=6.dp,bottom=3.dp),
+          verticalAlignment=Alignment.CenterVertically,
+          horizontalArrangement=Arrangement.SpaceBetween
+         ) {
+          Text(
+           section,modifier=Modifier.weight(1f),
+           color=Color.White,fontWeight=FontWeight.Bold,
+           fontSize=14.sp,maxLines=2,lineHeight=17.sp
+          )
+          if(BuildConfig.SCORIUM_ADMIN) {
+           // Pencil button sits beside the phase title, not on the artwork.
            PosterPicker("collection::dc::$section",onImageSaved)
           }
          }
