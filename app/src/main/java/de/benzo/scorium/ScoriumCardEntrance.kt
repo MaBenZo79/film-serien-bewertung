@@ -50,7 +50,7 @@ fun ScoriumCardEntrance(
     Box(modifier.graphicsLayer {
         val p = progress.value
         alpha = p.coerceIn(0f, 1f)
-        translationX = (1f - p) * shiftX
+        translationX = -(1f - p) * shiftX
         translationY = (1f - p) * shiftY
         scaleX = 0.91f + 0.09f * p
         scaleY = 0.91f + 0.09f * p
