@@ -14,18 +14,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val dcBlue=Color(0xFF438FEA)
 @Composable
 fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection:(String)->Unit) {
- Column(Modifier.fillMaxSize().background(Color(0xFF06152D)).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal=18.dp)) {
+ val v=scoriumVisuals()
+ Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(v.backdrop,v.surface,v.elevated,v.backdrop))).statusBarsPadding().navigationBarsPadding().verticalScroll(rememberScrollState()).padding(horizontal=18.dp)) {
   Spacer(Modifier.height(16.dp))
-  TextButton(onClick=onBack) { Text("← SCORIUM",color=Color.White) }
+  TextButton(onClick=onBack) { Text("← SCORIUM",color=v.mutedText) }
   Spacer(Modifier.height(22.dp))
   Image(painter=painterResource(R.drawable.scorium_dc_logo),contentDescription="DC STUDIOS",contentScale=ContentScale.Fit,modifier=Modifier.fillMaxWidth().height(120.dp))
   Spacer(Modifier.height(26.dp))
@@ -33,9 +34,9 @@ fun DcCollectionHub(revision:Int,onImageSaved:()->Unit,onBack:()->Unit,onSection
    Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
     pair.forEach { section ->
      Column(Modifier.weight(1f)) {
-      Box(Modifier.fillMaxWidth().aspectRatio(4f/3f).clip(RoundedCornerShape(14.dp)).border(1.5.dp,dcBlue,RoundedCornerShape(14.dp)).clickable { onSection(section) }) {
-       ScoriumPoster("collection::dc::$section",Modifier.fillMaxSize(),revision=revision,isCollection=true,borderColor=dcBlue)
-       Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Color(0xD006152D)).padding(horizontal=10.dp,vertical=7.dp)) {
+      Box(Modifier.fillMaxWidth().aspectRatio(4f/3f).clip(RoundedCornerShape(14.dp)).border(1.5.dp,v.accent,RoundedCornerShape(14.dp)).clickable { onSection(section) }) {
+       ScoriumPoster("collection::dc::$section",Modifier.fillMaxSize(),revision=revision,isCollection=true,borderColor=v.accent)
+       Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().background(v.inset.copy(alpha=0.94f)).padding(horizontal=10.dp,vertical=7.dp)) {
         Text(section,color=Color.White,fontWeight=FontWeight.Bold,fontSize=16.sp)
        }
       }
