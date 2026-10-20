@@ -1,6 +1,7 @@
 package de.benzo.scorium
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
@@ -54,6 +55,19 @@ fun ScoriumCardEntrance(
         scaleX = 0.91f + 0.09f * p
         scaleY = 0.91f + 0.09f * p
     }) {
+        content()
+    }
+}
+
+/**
+ * Fade a complete franchise hub, including its background, logo and headings.
+ * Individual cards then cascade in independently using ScoriumCardEntrance.
+ */
+@Composable
+fun ScoriumHubPage(content: @Composable () -> Unit) {
+    val alpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { alpha.animateTo(1f, tween(durationMillis = 480)) }
+    Box(Modifier.graphicsLayer { this.alpha = alpha.value }) {
         content()
     }
 }
