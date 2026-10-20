@@ -265,9 +265,9 @@ class MainActivity: ComponentActivity() {
      else -> showExitDialog=true
     }
    }
-   val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
-   val activeDcTheme = dcCollectionRoute && !home && !openingDc
-    val activeStarWarsTheme = starWarsCollectionRoute && !home && !openingStarWars
+   val activeMcuTheme = mcuCollectionRoute && !home
+   val activeDcTheme = dcCollectionRoute && !home
+    val activeStarWarsTheme = starWarsCollectionRoute && !home
     val visualPalette=scoriumVisualsFor(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
     val scopedAccent=visualPalette.accent
     val scopedPalette=scoriumColorScheme(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
