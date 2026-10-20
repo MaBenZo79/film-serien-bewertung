@@ -44,8 +44,8 @@ import androidx.compose.ui.layout.boundsInWindow
 
 private val ink=Color(0xFF090C1B)
 private val slate=Color(0xFF1A203A)
-private val gold=Color(0xFFAC88F6)
-private val fog=Color(0xFFB5B7CD)
+private val gold=Color(0xFFBDA4FF)
+private val fog=Color(0xFFC0B9CE)
 
 val LocalMcuCollectionTheme = compositionLocalOf { false }
 val LocalDcCollectionTheme = compositionLocalOf { false }
@@ -56,29 +56,20 @@ private val mcuSurface = Color(0xFF30090F)
 
 @Composable
 fun ScoriumBackdrop(content: @Composable BoxScope.()->Unit) {
- val mcu=LocalMcuCollectionTheme.current
- val dc=LocalDcCollectionTheme.current
- if(LocalStarWarsCollectionTheme.current) {
-  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF04060D),Color(0xFF182033),Color(0xFF04060D))))) { content() }
-  return
- }
- if(dc) {
-  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF06152D),Color(0xFF102E58),Color(0xFF06152D))))) { content() }
-  return
- }
- if(mcu) {
-  Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color(0xFF150306),Color(0xFF39070C),Color(0xFF110306))))) { content() }
-  return
- }
- // Unified background for the home screen and all nested pages.
- // Keep the existing poster tiles, cards, controls and their colors intact.
- Box(Modifier.fillMaxSize().background(Color(0xFF010007))) {
-  Image(
-   painter = painterResource(R.drawable.scorium_menu_background),
-   contentDescription = null,
-   contentScale = ContentScale.FillBounds,
-   modifier = Modifier.fillMaxSize()
-  )
+ val visuals=scoriumVisuals()
+ val branded=LocalMcuCollectionTheme.current || LocalDcCollectionTheme.current || LocalStarWarsCollectionTheme.current
+ Box(Modifier.fillMaxSize().background(visuals.backdrop)) {
+  if(!branded) {
+   Image(painter=painterResource(R.drawable.scorium_menu_background),
+    contentDescription=null,modifier=Modifier.fillMaxSize(),
+    contentScale=ContentScale.FillBounds,alpha=0.85f)
+  } else {
+   Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+    visuals.backdrop,visuals.elevated.copy(alpha=0.96f),
+    visuals.surface,visuals.backdrop))))
+  }
+  Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+   Color.Black.copy(alpha=0.11f),Color.Transparent,Color.Black.copy(alpha=0.29f)))))
   content()
  }
 }
