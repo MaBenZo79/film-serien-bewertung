@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.clickable
@@ -47,6 +48,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.zIndex
@@ -144,6 +146,21 @@ class MainActivity: ComponentActivity() {
   val prefs=getSharedPreferences("ratings",Context.MODE_PRIVATE)
   setContent {
    var showIntro by rememberSaveable { mutableStateOf(true) }
+   var homeSceneRevealed by rememberSaveable { mutableStateOf(false) }
+   var homeIntroFinished by rememberSaveable { mutableStateOf(false) }
+   LaunchedEffect(homeSceneRevealed) {
+    if(homeSceneRevealed) {
+     // Startup-only flourish. Returning from a franchise must never
+     // expose an empty purple home while its cards wait to animate.
+     delay(1900)
+     homeIntroFinished=true
+    }
+   }
+   val homeBackgroundAlpha by animateFloatAsState(
+    targetValue=if(homeSceneRevealed) 1f else 0f,
+    animationSpec=tween(durationMillis=860),
+    label="homeBackgroundAndLetteringFade"
+   )
    var selected by remember { mutableStateOf<String?>(null) }
    var home by remember { mutableStateOf(true) }
    var openingMcu by remember { mutableStateOf(false) }
@@ -201,6 +218,8 @@ class MainActivity: ComponentActivity() {
    val pendingOrder=remember { mutableStateListOf<String>() }
    var orderRevision by remember { mutableIntStateOf(0) }
    var newTitle by remember { mutableStateOf("") }
+   var newYear by remember { mutableStateOf("") }
+   var editingCustomTitle by remember { mutableStateOf<String?>(null) }
    var newKind by remember { mutableStateOf("Film") }
    var exportReport by remember { mutableStateOf<RatingExport.Report?>(null) }
    var exportError by remember { mutableStateOf<String?>(null) }
@@ -239,7 +258,7 @@ class MainActivity: ComponentActivity() {
      for(i in 0 until data.length()) add(data.optString(i))
     }
    }
-   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
+    // Palette resolved by the shared cinematic design system.
    BackHandler(enabled=true) {
     when {
      openingDc -> openingDc=false
@@ -255,13 +274,14 @@ class MainActivity: ComponentActivity() {
      else -> showExitDialog=true
     }
    }
-   val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
-   val activeDcTheme = dcCollectionRoute && !home && !openingDc
-    val activeStarWarsTheme = starWarsCollectionRoute && !home && !openingStarWars
-   val scopedAccent = if(activeStarWarsTheme) Color(0xFFD7AB48) else if(activeDcTheme) Color(0xFF438FEA) else gold
-    val scopedPalette = if(activeStarWarsTheme) darkColorScheme(primary=Color(0xFFD7AB48),background=Color(0xFF04060D),surface=Color(0xFF182033),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.Black) else if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+   val activeMcuTheme = mcuCollectionRoute && !home
+   val activeDcTheme = dcCollectionRoute && !home
+    val activeStarWarsTheme = starWarsCollectionRoute && !home
+    val visualPalette=scoriumVisualsFor(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
+    val scopedAccent=visualPalette.accent
+    val scopedPalette=scoriumColorScheme(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
    CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme, LocalStarWarsCollectionTheme provides activeStarWarsTheme) {
-   MaterialTheme(colorScheme=scopedPalette) {
+   MaterialTheme(colorScheme=scopedPalette,shapes=ScoriumShapes) {
     if(showExitDialog) AlertDialog(
      onDismissRequest={showExitDialog=false},
      title={Text("SCORIUM beenden?")},
@@ -271,8 +291,8 @@ class MainActivity: ComponentActivity() {
     )
     if(backupMessage!=null) AlertDialog(onDismissRequest={backupMessage=null},title={Text("SCORIUM-Sicherung")},text={Text(backupMessage ?: "")},confirmButton={TextButton(onClick={backupMessage=null}){Text("OK")}})
     if(exportError!=null) AlertDialog(onDismissRequest={exportError=null},title={Text("Exportfehler")},text={Text(exportError ?: "")},confirmButton={TextButton(onClick={exportError=null}){Text("OK")}})
-    ScoriumBackdrop { Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
-     if(mcuHub || dcHub) {
+    ScoriumBackdrop(rootAlpha=if(showIntro) homeBackgroundAlpha else 1f) { Column(Modifier.fillMaxSize().graphicsLayer { alpha=if(showIntro) homeBackgroundAlpha else 1f }.statusBarsPadding().navigationBarsPadding().then(if(selected!=null) Modifier.verticalScroll(rememberScrollState()) else Modifier).then(if(home) Modifier else Modifier.padding(horizontal=18.dp))) {
+     if(mcuHub || dcHub || starWarsHub) {
       Spacer(Modifier.fillMaxSize())
      } else if(home) {
       Box(Modifier.padding(horizontal=18.dp)) { ScoriumHeader() }
@@ -282,24 +302,40 @@ class MainActivity: ComponentActivity() {
       Column(Modifier.weight(1f).graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.verticalScroll(homeScroll)) {
        Text("Dein Universum",modifier=Modifier.padding(horizontal=18.dp),fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
+       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp)
+         .border(1.dp,visualPalette.border,RoundedCornerShape(18.dp)),
+         shape=RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=visualPalette.surface)) {
+         Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=18.dp),
+          verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+          Text("⌕",color=visualPalette.accent,fontSize=26.sp)
+          Text("Filme und Serien entdecken",color=visualPalette.mutedText,fontSize=15.sp)
+         }
+        }
        Spacer(Modifier.height(22.dp))
        Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
         TextButton(onClick={home=false;section="Franchises";tab="Alle"}) { Text("Alle ansehen") }
        }
        Row(Modifier.fillMaxWidth().graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.horizontalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.horizontalScroll(rememberScrollState()).padding(start=18.dp),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
-         ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
+        ScoriumCardEntrance(index=0,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
+         Box(Modifier.onGloballyPositioned { mcuTileBounds = it.boundsInWindow() }.graphicsLayer { alpha = if (openingMcu) 0f else 1f }) {
+          ScoriumCollectionTile("Marvel / MCU","Filme & Serien","collection::mcu",onClick={mcuCollectionRoute=true;openingMcu=true},onImageSaved={refresh++},revision=refresh,onPosterBounds={ mcuPosterBounds=it })
+         }
         }
-        ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
-         customCollections.forEach { collection ->
+        ScoriumCardEntrance(index=1,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
+         ScoriumCollectionTile("DC STUDIOS","Filme & Serien","collection::dc",onClick={dcCollectionRoute=true;openingDc=true},onImageSaved={refresh++},revision=refresh)
+        }
+        ScoriumCardEntrance(index=2,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
+         ScoriumCollectionTile("STAR WARS","Filme & Serien","collection::starwars",onClick={starWarsCollectionRoute=true;openingStarWars=true},onImageSaved={refresh++},revision=refresh)
+        }
+        customCollections.forEachIndexed { index,collection ->
+         ScoriumCardEntrance(index=index+3,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
           ScoriumCollectionTile(collection,"Eigene Sammlung","collection::user::$collection",onClick={activeCustomCollection=collection;mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},onImageSaved={refresh++},revision=refresh)
          }
-         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";createCollection=true},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Filme","Alle Filme","collection::films",onClick={mcuCollectionRoute=false;home=false;section="Filme";tab="Filme"},onImageSaved={refresh++},revision=refresh)
-        ScoriumCollectionTile("Serien","Alle Serien","collection::series",onClick={mcuCollectionRoute=false;home=false;section="Serien";tab="Serien"},onImageSaved={refresh++},revision=refresh)
+        }
+        ScoriumCardEntrance(index=customCollections.size+3,visible=homeSceneRevealed,startDelayMillis=970,skipAnimation=homeIntroFinished) {
+         ScoriumCollectionTile("Neue Sammlung","Eigene Liste erstellen","collection::new",onClick={newCollectionName="";home=false;section="Franchises";createCollection=true},onImageSaved={refresh++},revision=refresh)
+        }
        }
        Spacer(Modifier.height(26.dp))
        Text("Zuletzt angesehen",modifier=Modifier.padding(horizontal=18.dp),fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
@@ -374,8 +410,8 @@ class MainActivity: ComponentActivity() {
       }
       OutlinedTextField(search,{search=it},label={Text("Suchen")},modifier=Modifier.fillMaxWidth())
       Row { listOf("Alle","Filme","Serien").forEach { name -> FilterChip(selected=tab==name,onClick={tab=name},label={Text(name)});Spacer(Modifier.width(6.dp)) } }
-       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in extras } else films+extras
-       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in customSeries } else (series+customSeries).distinct()
+       val sourceFilms=if(starWarsCollectionRoute) StarWarsCatalog.films else if(dcCollectionRoute) DcCatalog.films else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it !in (series+customSeries+DcCatalog.series+StarWarsCatalog.series) } else films+extras
+       val sourceSeries=if(starWarsCollectionRoute) StarWarsCatalog.series else if(dcCollectionRoute) DcCatalog.series else if(activeCustomCollection!=null) collectionItems(activeCustomCollection!!).filter { it in (series+customSeries+DcCatalog.series+StarWarsCatalog.series) } else (series+customSeries).distinct()
        val entries=((if(tab=="Serien") emptyList() else sourceFilms)+(if(tab=="Filme") emptyList() else sourceSeries)).distinct().filter { it.contains(search,true) && (!mcuCollectionRoute || McuCatalog.inPhase(it,mcuPhase)) && (!dcCollectionRoute || DcCatalog.inSection(it,dcSection)) && (!starWarsCollectionRoute || StarWarsCatalog.inSection(it,starWarsSection)) }.sortedWith(compareBy<String> {
         if(starWarsCollectionRoute) StarWarsCatalog.releaseRank(it) else if(dcCollectionRoute) DcCatalog.releaseRank(it) else if(mcuCollectionRoute) releaseRank(it) else {
         val saved=prefs.getString("order::titles","")?.split("|") ?: emptyList()
@@ -404,12 +440,12 @@ class MainActivity: ComponentActivity() {
          editingOrder=true
         }
         Spacer(Modifier.width(8.dp))
-        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true }
+        if(activeCustomCollection!=null || BuildConfig.SCORIUM_ADMIN) SmallIconAction(Icons.Default.Add,"Titel hinzufügen") { add=true;newTitle="";newYear="" }
        }
       }
       LazyColumn(Modifier.weight(1f),state=titleListState) {
        items(visibleEntries,key={ it }) { name ->
-        val isShow=name in series || name in customSeries || name in DcCatalog.series
+        val isShow=name in series || name in customSeries || name in DcCatalog.series || name in StarWarsCatalog.series
         val value=remember(name,refresh,isShow) {
          if(isShow) {
           val count=prefs.getInt("seasons::$name",(McuCatalog.find(name) ?: DcCatalog.find(name) ?: StarWarsCatalog.find(name))?.seasons?.size ?: 1)
@@ -419,7 +455,7 @@ class MainActivity: ComponentActivity() {
         }
         Row(verticalAlignment=Alignment.CenterVertically) {
          Box(Modifier.weight(1f)) {
-          ScoriumTitleCard(name,if(isShow) "Serie" else "Film",value,null,onClick={
+          ScoriumTitleCard(name,(if(isShow) "Serie" else "Film") + ((prefs.getString("custom_year::$name",null)?.let { "($it)" } ?: ReleaseYears.label(name))?.let { " · $it" } ?: ""),value,null,onClick={
            selected=name;selectedSeason=0;selectedEpisode=0;recordRecentlyOpened(prefs,name);refresh++
           },revision=refresh)
          }
@@ -447,9 +483,76 @@ class MainActivity: ComponentActivity() {
         createCollection=false
        }){Text("Erstellen")}},
        dismissButton={TextButton(onClick={createCollection=false}){Text("Abbrechen")}})
+      if(editingCustomTitle!=null) AlertDialog(
+       onDismissRequest={editingCustomTitle=null},
+       title={Text("Eigenen Titel bearbeiten")},
+       text={Column {
+        OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
+        OutlinedTextField(newYear,{newYear=it.filter(Char::isDigit).take(4)},label={Text("Erscheinungsjahr")})
+       }},
+       confirmButton={TextButton(onClick={
+        val old=editingCustomTitle!!
+        val renamed=newTitle.trim()
+        val isCustomShow=old in customSeries
+        val occupied=(films+series+DcCatalog.films+DcCatalog.series+StarWarsCatalog.films+StarWarsCatalog.series+extras+customSeries).any { it==renamed && it!=old }
+        if(renamed.isNotBlank() && !occupied) {
+         val listKey=if(isCustomShow) "custom_series" else "custom_titles"
+         val current=runCatching { JSONArray(prefs.getString(listKey,"[]")) }.getOrDefault(JSONArray())
+         val updated=JSONArray()
+         for(i in 0 until current.length()) updated.put(if(current.optString(i)==old) renamed else current.optString(i))
+         val collections=runCatching { JSONObject(prefs.getString("user_collections","{}")) }.getOrDefault(JSONObject())
+         for(key in collections.keys().asSequence().toList()) {
+          val arr=collections.optJSONArray(key) ?: continue
+          val result=JSONArray()
+          for(i in 0 until arr.length()) result.put(if(arr.optString(i)==old) renamed else arr.optString(i))
+          collections.put(key,result)
+         }
+         val editor=prefs.edit().putString(listKey,updated.toString()).putString("user_collections",collections.toString())
+         if(newYear.length==4) editor.putString("custom_year::$renamed",newYear) else editor.remove("custom_year::$renamed")
+         if(renamed!=old) {
+          prefs.all.forEach { (key,value) ->
+           val dest=when {
+            key==old -> renamed
+            key.startsWith("$old::") -> renamed+key.removePrefix(old)
+            key=="seasons::$old" -> "seasons::$renamed"
+            key.startsWith("episodes::$old::") -> "episodes::$renamed::"+key.removePrefix("episodes::$old::")
+            key.startsWith("mode::$old::") -> "mode::$renamed::"+key.removePrefix("mode::$old::")
+            else -> null
+           }
+           if(dest!=null) {
+            when(value) {
+             is String -> editor.putString(dest,value)
+             is Int -> editor.putInt(dest,value)
+             is Boolean -> editor.putBoolean(dest,value)
+             is Long -> editor.putLong(dest,value)
+             is Float -> editor.putFloat(dest,value)
+            }
+            editor.remove(key)
+           }
+          }
+          editor.remove("custom_year::$old")
+         }
+         editor.apply()
+         selected=renamed;refresh++
+        }
+        editingCustomTitle=null
+       }) { Text("Speichern") }},
+       dismissButton={TextButton(onClick={editingCustomTitle=null}) { Text("Abbrechen") }}
+      )
       if(add) AlertDialog(onDismissRequest={add=false},title={Text("Neuer Titel")},text={
        Column {
-        OutlinedTextField(newTitle,{newTitle=it},label={Text("Name")})
+        OutlinedTextField(newTitle,{newTitle=it},label={Text("Film oder Serie suchen / neu anlegen")})
+        if(activeCustomCollection!=null && newTitle.isNotBlank()) {
+         val options=(films+series+DcCatalog.films+DcCatalog.series+StarWarsCatalog.films+StarWarsCatalog.series+extras+customSeries).distinct()
+          .filter { it.startsWith(newTitle.trim(),ignoreCase=true) && it !in collectionItems(activeCustomCollection!!) }.take(8)
+         options.forEach { match ->
+          TextButton(onClick={
+           saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+match)
+           newTitle="";add=false
+          }) { Text("+ "+match) }
+         }
+        }
+        OutlinedTextField(newYear,{newYear=it.filter(Char::isDigit).take(4)},label={Text("Erscheinungsjahr (bei neuen Titeln)")})
         Row { listOf("Film","Serie").forEach { type ->
          FilterChip(selected=newKind==type,onClick={newKind=type},label={Text(type)})
          Spacer(Modifier.width(8.dp))
@@ -467,9 +570,10 @@ class MainActivity: ComponentActivity() {
         val data=JSONArray();extras.forEach { data.put(it) }
         prefs.edit().putString("custom_titles",data.toString()).apply()
        }
-       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       if(newYear.length==4) prefs.edit().putString("custom_year::$name",newYear).apply()
        }
-       newTitle=""
+       if(activeCustomCollection!=null) saveCollection(activeCustomCollection!!,collectionItems(activeCustomCollection!!)+name)
+       newTitle="";newYear=""
       };add=false}){Text("Hinzufügen")}},
        dismissButton={TextButton(onClick={add=false}){Text("Abbrechen")}})
       }
@@ -492,10 +596,15 @@ class MainActivity: ComponentActivity() {
         val scores=(1..count).mapNotNull { seasonScore(prefs,selected!!,it) }
         if(scores.size==count) kotlin.math.round(scores.average()).toInt() else null
        } else savedPercent(prefs,selected!!,categories))
+      ReleaseYears.label(selected!!)?.let { Text((if(isSeries) "Laufzeit " else "Erscheinung ") + it.removePrefix("(").removeSuffix(")"),color=scopedAccent,fontSize=15.sp) }
+      if(isSeries && selectedSeason>0) ReleaseYears.seasonLabel(selected!!,selectedSeason)?.let { Text("Staffel $selectedSeason · $it",color=scopedAccent,fontSize=15.sp) }
       Row(Modifier.fillMaxWidth().padding(top=2.dp,bottom=4.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
        if(BuildConfig.SCORIUM_ADMIN || (selected!! !in films && selected!! !in series && selected!! !in DcCatalog.films && selected!! !in DcCatalog.series && selected!! !in StarWarsCatalog.films && selected!! !in StarWarsCatalog.series)) PosterPicker(selected!!) { refresh++ }
        SmallIconAction(Icons.Default.Refresh,"Bewertung zurücksetzen") { pendingReset=selected }
-       if((selected!! in extras || selected!! in customSeries) && (BuildConfig.SCORIUM_ADMIN || activeCustomCollection!=null)) SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       if(selected!! in extras || selected!! in customSeries) {
+        SmallIconAction(Icons.Default.Edit,"Eigenen Titel bearbeiten") { editingCustomTitle=selected;newTitle=selected!!;newYear=prefs.getString("custom_year::${selected!!}","") ?: "" }
+        SmallIconAction(Icons.Default.Delete,"Eigenen Titel löschen") { pendingDelete=selected }
+       }
        if(!isSeries) {
         val value=savedPercent(prefs,selected!!,categories)
         if(value!=null) {
@@ -599,21 +708,30 @@ class MainActivity: ComponentActivity() {
       }
      }
     } }
-    // The existing home UI is composed underneath for a seamless fade-out.
-    // Crossfade the MCU phase hub in and out over the destination content.
-    // Keep the hub as a separate layer so the selected phase list is visible underneath.
-    Crossfade(targetState=starWarsHub,animationSpec=tween(durationMillis=450),label="starWarsCollectionHubCrossfade") { visible ->
-      if(visible) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
-     }
-     if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingStarWars=false},onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
-    Crossfade(targetState=dcHub,animationSpec=tween(durationMillis=450),label="dcCollectionHubCrossfade") { visible ->
-      if(visible) DcCollectionHub(revision=refresh,onImageSaved={refresh++},onBack={dcHub=false;dcCollectionRoute=false;home=true},onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
-     }
-     if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,onComplete={openingDc=false},onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
-     Crossfade(targetState=mcuHub,animationSpec=tween(durationMillis=450),label="mcuPhaseHubCrossfade") { visible ->
-     if(visible) McuPhaseHub(revision=refresh,onImageSaved={refresh++},onBack={mcuHub=false;mcuCollectionRoute=false;home=true},onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
-    }
-    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,onComplete={openingMcu=false},onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
+    // Only one collection hub is composed at a time. Crossfade used to
+    // layer a departing hub over the newly visible screen, which created
+    // the brief purple/ghost flash on back navigation.
+    if(starWarsHub) StarWarsCollectionHub(revision=refresh,onImageSaved={refresh++},
+     onBack={starWarsHub=false;starWarsCollectionRoute=false;home=true},
+     onSection={value -> starWarsCollectionRoute=true;starWarsSection=value;starWarsHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingStarWars) StarWarsOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,
+     onComplete={openingStarWars=false},
+     onReveal={home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"},
+     onSkip={openingStarWars=false;home=false;starWarsCollectionRoute=true;starWarsHub=true;starWarsSection="Komplett"})
+    if(dcHub) DcCollectionHub(revision=refresh,onImageSaved={refresh++},
+     onBack={dcHub=false;dcCollectionRoute=false;home=true},
+     onSection={value -> dcCollectionRoute=true;dcSection=value;dcHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingDc) DcOpeningOverlay(tileBounds=null,posterBounds=null,imageRevision=refresh,
+     onComplete={openingDc=false},
+     onReveal={home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"},
+     onSkip={openingDc=false;home=false;dcCollectionRoute=true;dcHub=true;dcSection="Komplett"})
+    if(mcuHub) McuPhaseHub(revision=refresh,onImageSaved={refresh++},
+     onBack={mcuHub=false;mcuCollectionRoute=false;home=true},
+     onPhase={phase -> mcuCollectionRoute=true;mcuPhase=phase;mcuHub=false;home=false;section="Franchises";tab="Alle";search=""})
+    if(openingMcu) McuOpeningOverlay(tileBounds=mcuTileBounds,posterBounds=mcuPosterBounds,imageRevision=refresh,
+     onComplete={openingMcu=false},
+     onReveal={home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"},
+     onSkip={openingMcu=false;home=false;mcuCollectionRoute=true;mcuHub=true;mcuPhase="Komplett"})
     pendingAction?.let { action ->
      val title=when(action) {
       "import" -> "Bewertungen importieren?"
@@ -661,7 +779,7 @@ class MainActivity: ComponentActivity() {
       }) { Text("Löschen") }},
       dismissButton={TextButton(onClick={pendingDelete=null}) { Text("Abbrechen") }})
     }
-    if(showIntro) ScoriumIntroScreen(onEnter={showIntro=false})
+    if(showIntro) ScoriumIntroScreen(onReveal={homeSceneRevealed=true},onEnter={showIntro=false})
    }
    }
   }

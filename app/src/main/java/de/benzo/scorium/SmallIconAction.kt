@@ -1,6 +1,7 @@
 package de.benzo.scorium
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -13,11 +14,10 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SmallIconAction(icon:ImageVector,description:String,onClick:()->Unit) {
- val mcu=LocalMcuCollectionTheme.current
- val accent=if(mcu) Color(0xFFE94351) else Color(0xFFB59BFF)
- IconButton(onClick=onClick,modifier=Modifier.size(36.dp),
+ val v=scoriumVisuals()
+ IconButton(onClick=onClick,modifier=Modifier.size(39.dp).border(1.dp,v.border,CircleShape),
   colors=IconButtonDefaults.iconButtonColors(
-   containerColor=accent.copy(alpha=0.17f),contentColor=accent)) {
+   containerColor=v.elevated,contentColor=v.accent)) {
   Icon(imageVector=icon,contentDescription=description,modifier=Modifier.size(19.dp))
  }
 }

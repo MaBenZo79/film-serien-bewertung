@@ -16,7 +16,8 @@ object DcCatalog {
   "Superman (1978)","Superman II","Superman III","Superman IV: The Quest for Peace","Superman Returns",
   "Batman","Batman Returns","Batman Forever","Batman & Robin","Batman Begins",
   "The Dark Knight","The Dark Knight Rises","Joker","Joker: Folie à Deux",
-  "The Batman","Constantine","Watchmen","V for Vendetta","Green Lantern"
+  "The Batman","Constantine","Watchmen","V for Vendetta","Green Lantern",
+  "The LEGO Batman Movie"
  )
  val otherShows = listOf(
   ShowInfo("Smallville",listOf(21,23,22,22,22,22,20,22,21,22)),
@@ -28,7 +29,16 @@ object DcCatalog {
   ShowInfo("The Flash",listOf(23,23,23,23,22,19,18,20,13)),
   ShowInfo("Arrow",listOf(23,23,23,23,23,23,22,10)),
   ShowInfo("Superman & Lois",listOf(15,15,13,10)),
-  ShowInfo("The Sandman",listOf(11,12))
+  ShowInfo("The Sandman",listOf(11,12)),
+  ShowInfo("Supergirl (2015)",listOf(20,22,23,22,19,20)),
+  ShowInfo("Stargirl",listOf(13,13,13)),
+  ShowInfo("Black Lightning",listOf(13,16,16,13)),
+  ShowInfo("DC’s Legends of Tomorrow",listOf(16,17,18,16,15,15,13)),
+  ShowInfo("Batwoman",listOf(20,18,13)),
+  ShowInfo("Krypton",listOf(10,10)),
+  ShowInfo("Pennyworth",listOf(10,10,10)),
+  ShowInfo("Swamp Thing",listOf(10)),
+  ShowInfo("Gotham Knights",listOf(13))
  )
  val films = (dceuFilms + dcuFilms + otherFilms).distinct()
  val shows = (dcuShows + dceuShows + otherShows).distinctBy { it.title }

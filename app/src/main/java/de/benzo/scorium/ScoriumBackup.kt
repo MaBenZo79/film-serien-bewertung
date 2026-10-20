@@ -41,18 +41,10 @@ object ScoriumBackup {
     }
    }
   }
-  val folder=File(context.filesDir,"posters")
-  folder.mkdirs()
-  context.assets.list("starter/posters")?.forEach { name ->
-   if(Regex("[0-9a-f]{24}[.]jpg").matches(name)) {
-    val target=File(folder,name)
-    if(!target.exists()) context.assets.open("starter/posters/$name").use { input ->
-     val temp=File(folder,"$name.starter")
-     temp.outputStream().use { input.copyTo(it) }
-     if(!temp.renameTo(target)) { temp.copyTo(target,overwrite=true);temp.delete() }
-    }
-   }
-  }
+  // Starter posters stay bundled inside the APK and are read on demand.
+  // Do NOT duplicate 273 JPEGs into app-private storage on a fresh install.
+  // Existing files from older versions (including edited posters) are never
+  // touched; the UI always prefers those local overrides over bundled images.
   editor.putBoolean("starter_catalog_initialized",true)
   editor.putBoolean("starter_assets_v2_initialized",true)
   editor.putBoolean("starter_assets_v3_initialized",true)

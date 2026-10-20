@@ -65,7 +65,7 @@ import kotlin.math.sin
  * This is a UI animation, not a pre-rendered video.
  */
 @Composable
-fun ScoriumIntroScreen(onEnter: () -> Unit) {
+fun ScoriumIntroScreen(onReveal: () -> Unit, onEnter: () -> Unit) {
  val clouds = remember { Animatable(0f) }
  val letters = remember { Animatable(0f) }
  val kernel = remember { Animatable(0f) }
@@ -83,12 +83,13 @@ fun ScoriumIntroScreen(onEnter: () -> Unit) {
    delay(220)
    kernel.animateTo(1f, tween(950, easing = FastOutSlowInEasing))
    delay(450)
-   exit.animateTo(1f, tween(650, easing = FastOutSlowInEasing))
+   onReveal()
+   exit.animateTo(1f, tween(900, easing = FastOutSlowInEasing))
    onEnter()
   }
  }
  if(videoResource != 0) {
-  ScoriumStartupVideo(videoResource, onEnter)
+  ScoriumStartupVideo(videoResource, onReveal, onEnter)
   return
  }
 

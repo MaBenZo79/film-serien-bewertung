@@ -32,6 +32,8 @@ jobs:
           base64 --decode app/src/main/scorium_icon.png.base64 > app/src/main/res/drawable-nodpi/scorium_icon.png
           base64 --decode app/src/main/scorium_menu_background.webp.base64 > app/src/main/res/drawable-nodpi/scorium_menu_background.webp
           test -s app/src/main/res/drawable-nodpi/scorium_logo.png
+          cp scorium_dev_icon.png app/src/main/res/drawable/scorium_dev_icon.png
+          test -s app/src/main/res/drawable/scorium_dev_icon.png
           test -s app/src/main/res/drawable-nodpi/scorium_icon.png
           test -s app/src/main/res/drawable-nodpi/scorium_menu_background.webp
           file app/src/main/res/drawable-nodpi/scorium_menu_background.webp | grep -i Web/P
@@ -80,6 +82,11 @@ jobs:
           test -s app/src/main/res/drawable-nodpi/scorium_intro_fog.png
           test -s app/src/main/res/drawable-nodpi/scorium_intro_wordmark.png
           test -s app/src/main/res/drawable-nodpi/scorium_intro_kernel.png
+      - name: Optimise bundled DEV posters without touching originals
+        if: github.ref_name == 'admin' || github.head_ref == 'admin'
+        run: |
+          python .github/scripts/optimize_posters.py app/src/main/assets/starter/posters
+          test "$(find app/src/main/assets/starter/posters -name '*.jpg' | wc -l)" -eq 273
       - name: Restore persistent signing key
         env:
           SCORIUM_KEYSTORE_BASE64: ${{ secrets.SCORIUM_KEYSTORE_BASE64 }}
