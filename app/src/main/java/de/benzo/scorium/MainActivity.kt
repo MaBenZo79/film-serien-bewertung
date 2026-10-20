@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.foundation.clickable
@@ -241,7 +242,7 @@ class MainActivity: ComponentActivity() {
      for(i in 0 until data.length()) add(data.optString(i))
     }
    }
-   val palette=darkColorScheme(primary=gold,background=navy,surface=Color(0xFF182235),onSurface=Color.White,onBackground=Color.White,onPrimary=navy,onSurfaceVariant=Color(0xFFB6C4D5))
+    // Palette resolved by the shared cinematic design system.
    BackHandler(enabled=true) {
     when {
      openingDc -> openingDc=false
@@ -260,10 +261,11 @@ class MainActivity: ComponentActivity() {
    val activeMcuTheme = mcuCollectionRoute && !home && !openingMcu
    val activeDcTheme = dcCollectionRoute && !home && !openingDc
     val activeStarWarsTheme = starWarsCollectionRoute && !home && !openingStarWars
-   val scopedAccent = if(activeStarWarsTheme) Color(0xFFD7AB48) else if(activeDcTheme) Color(0xFF438FEA) else gold
-    val scopedPalette = if(activeStarWarsTheme) darkColorScheme(primary=Color(0xFFD7AB48),background=Color(0xFF04060D),surface=Color(0xFF182033),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.Black) else if(activeDcTheme) darkColorScheme(primary=Color(0xFF438FEA),background=Color(0xFF06152D),surface=Color(0xFF102E58),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFA9C6E6)) else if(activeMcuTheme) darkColorScheme(primary=Color(0xFFEF3945),background=Color(0xFF150306),surface=Color(0xFF30090F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,onSurfaceVariant=Color(0xFFFFC3C7)) else palette
+    val visualPalette=scoriumVisualsFor(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
+    val scopedAccent=visualPalette.accent
+    val scopedPalette=scoriumColorScheme(activeMcuTheme,activeDcTheme,activeStarWarsTheme)
    CompositionLocalProvider(LocalMcuCollectionTheme provides activeMcuTheme, LocalDcCollectionTheme provides activeDcTheme, LocalStarWarsCollectionTheme provides activeStarWarsTheme) {
-   MaterialTheme(colorScheme=scopedPalette) {
+   MaterialTheme(colorScheme=scopedPalette,shapes=ScoriumShapes) {
     if(showExitDialog) AlertDialog(
      onDismissRequest={showExitDialog=false},
      title={Text("SCORIUM beenden?")},
@@ -284,7 +286,15 @@ class MainActivity: ComponentActivity() {
       Column(Modifier.weight(1f).graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }.drawWithContent { drawContent(); drawRect(brush=androidx.compose.ui.graphics.Brush.verticalGradient(0f to androidx.compose.ui.graphics.Color.Transparent, 0.045f to androidx.compose.ui.graphics.Color.White, 0.955f to androidx.compose.ui.graphics.Color.White, 1f to androidx.compose.ui.graphics.Color.Transparent), blendMode=androidx.compose.ui.graphics.BlendMode.DstIn) }.verticalScroll(homeScroll)) {
        Text("Dein Universum",modifier=Modifier.padding(horizontal=18.dp),fontSize=29.sp,fontWeight=FontWeight.Bold,color=Color.White)
        Spacer(Modifier.height(14.dp))
-       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1A233D))) { Text("⌕  Filme und Serien suchen …",modifier=Modifier.padding(horizontal=18.dp,vertical=22.dp),color=Color(0xFFB5B7CD),fontSize=16.sp) }
+       Card(onClick={mcuCollectionRoute=false;dcCollectionRoute=false;home=false;section="Franchises";tab="Alle";search=""},modifier=Modifier.fillMaxWidth().padding(horizontal=18.dp)
+         .border(1.dp,visualPalette.border,RoundedCornerShape(18.dp)),
+         shape=RoundedCornerShape(18.dp),colors=CardDefaults.cardColors(containerColor=visualPalette.surface)) {
+         Row(Modifier.fillMaxWidth().padding(horizontal=17.dp,vertical=18.dp),
+          verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+          Text("⌕",color=visualPalette.accent,fontSize=26.sp)
+          Text("Filme und Serien entdecken",color=visualPalette.mutedText,fontSize=15.sp)
+         }
+        }
        Spacer(Modifier.height(22.dp))
        Row(Modifier.fillMaxWidth().padding(horizontal=18.dp),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically) {
         Text("Meine Sammlungen",fontSize=21.sp,fontWeight=FontWeight.Bold,color=Color.White)
