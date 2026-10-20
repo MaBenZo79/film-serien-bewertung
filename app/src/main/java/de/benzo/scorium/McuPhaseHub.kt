@@ -16,11 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val mcuRed = Color(0xFFCE232D)
 
 /** Two-column MCU hub; every image tile has the same fixed 4:3 aspect ratio. */
 @Composable
@@ -30,16 +30,17 @@ fun McuPhaseHub(
     onBack: () -> Unit,
     onPhase: (String) -> Unit
 ) {
+    val v=scoriumVisuals()
     Column(
         Modifier.fillMaxSize()
-            .background(Color(0xFF300407))
+            .background(Brush.verticalGradient(listOf(v.backdrop,v.surface,v.elevated,v.backdrop)))
             .statusBarsPadding()
             .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 18.dp)
     ) {
         Spacer(Modifier.height(16.dp))
-        TextButton(onClick = onBack) { Text("← SCORIUM", color = Color.White) }
+        TextButton(onClick = onBack) { Text("← SCORIUM", color = v.mutedText) }
         Spacer(Modifier.height(22.dp))
         Image(
             painter = painterResource(R.drawable.scorium_mcu_logo),
@@ -57,7 +58,7 @@ fun McuPhaseHub(
                             Modifier.fillMaxWidth()
                                 .aspectRatio(4f / 3f)
                                 .clip(RoundedCornerShape(14.dp))
-                                .border(1.5.dp, mcuRed, RoundedCornerShape(14.dp))
+                                .border(1.5.dp, v.accent, RoundedCornerShape(14.dp))
                                 .clickable { onPhase(phase) }
                         ) {
                             ScoriumPoster(
@@ -65,12 +66,12 @@ fun McuPhaseHub(
                                 Modifier.fillMaxSize(),
                                 revision = revision,
                                 isCollection = true,
-                                borderColor = mcuRed
+                                borderColor = v.accent
                             )
                             Box(
                                 Modifier.align(Alignment.BottomStart)
                                     .fillMaxWidth()
-                                    .background(Color(0xCC300407))
+                                    .background(v.inset.copy(alpha=0.94f))
                                     .padding(horizontal = 10.dp, vertical = 7.dp)
                             ) {
                                 Text(phase, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
